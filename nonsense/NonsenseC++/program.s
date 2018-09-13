@@ -12,10 +12,10 @@ sub %esp, 64
 ; identifier: ID:a:-4
 ; integer: 10
 ; expression:integer: 10
-; assignment: ID:a:-4 <- 10
+; assignment: ID:a:-4 <- 0xa
 ; identifier: ID:a:-4
 ; expression:integer: ID:a:-4
-; output: -1918611696
+; output: 0x55636aaa8f10
 push dword ptr [%ebp-4]
 push offset flat:.io_format
 call printf

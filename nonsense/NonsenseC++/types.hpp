@@ -19,6 +19,10 @@ struct Identifier {
     int offset;
 };
 
+class Expression {
+
+};
+
 class SymbolTable {
 public:
     SymbolTable();
