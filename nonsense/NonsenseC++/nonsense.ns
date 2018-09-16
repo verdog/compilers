@@ -1,0 +1,8 @@
+begin;
+a = 4;
+b = 2;
+c = b * a;
+output(c);
+c = a * b;
+output(c);
+end;

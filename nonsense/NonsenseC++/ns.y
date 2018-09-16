@@ -49,8 +49,9 @@ SymbolTable g_symbol_table;
 %left O_PLUS O_MINUS
 %left O_MULT O_DIV
 %left O_NEG
-
 %right O_EXP
+
+%left O_PAREN
 
 %%
 
@@ -67,44 +68,103 @@ statement:
 |   output O_SEMI {;}
 
 assignment: identifier O_EQ expression {
-	std::cout << "; assignment: " << $1 << " <- " << $3 << std::endl;
+	std::cout << "// assignment: " << $1 << " <- " << $3 << std::endl;
+	std::string location = $3->location;
+	std::cout <<
+		"mov %eax, " << location << std::endl <<
+		"mov dword ptr [%ebp" << $1->offset << "], %eax" << std::endl
+	;
+
+	// clean up
+	delete $3;
 }
 
 output: O_OUTPUT O_LPAREN expression O_RPAREN {
-	std::cout << "; output: " << $3 << "\n";
+	std::cout << "// output: " << $3 << "\n";
 	std::cout <<
-	"push dword ptr [%ebp-4]\n"
+	"push " + $3->location + "\n"
 	"push offset flat:.io_format\n"
 	"call printf\n"
 	"add %esp, 8\n"
 	;
+
+	// clean up
+	delete $3;
 }
 
 expression: 
 	integer { 
-		std::cout << "; expression:integer: " << $1 << "\n";
+		std::cout << "// expression:integer: " << $1 << "\n";
+		Expression *val = new Expression;
+		val->location = std::to_string($1);
+		$$ = val;
 	}
 |   identifier { 
-		std::cout << "; expression:integer: " << $1 << "\n";
+		std::cout << "// expression:identifier: " << $1 << "\n";
+		Expression *val = new Expression;
+		val->location = "dword ptr [%ebp" + std::to_string($1->offset) + "]";
+		$$ = val;
 	}
-|   expression O_PLUS expression {  }
-|   expression O_MINUS expression {  }
-|   expression O_MULT expression {  }
+|   expression O_PLUS expression { 
+		std::cout << "// addition: " << $1 << " + " << $3 << std::endl;
+		Expression *val = new Expression;
+		val->location = "%eax";
+		std::cout <<
+			"mov %eax, " + $1->location + "\n"
+			"add %eax, " + $3->location + "\n"
+		;
+		$$ = val;
+
+		//clean up
+		delete $1;
+		delete $3;
+	}
+|   expression O_MINUS expression {
+		std::cout << "// subtraction: " << $1 << " - " << $3 << std::endl;
+		Expression *val = new Expression;
+		val->location = "%eax";
+		std::cout <<
+			"mov %eax, " + $1->location + "\n"
+			"sub %eax, " + $3->location + "\n"
+		;
+		$$ = val;
+
+		//clean up
+		delete $1;
+		delete $3;
+	}
+|   expression O_MULT expression { 
+		std::cout << "// mulitplication: " << $1 << " * " << $3 << std::endl; 
+		Expression *val = new Expression;
+		val->location = "%eax";
+		std::cout <<
+			"mov %eax, " + $1->location + "\n"
+			"imul %eax, " + $3->location + "\n"
+		;
+		$$ = val;
+
+		//clean up
+		delete $1;
+		delete $3;
+	}
 |   expression O_DIV expression {  }
 |   O_MINUS expression %prec O_NEG {  }
 |   expression O_EXP expression { 
+	}
+| 	O_LPAREN expression O_RPAREN %prec O_PAREN {
+		std::cout << "// expression:parens: " << $2 << "\n"; $$ = $2;
 	}
          
 identifier: O_IDENTIFIER {
 	std::string key = yytext;
 	Identifier *id_ptr = g_symbol_table.lookup(key);
 	$$ = id_ptr;
-	std::cout << "; identifier: " << $$ << "\n";
+	std::cout << "// identifier: " << $$ << "\n";
 }
 
 integer: O_INTEGER {
 	$$ = yylval.val;
-	std::cout << "; integer: " << $$ << "\n";
+	std::cout << "// integer: " << $$ << "\n";
 }
 
 %%

@@ -10,6 +10,14 @@ std::ostream &operator<<(std::ostream &os, Identifier const *id) {
     return os << "ID:" << id->key << ":" << id->offset;
 }
 
+std::ostream &operator<<(std::ostream &os, Expression const &exp) { 
+    return os << exp.location;
+}
+
+std::ostream &operator<<(std::ostream &os, Expression const *exp) { 
+    return os << exp->location;
+}
+
 SymbolTable::SymbolTable() {
     m_next_offset = -4;
 }

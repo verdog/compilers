@@ -19,9 +19,15 @@ struct Identifier {
     int offset;
 };
 
-class Expression {
+std::ostream &operator<<(std::ostream &os, Identifier const &id);
+std::ostream &operator<<(std::ostream &os, Identifier const *id);
 
+struct Expression {
+    std::string location;
 };
+
+std::ostream &operator<<(std::ostream &os, Expression const &id);
+std::ostream &operator<<(std::ostream &os, Expression const *id);
 
 class SymbolTable {
 public:
@@ -34,6 +40,3 @@ private:
     std::unordered_map<std::string, Identifier*> m_map;
     int m_next_offset;
 };
-
-std::ostream &operator<<(std::ostream &os, Identifier const &id);
-std::ostream &operator<<(std::ostream &os, Identifier const *id);
