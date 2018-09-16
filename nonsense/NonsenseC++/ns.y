@@ -17,6 +17,9 @@ int yyerror (std::string msg);
 // global symbol table
 SymbolTable g_symbol_table;
 
+// global register manager
+RegisterManager g_register_manager;
+
 %}
 
 %start program
@@ -77,6 +80,7 @@ assignment: identifier O_EQ expression {
 
 	// clean up
 	delete $3;
+	g_register_manager.clear_all();
 }
 
 output: O_OUTPUT O_LPAREN expression O_RPAREN {
@@ -90,6 +94,7 @@ output: O_OUTPUT O_LPAREN expression O_RPAREN {
 
 	// clean up
 	delete $3;
+	g_register_manager.clear_all();
 }
 
 expression: 
@@ -99,19 +104,22 @@ expression:
 		val->location = std::to_string($1);
 		$$ = val;
 	}
+
 |   identifier { 
 		std::cout << "// expression:identifier: " << $1 << "\n";
 		Expression *val = new Expression;
 		val->location = "dword ptr [%ebp" + std::to_string($1->offset) + "]";
 		$$ = val;
 	}
+
 |   expression O_PLUS expression { 
 		std::cout << "// addition: " << $1 << " + " << $3 << std::endl;
 		Expression *val = new Expression;
-		val->location = "%eax";
+		val->location = g_register_manager.get_free_register();
 		std::cout <<
 			"mov %eax, " + $1->location + "\n"
 			"add %eax, " + $3->location + "\n"
+			"mov " + val->location + ", %eax\n"
 		;
 		$$ = val;
 
@@ -119,13 +127,15 @@ expression:
 		delete $1;
 		delete $3;
 	}
+
 |   expression O_MINUS expression {
 		std::cout << "// subtraction: " << $1 << " - " << $3 << std::endl;
 		Expression *val = new Expression;
-		val->location = "%eax";
+		val->location = g_register_manager.get_free_register();
 		std::cout <<
 			"mov %eax, " + $1->location + "\n"
 			"sub %eax, " + $3->location + "\n"
+			"mov " + val->location + ", %eax\n"
 		;
 		$$ = val;
 
@@ -133,13 +143,15 @@ expression:
 		delete $1;
 		delete $3;
 	}
+
 |   expression O_MULT expression { 
 		std::cout << "// mulitplication: " << $1 << " * " << $3 << std::endl; 
 		Expression *val = new Expression;
-		val->location = "%eax";
+		val->location = g_register_manager.get_free_register();
 		std::cout <<
 			"mov %eax, " + $1->location + "\n"
 			"imul %eax, " + $3->location + "\n"
+			"mov " + val->location + ", %eax\n"
 		;
 		$$ = val;
 
@@ -147,10 +159,43 @@ expression:
 		delete $1;
 		delete $3;
 	}
-|   expression O_DIV expression {  }
-|   O_MINUS expression %prec O_NEG {  }
+	
+|   expression O_DIV expression { 
+		std::cout << "// division: " << $1 << " / " << $3 << std::endl;
+		Expression *val = new Expression;
+		val->location = g_register_manager.get_free_register();
+		std::cout <<
+			"mov %eax, " + $1->location + "\n" 
+			"mov %ebx, " + $3->location + "\n"
+			"cdq\n"
+			"idiv %ebx\n"
+			"mov " + val->location + ", %eax\n"
+		;
+		$$ = val;
+
+		// clean up
+		delete $1;
+		delete $3;
+ 	}
+
+|   O_MINUS expression %prec O_NEG { 
+		std::cout << "// negative: 0 - " << $2 << std::endl;
+		Expression *val = new Expression;
+		val->location = g_register_manager.get_free_register();
+		std::cout <<
+			"mov %eax, 0\n"
+			"sub %eax, " + $2->location + "\n"
+			"mov " + val->location + ", %eax\n"
+		; 
+		$$ = val;
+
+		// clean up
+		delete $2;
+ 	}
+
 |   expression O_EXP expression { 
 	}
+
 | 	O_LPAREN expression O_RPAREN %prec O_PAREN {
 		std::cout << "// expression:parens: " << $2 << "\n"; $$ = $2;
 	}
@@ -191,6 +236,7 @@ void output_header() {
 
 void output_footer() {
 	std::cout <<
+	"mov %eax, 0\n" // return value of 0
 	"leave\n"
 	"ret\n";
 }

@@ -45,3 +45,54 @@ Identifier* SymbolTable::allocate(std::string key) {
         return m_map[key];
     }
 }
+
+RegisterManager::RegisterManager() {
+    // all registers are free
+    m_register_map["%ecx"] = true;
+    m_register_map["%edx"] = true;
+    m_register_map["%esi"] = true;
+    m_register_map["%edi"] = true;
+
+    m_allocated_bytes = 0;
+}
+
+std::string RegisterManager::get_free_register() {
+    std::cout << "// obtaining free location... ";
+    for (auto &map_pair : m_register_map) {
+        if (map_pair.second == true) {
+            map_pair.second = false;
+            std::cout << "got " << map_pair.first << "!\n";
+            return map_pair.first;
+        }
+    }
+
+    // full map. allocate a spot in memory.
+    m_allocated_bytes += 4;
+    std::string location = "dword ptr [%ebp-" + std::to_string(64 + m_allocated_bytes) + "]";
+    std::cout << "got " << location << "!\n";
+
+    std::cout <<
+        "sub %esp, 4\n"
+    ;
+
+    return location;
+}
+
+bool RegisterManager::get_eligibility(std::string location) {
+    if (m_register_map.count(location) == 1) {
+        return m_register_map.at(location);
+    } else if (m_memory_map.count(location) == 1) {
+        return m_memory_map.at(location);
+    } else {
+        return false;
+    }
+}
+
+void RegisterManager::clear_all() {
+    std::cout << "// clearing the register manager...\n";
+    for (auto &map_pair : m_register_map) {
+        map_pair.second = true;
+    }
+
+    std::cout << "add %esp, " << m_allocated_bytes << std::endl;
+}

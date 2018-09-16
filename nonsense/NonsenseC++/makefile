@@ -2,7 +2,7 @@ OBJS = ns.tab.o lex.yy.o types.o
 nsc: $(OBJS)
 	g++ -g $(OBJS) -o $@
 
-types.o: types.hpp
+types.o: types.cpp types.hpp
 	g++ -g -c types.cpp
 
 ns.tab.o: ns.y
