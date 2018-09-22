@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "*.tcc": "cpp",
-        "unordered_map": "cpp",
-        "vector": "cpp",
-        "system_error": "cpp",
-        "iosfwd": "cpp"
-    }
-}
