@@ -158,6 +158,7 @@ expression:
 		std::cout << "// mulitplication: " << $1 << " * " << $3 << std::endl; 
 		Expression *val = new Expression;
 		val->location = g_register_manager.get_free_register();
+
 		std::cout <<
 			"mov %eax, " + $1->location + "\n"
 			"imul %eax, " + $3->location + "\n"
@@ -232,7 +233,20 @@ expression:
 		std::string label_end = label_loop + "_end";
 
 		std::string location_base = g_register_manager.get_free_register();
+		// math location cannot be edx
+		if (location_base == "%edx") {
+			std::cout << "// /!\\ location_base cannot be %edx\n";
+			location_base = g_register_manager.get_free_register();
+			g_register_manager.clear_single("%edx");
+		}
+
 		std::string location_exponent = g_register_manager.get_free_register();
+		// math location cannot be edx
+		if (location_exponent == "%edx") {
+			std::cout << "// /!\\ location_exponent cannot be %edx\n";
+			location_exponent = g_register_manager.get_free_register();
+			g_register_manager.clear_single("%edx");
+		}
 
 		std::string location_result = g_register_manager.get_free_register();
 		val->location = location_result;
