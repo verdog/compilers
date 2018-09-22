@@ -177,6 +177,14 @@ expression:
 		Expression *val = new Expression;
 		val->location = g_register_manager.get_free_register();
 		std::string math_location = g_register_manager.get_free_register();
+
+		// math location cannot be edx
+		if (math_location == "%edx") {
+			std::cout << "// /!\\ math_location cannot be %edx\n";
+			math_location = g_register_manager.get_free_register();
+			g_register_manager.clear_single("%edx");
+		}
+
 		std::cout <<
 			"mov %eax, " + $1->location + "\n" 
 			"mov " + math_location + ", " + $3->location + "\n"
@@ -262,12 +270,12 @@ identifier: O_IDENTIFIER {
 	std::string key = yytext;
 	Identifier *id_ptr = g_symbol_table.lookup(key);
 	$$ = id_ptr;
-	std::cout << "// identifier: " << $$ << "\n";
+	// std::cout << "// identifier: " << $$ << "\n";
 }
 
 integer: O_INTEGER {
 	$$ = yylval.val;
-	std::cout << "// integer: " << $$ << "\n";
+	// std::cout << "// integer: " << $$ << "\n";
 }
 
 %%

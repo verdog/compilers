@@ -1,4 +1,6 @@
+SRC = ./test_programs/ten.ns
 OBJS = ns.tab.o lex.yy.o types.o
+
 nsc: $(OBJS)
 	g++ -g $(OBJS) -o $@
 
@@ -17,12 +19,12 @@ lex.yy.o: ns.l
 clean:
 	/bin/rm -f *.o *~ *.tab.c *.tab.h nsc program.S
 
-program.S: nonsense.ns nsc
-	cat nonsense.ns | ./nsc > program.S
+program.S: $(SRC) nsc
+	cat $(SRC) | ./nsc > program.S
 
-bin: nonsense.ns program.S
+bin: $(SRC) program.S
 	scp ./program.S ub32:~/Code/compilers/nonsense
 	ssh ub32 'cd ~/Code/compilers/nonsense && g++ program.S -o bin'
 
-test: nonsense.ns program.S
+test: $(SRC) program.S
 	ssh ub32 'cd ~/Code/compilers/nonsense && ./bin'
