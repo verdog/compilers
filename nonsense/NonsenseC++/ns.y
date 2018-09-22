@@ -9,6 +9,7 @@
 
 extern int yylineno;
 extern char *yytext;
+extern FILE* yyin;
 
 extern int yylex(void);
 
@@ -307,8 +308,21 @@ void output_footer() {
 	"ret\n";
 }
 
-main() {
+int main(int argc, char *argv[]) {
+	if (argc != 2) {
+		std::cout << "Usage: ./nsc <file.ns>\n";
+		std::exit(1);
+	}
+
+	yyin = fopen(argv[1], "r");
+	if (!yyin) {
+		std::cout << "Error opening " << argv[1] << "!\n";
+		std::exit(1);
+	}
+
 	output_header();
    	yyparse();
 	output_footer();
+    
+	fclose(yyin);
 }

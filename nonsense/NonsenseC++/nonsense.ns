@@ -1,4 +1,3 @@
 begin;
-c = 2 ^ 2 ^ 2;
-output(c);
+c = 1;
 end;

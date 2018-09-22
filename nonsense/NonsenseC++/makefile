@@ -9,7 +9,6 @@ types.o: types.cpp types.hpp
 
 ns.tab.o: ns.y
 	bison -d ns.y
-	bison ns.y
 	g++ -g -c ns.tab.c
 
 lex.yy.o: ns.l
@@ -20,11 +19,18 @@ clean:
 	/bin/rm -f *.o *~ *.tab.c *.tab.h nsc program.S
 
 program.S: $(SRC) nsc
-	cat $(SRC) | ./nsc > program.S
+	./nsc $(SRC) > program.S
 
 bin: $(SRC) program.S
-	scp ./program.S ub32:~/Code/compilers/nonsense
-	ssh ub32 'cd ~/Code/compilers/nonsense && g++ program.S -o bin'
+	g++ program.S -o bin
 
-test: $(SRC) program.S
-	ssh ub32 'cd ~/Code/compilers/nonsense && ./bin'
+test: bin
+	./bin
+
+# these were used to automatically compile on a VM.
+remote-bin: $(SRC) program.S
+	scp ./program.S ub32:~/Code/compilers/nonsense
+	ssh ub32 'cd ~/Code/compilers/nonsense && g++ program.S -o remote-bin'
+
+remote-test: remote-bin
+	ssh ub32 'cd ~/Code/compilers/nonsense && ./remote-bin'
