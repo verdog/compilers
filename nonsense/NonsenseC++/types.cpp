@@ -23,7 +23,7 @@ SymbolTable::SymbolTable() {
 }
 
 SymbolTable::~SymbolTable() {
-    // todo: clear all elements in map.
+    m_map.clear();
 }
 
 Identifier* SymbolTable::lookup(std::string key) {
@@ -88,11 +88,25 @@ bool RegisterManager::get_eligibility(std::string location) {
     }
 }
 
+void RegisterManager::clear_single(std::string location) {
+    std::cout << "// clearing register " << location << std::endl;
+    if (m_register_map.count(location) == 1) {
+        m_register_map[location] = true;
+    } else if (m_memory_map.count(location) == 1) {
+        m_memory_map[location] = true;
+    } else {
+        std::cout << "// /!\\ tried to clear a nonexistant register \n";
+    }
+}
+
 void RegisterManager::clear_all() {
     std::cout << "// clearing the register manager...\n";
     for (auto &map_pair : m_register_map) {
         map_pair.second = true;
     }
 
-    std::cout << "add %esp, " << m_allocated_bytes << std::endl;
+    if (m_allocated_bytes > 0) {
+        std::cout << "add %esp, " << m_allocated_bytes << std::endl;
+        m_allocated_bytes = 0;
+    }
 }

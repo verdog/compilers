@@ -465,8 +465,8 @@ static const yytype_uint8 yytranslate[] =
 static const yytype_uint8 yyrline[] =
 {
        0,    62,    62,    63,    66,    67,    70,    71,    73,    86,
-     101,   108,   115,   131,   147,   163,   181,   196,   199,   203,
-     210
+     101,   108,   115,   134,   153,   172,   194,   212,   215,   219,
+     226
 };
 #endif
 
@@ -1367,15 +1367,18 @@ yyreduce:
 		;
 		(yyval.expression) = val;
 
+		// clear registers
+		g_register_manager.clear_single((yyvsp[-2].expression)->location);
+
 		//clean up
 		delete (yyvsp[-2].expression);
 		delete (yyvsp[0].expression);
 	}
-#line 1375 "ns.tab.c" /* yacc.c:1646  */
+#line 1378 "ns.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 131 "ns.y" /* yacc.c:1646  */
+#line 134 "ns.y" /* yacc.c:1646  */
     {
 		std::cout << "// subtraction: " << (yyvsp[-2].expression) << " - " << (yyvsp[0].expression) << std::endl;
 		Expression *val = new Expression;
@@ -1387,15 +1390,18 @@ yyreduce:
 		;
 		(yyval.expression) = val;
 
+		// clear registers
+		g_register_manager.clear_single((yyvsp[-2].expression)->location);
+
 		//clean up
 		delete (yyvsp[-2].expression);
 		delete (yyvsp[0].expression);
 	}
-#line 1395 "ns.tab.c" /* yacc.c:1646  */
+#line 1401 "ns.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 147 "ns.y" /* yacc.c:1646  */
+#line 153 "ns.y" /* yacc.c:1646  */
     { 
 		std::cout << "// mulitplication: " << (yyvsp[-2].expression) << " * " << (yyvsp[0].expression) << std::endl; 
 		Expression *val = new Expression;
@@ -1407,15 +1413,18 @@ yyreduce:
 		;
 		(yyval.expression) = val;
 
+		// clear registers
+		g_register_manager.clear_single((yyvsp[-2].expression)->location);
+
 		//clean up
 		delete (yyvsp[-2].expression);
 		delete (yyvsp[0].expression);
 	}
-#line 1415 "ns.tab.c" /* yacc.c:1646  */
+#line 1424 "ns.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 163 "ns.y" /* yacc.c:1646  */
+#line 172 "ns.y" /* yacc.c:1646  */
     { 
 		std::cout << "// division: " << (yyvsp[-2].expression) << " / " << (yyvsp[0].expression) << std::endl;
 		Expression *val = new Expression;
@@ -1429,69 +1438,76 @@ yyreduce:
 		;
 		(yyval.expression) = val;
 
+		// clear registers
+		g_register_manager.clear_single((yyvsp[-2].expression)->location);
+		g_register_manager.clear_single((yyvsp[0].expression)->location);
+
 		// clean up
 		delete (yyvsp[-2].expression);
 		delete (yyvsp[0].expression);
  	}
-#line 1437 "ns.tab.c" /* yacc.c:1646  */
+#line 1450 "ns.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 181 "ns.y" /* yacc.c:1646  */
+#line 194 "ns.y" /* yacc.c:1646  */
     { 
-		std::cout << "// negative: 0 - " << (yyvsp[0].expression) << std::endl;
+		std::cout << "// negative: " << (yyvsp[0].expression) << std::endl;
+
 		Expression *val = new Expression;
 		val->location = g_register_manager.get_free_register();
+
 		std::cout <<
-			"mov %eax, 0\n"
-			"sub %eax, " + (yyvsp[0].expression)->location + "\n"
-			"mov " + val->location + ", %eax\n"
+			"mov " + val->location + ", " + (yyvsp[0].expression)->location + "\n"
+			"neg " + val->location + "\n"
 		; 
 		(yyval.expression) = val;
 
 		// clean up
+		g_register_manager.clear_single((yyvsp[0].expression)->location);
+
 		delete (yyvsp[0].expression);
  	}
-#line 1456 "ns.tab.c" /* yacc.c:1646  */
+#line 1472 "ns.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 196 "ns.y" /* yacc.c:1646  */
+#line 212 "ns.y" /* yacc.c:1646  */
     { 
 	}
-#line 1463 "ns.tab.c" /* yacc.c:1646  */
+#line 1479 "ns.tab.c" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 199 "ns.y" /* yacc.c:1646  */
+#line 215 "ns.y" /* yacc.c:1646  */
     {
 		std::cout << "// expression:parens: " << (yyvsp[-1].expression) << "\n"; (yyval.expression) = (yyvsp[-1].expression);
 	}
-#line 1471 "ns.tab.c" /* yacc.c:1646  */
+#line 1487 "ns.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 203 "ns.y" /* yacc.c:1646  */
+#line 219 "ns.y" /* yacc.c:1646  */
     {
 	std::string key = yytext;
 	Identifier *id_ptr = g_symbol_table.lookup(key);
 	(yyval.identifier) = id_ptr;
 	std::cout << "// identifier: " << (yyval.identifier) << "\n";
 }
-#line 1482 "ns.tab.c" /* yacc.c:1646  */
+#line 1498 "ns.tab.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 210 "ns.y" /* yacc.c:1646  */
+#line 226 "ns.y" /* yacc.c:1646  */
     {
 	(yyval.val) = yylval.val;
 	std::cout << "// integer: " << (yyval.val) << "\n";
 }
-#line 1491 "ns.tab.c" /* yacc.c:1646  */
+#line 1507 "ns.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1495 "ns.tab.c" /* yacc.c:1646  */
+#line 1511 "ns.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1719,7 +1735,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 215 "ns.y" /* yacc.c:1906  */
+#line 231 "ns.y" /* yacc.c:1906  */
 
 
 int yyerror(std::string msg) {
@@ -1749,8 +1765,7 @@ void output_footer() {
 	"ret\n";
 }
 
-main()
-{
+main() {
 	output_header();
    	yyparse();
 	output_footer();

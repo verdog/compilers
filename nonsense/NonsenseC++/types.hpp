@@ -47,6 +47,7 @@ public:
 
     std::string get_free_register();
     bool get_eligibility(std::string reg);
+    void clear_single(std::string location);
     void clear_all();
 private:
     std::unordered_map<std::string, bool> m_register_map;

@@ -20,9 +20,9 @@ clean:
 program.S: nonsense.ns nsc
 	cat nonsense.ns | ./nsc > program.S
 
-bin: program.S
+bin: nonsense.ns program.S
 	scp ./program.S ub32:~/Code/compilers/nonsense
 	ssh ub32 'cd ~/Code/compilers/nonsense && g++ program.S -o bin'
 
-test: program.S
+test: nonsense.ns program.S
 	ssh ub32 'cd ~/Code/compilers/nonsense && ./bin'

@@ -123,6 +123,9 @@ expression:
 		;
 		$$ = val;
 
+		// clear registers
+		g_register_manager.clear_single($1->location);
+
 		//clean up
 		delete $1;
 		delete $3;
@@ -139,6 +142,9 @@ expression:
 		;
 		$$ = val;
 
+		// clear registers
+		g_register_manager.clear_single($1->location);
+
 		//clean up
 		delete $1;
 		delete $3;
@@ -154,6 +160,9 @@ expression:
 			"mov " + val->location + ", %eax\n"
 		;
 		$$ = val;
+
+		// clear registers
+		g_register_manager.clear_single($1->location);
 
 		//clean up
 		delete $1;
@@ -173,23 +182,30 @@ expression:
 		;
 		$$ = val;
 
+		// clear registers
+		g_register_manager.clear_single($1->location);
+		g_register_manager.clear_single($3->location);
+
 		// clean up
 		delete $1;
 		delete $3;
  	}
 
 |   O_MINUS expression %prec O_NEG { 
-		std::cout << "// negative: 0 - " << $2 << std::endl;
+		std::cout << "// negative: " << $2 << std::endl;
+
 		Expression *val = new Expression;
 		val->location = g_register_manager.get_free_register();
+
 		std::cout <<
-			"mov %eax, 0\n"
-			"sub %eax, " + $2->location + "\n"
-			"mov " + val->location + ", %eax\n"
+			"mov " + val->location + ", " + $2->location + "\n"
+			"neg " + val->location + "\n"
 		; 
 		$$ = val;
 
 		// clean up
+		g_register_manager.clear_single($2->location);
+
 		delete $2;
  	}
 
@@ -241,8 +257,7 @@ void output_footer() {
 	"ret\n";
 }
 
-main()
-{
+main() {
 	output_header();
    	yyparse();
 	output_footer();
