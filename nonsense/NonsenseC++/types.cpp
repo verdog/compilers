@@ -100,7 +100,7 @@ void RegisterManager::clear_single(std::string location) {
 }
 
 void RegisterManager::clear_all() {
-    std::cout << "// re-openning all registers/temporary memory...\n";
+    std::cout << "// re-openning all registers and temporary memory...\n";
     for (auto &map_pair : m_register_map) {
         map_pair.second = true;
     }
@@ -109,4 +109,12 @@ void RegisterManager::clear_all() {
         std::cout << "add %esp, " << m_allocated_bytes << std::endl;
         m_allocated_bytes = 0;
     }
+}
+
+LoopManager::LoopManager() {
+    m_next_loop_number = 0;
+}
+
+std::string LoopManager::generate_unique_label() {
+    return "loop_" + std::to_string(m_next_loop_number++);
 }

@@ -28,7 +28,7 @@ end { return O_END; }
 \+ { return O_PLUS; }
 output {  return O_OUTPUT; }
 [a-zA-Z]([a-zA-Z0-9])* { return O_IDENTIFIER; }
-[1-9]+[0-9]* { 
+([1-9]+[0-9]*)|0 { 
     yylval.val = std::atoi(yytext);
     return O_INTEGER; 
 }

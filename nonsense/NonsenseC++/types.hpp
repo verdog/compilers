@@ -54,3 +54,10 @@ private:
     std::unordered_map<std::string, bool> m_memory_map;
     uint m_allocated_bytes;
 };
+
+class LoopManager {
+public: LoopManager();
+    std::string generate_unique_label();
+private:
+    uint m_next_loop_number;
+};

@@ -20,6 +20,9 @@ SymbolTable g_symbol_table;
 // global register manager
 RegisterManager g_register_manager;
 
+// global loop manager
+LoopManager g_loop_manager;
+
 %}
 
 %start program
@@ -212,7 +215,43 @@ expression:
  	}
 
 |   expression O_EXP expression {
+		std::cout << "// exponent: " << $1 << " ^ " << $3 << "\n";
 
+		Expression *val = new Expression;
+
+		std::string label_loop = g_loop_manager.generate_unique_label();
+		std::string label_end = label_loop + "_end";
+
+		std::string location_base = g_register_manager.get_free_register();
+		std::string location_exponent = g_register_manager.get_free_register();
+
+		std::string location_result = g_register_manager.get_free_register();
+		val->location = location_result;
+
+		std::cout <<
+			"mov %eax, 1\n"
+			"mov " + location_base + ", " + $1->location + "\n"
+			"mov " + location_exponent + ", " + $3->location + "\n"
+			"" + label_loop + ":\n"
+			"cmp " + location_exponent + ", 0\n"
+			"je " + label_end + "\n"
+			"imul " + location_base + "\n"
+			"sub " + location_exponent + ", 1\n"
+			"jmp " + label_loop + "\n"
+			"" + label_end + ":\n"
+			"mov " + location_result + ", %eax\n" 
+		;
+
+		$$ = val;
+
+		// clean up
+		g_register_manager.clear_single($1->location);
+		g_register_manager.clear_single($3->location);
+		g_register_manager.clear_single(location_base);
+		g_register_manager.clear_single(location_exponent);
+
+		delete $1;
+		delete $3;
 	}
 
 | 	O_LPAREN expression O_RPAREN %prec O_PAREN {

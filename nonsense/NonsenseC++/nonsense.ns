@@ -1,4 +1,4 @@
 begin;
-c = 8 / 2;
+c = 2 ^ 2 ^ 2;
 output(c);
 end;
