@@ -16,7 +16,7 @@ lex.yy.o: ns.l
 	g++ -g -c lex.yy.c -std=c++11
 
 clean:
-	rm -f *.o *~ *.tab.c *.tab.h nsc program.S bin
+	rm -f *.o *~ *.tab.c *.tab.h nsc program.S bin lex.yy.c
 
 program.S: $(SRC) nsc
 	./nsc $(SRC) > program.S

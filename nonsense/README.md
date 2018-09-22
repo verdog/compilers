@@ -1,5 +1,11 @@
 # Nonsense Compiler
 
+## Requirements:
+- bison
+- flex
+
+## How to use:
+
 To compile the compiler, run:
 ```
 make
