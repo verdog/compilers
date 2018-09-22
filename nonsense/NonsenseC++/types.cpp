@@ -89,18 +89,18 @@ bool RegisterManager::get_eligibility(std::string location) {
 }
 
 void RegisterManager::clear_single(std::string location) {
-    std::cout << "// clearing register " << location << std::endl;
+    std::cout << "// re-opened register " << location << std::endl;
     if (m_register_map.count(location) == 1) {
         m_register_map[location] = true;
     } else if (m_memory_map.count(location) == 1) {
         m_memory_map[location] = true;
     } else {
-        std::cout << "// /!\\ tried to clear a nonexistant register \n";
+        std::cout << "// /!\\ tried to re-open a nonexistant register \n";
     }
 }
 
 void RegisterManager::clear_all() {
-    std::cout << "// clearing the register manager...\n";
+    std::cout << "// re-openning all registers/temporary memory...\n";
     for (auto &map_pair : m_register_map) {
         map_pair.second = true;
     }

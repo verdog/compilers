@@ -14,36 +14,23 @@ sub %esp, 64
 // expression:integer: 8
 // integer: 2
 // expression:integer: 2
-// negative: 2
+// division: 8 / 2
 // obtaining free location... got %edi!
-mov %edi, 2
-neg %edi
-// clearing register 2
-// /!\ tried to clear a nonexistant register 
-// addition: 8 + %edi
 // obtaining free location... got %esi!
 mov %eax, 8
-add %eax, %edi
-mov %esi, %eax
-// clearing register 8
-// /!\ tried to clear a nonexistant register 
-// assignment: ID:c:-4 <- %esi
-mov %eax, %esi
-mov dword ptr [%ebp-4], %eax
-// clearing the register manager...
-// identifier: ID:c:-4
-// identifier: ID:c:-4
-// expression:identifier: ID:c:-4
-// negative: dword ptr [%ebp-4]
-// obtaining free location... got %edi!
-mov %edi, dword ptr [%ebp-4]
-neg %edi
-// clearing register dword ptr [%ebp-4]
-// /!\ tried to clear a nonexistant register 
+mov %esi, 2
+cdq
+idiv %esi
+mov %edi, %eax
+// re-opened register 8
+// /!\ tried to re-open a nonexistant register 
+// re-opened register 2
+// /!\ tried to re-open a nonexistant register 
+// re-opened register %esi
 // assignment: ID:c:-4 <- %edi
 mov %eax, %edi
 mov dword ptr [%ebp-4], %eax
-// clearing the register manager...
+// re-openning all registers/temporary memory...
 // identifier: ID:c:-4
 // expression:identifier: ID:c:-4
 // output: dword ptr [%ebp-4]
@@ -51,7 +38,7 @@ push dword ptr [%ebp-4]
 push offset flat:.io_format
 call printf
 add %esp, 8
-// clearing the register manager...
+// re-openning all registers/temporary memory...
 mov %eax, 0
 leave
 ret

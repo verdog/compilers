@@ -173,11 +173,12 @@ expression:
 		std::cout << "// division: " << $1 << " / " << $3 << std::endl;
 		Expression *val = new Expression;
 		val->location = g_register_manager.get_free_register();
+		std::string math_location = g_register_manager.get_free_register();
 		std::cout <<
 			"mov %eax, " + $1->location + "\n" 
-			"mov %ebx, " + $3->location + "\n"
+			"mov " + math_location + ", " + $3->location + "\n"
 			"cdq\n"
-			"idiv %ebx\n"
+			"idiv " + math_location + "\n"
 			"mov " + val->location + ", %eax\n"
 		;
 		$$ = val;
@@ -185,6 +186,7 @@ expression:
 		// clear registers
 		g_register_manager.clear_single($1->location);
 		g_register_manager.clear_single($3->location);
+		g_register_manager.clear_single(math_location);
 
 		// clean up
 		delete $1;
@@ -209,7 +211,8 @@ expression:
 		delete $2;
  	}
 
-|   expression O_EXP expression { 
+|   expression O_EXP expression {
+
 	}
 
 | 	O_LPAREN expression O_RPAREN %prec O_PAREN {
