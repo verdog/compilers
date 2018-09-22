@@ -2,21 +2,21 @@ SRC = ./test_programs/ten.ns
 OBJS = ns.tab.o lex.yy.o types.o
 
 nsc: $(OBJS)
-	g++ -g $(OBJS) -o $@
+	g++ -g $(OBJS) -o $@ -std=c++11
 
 types.o: types.cpp types.hpp
-	g++ -g -c types.cpp
+	g++ -g -c types.cpp -std=c++11
 
 ns.tab.o: ns.y
 	bison -d ns.y
-	g++ -g -c ns.tab.c
+	g++ -g -c ns.tab.c -std=c++11
 
 lex.yy.o: ns.l
 	flex ns.l
-	g++ -g -c lex.yy.c
+	g++ -g -c lex.yy.c -std=c++11
 
 clean:
-	/bin/rm -f *.o *~ *.tab.c *.tab.h nsc program.S
+	rm -f *.o *~ *.tab.c *.tab.h nsc program.S bin
 
 program.S: $(SRC) nsc
 	./nsc $(SRC) > program.S

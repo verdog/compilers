@@ -1,3 +1,4 @@
 begin;
 c = 1;
+output(c);
 end;
