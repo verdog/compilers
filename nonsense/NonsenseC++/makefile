@@ -27,7 +27,7 @@ bin: $(SRC) program.S
 test: bin
 	./bin
 
-# these were used to automatically compile on a VM.
+# these were used to compile the assembly on a VM.
 remote-bin: $(SRC) program.S
 	scp ./program.S ub32:~/Code/compilers/nonsense
 	ssh ub32 'cd ~/Code/compilers/nonsense && g++ program.S -o remote-bin'
