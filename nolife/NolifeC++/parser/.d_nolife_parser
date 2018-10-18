@@ -1,0 +1,1 @@
+libparser-g.a(nolife_parser.o): nolife_parser.cpp
