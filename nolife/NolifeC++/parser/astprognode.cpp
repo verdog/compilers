@@ -3,11 +3,12 @@
 namespace ast {
     
     Program::Program(Symbol* symNode, Declaration* declNode, CompoundStatement* stmtNode)
-    : mSymbolNode {symNode}
-    , mDeclarationNode {declNode}
-    , mCompoundStatement {stmtNode}
     {
         mKind = "program";
+
+        mChildren.push_back(symNode);
+        mChildren.push_back(declNode);
+        mChildren.push_back(stmtNode);
     };
 
     Program::Program(Symbol* symNode, CompoundStatement* stmtNode)

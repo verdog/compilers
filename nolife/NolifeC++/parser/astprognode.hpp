@@ -3,7 +3,7 @@
 #include "astnode.hpp"
 #include "astsymnode.hpp"
 #include "astdeclnode.hpp"
-#include "aststmtnode.hpp"
+#include "astcompoundstmtnode.hpp"
 
 namespace ast {
 
@@ -13,9 +13,6 @@ namespace ast {
             Program(Symbol* symNode, CompoundStatement* stmtNode);
 
         private:
-            Symbol* mSymbolNode;
-            Declaration* mDeclarationNode;
-            CompoundStatement* mCompoundStatement;
     };
 
 } // ast

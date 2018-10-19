@@ -1071,23 +1071,25 @@ YY_RULE_SETUP
 case 45:
 YY_RULE_SETUP
 #line 84 "nolife_scanner.l"
-{ return O_IDENTIFER; }
+{
+    return O_IDENTIFER; 
+}
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 85 "nolife_scanner.l"
+#line 87 "nolife_scanner.l"
 { return O_INT; }
 	YY_BREAK
 case 47:
 /* rule 47 can match eol */
 YY_RULE_SETUP
-#line 87 "nolife_scanner.l"
+#line 89 "nolife_scanner.l"
 { ; }
 	YY_BREAK
 case 48:
 /* rule 48 can match eol */
 YY_RULE_SETUP
-#line 88 "nolife_scanner.l"
+#line 90 "nolife_scanner.l"
 { ; }
 	YY_BREAK
 case 49:
@@ -1097,7 +1099,7 @@ YY_LINENO_REWIND_TO(yy_cp - 1);
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 90 "nolife_scanner.l"
+#line 92 "nolife_scanner.l"
 { return O_FLOATCON; }
 	YY_BREAK
 case 50:
@@ -1107,20 +1109,20 @@ YY_LINENO_REWIND_TO(yy_cp - 1);
 (yy_c_buf_p) = yy_cp -= 1;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 92 "nolife_scanner.l"
+#line 94 "nolife_scanner.l"
 { return O_FLOATCON; }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 94 "nolife_scanner.l"
+#line 96 "nolife_scanner.l"
 {std::cerr << "Scanner: lexical error " << yytext << "\n"; }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 95 "nolife_scanner.l"
+#line 97 "nolife_scanner.l"
 ECHO;
 	YY_BREAK
-#line 1124 "nolife_scanner.cpp"
+#line 1126 "nolife_scanner.cpp"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2125,7 +2127,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 95 "nolife_scanner.l"
+#line 97 "nolife_scanner.l"
 
 
 int yywrap(void) {

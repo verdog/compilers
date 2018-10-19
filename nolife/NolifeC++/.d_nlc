@@ -1,1 +1,2 @@
-(nlc.o): nlc.cpp parser/nolife_parser.hpp parser/astnode.hpp
+(nlc.o): nlc.cpp parser/nolife_parser.hpp parser/astsymnode.hpp \
+ parser/astnode.hpp

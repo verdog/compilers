@@ -39,6 +39,13 @@
 #if YYDEBUG
 extern int yydebug;
 #endif
+/* "%code requires" blocks.  */
+#line 28 "nolife_parser.y" /* yacc.c:1909  */
+
+#include <string>
+#include "astsymnode.hpp"
+
+#line 49 "nolife_parser.hpp" /* yacc.c:1909  */
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -103,11 +110,12 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 25 "nolife_parser.y" /* yacc.c:1909  */
+#line 33 "nolife_parser.y" /* yacc.c:1909  */
 
     int integer;
+    ast::Symbol* symbol;
 
-#line 111 "nolife_parser.hpp" /* yacc.c:1909  */
+#line 119 "nolife_parser.hpp" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

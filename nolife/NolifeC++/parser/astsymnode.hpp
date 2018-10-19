@@ -8,6 +8,8 @@ namespace ast {
         public:
             Symbol(std::string image);
 
+            std::string getImage();
+
         private:
             std::string mImage;
     };

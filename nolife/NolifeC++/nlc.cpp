@@ -3,6 +3,7 @@
 
 #include <parser/nolife_parser.hpp>
 #include <parser/astnode.hpp>
+#include <parser/astsymnode.hpp>
 
 extern ast::Base gASTRoot;
 

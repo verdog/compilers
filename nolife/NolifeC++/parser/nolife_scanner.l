@@ -81,7 +81,9 @@ CASE			{ return O_CASE; }
 
 \'[^\']\'			{ return O_CHAR; }
 \'[^\']*\'			{ return O_STRING; }
-[a-zA-Z]([a-zA-Z]|[0-9])*	{ return O_IDENTIFER; }
+[a-zA-Z]([a-zA-Z]|[0-9])* {
+    return O_IDENTIFER; 
+}
 [0-9]+				{ return O_INT; }
 
 \{[^\}]*\}				{ ; }

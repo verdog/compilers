@@ -9,4 +9,8 @@ namespace ast {
         mKind = "symbol";
     }
 
+    std::string Symbol::getImage() {
+        return mImage;
+    }
+
 } // ast
