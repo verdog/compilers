@@ -15,7 +15,7 @@ RM = /bin/rm -f
 
 CXXFLAGS = $(INCLUDES) $(ENV) 
 
-.SILENT:
+# .SILENT:
 
 $(TARGET): $(LIBS) $(OBJS)
 	echo "Creating $@"
@@ -32,7 +32,7 @@ clean:
 		echo "Cleaning directory $$dir"; \
 		$(MAKE) -C $$dir clean; \
 	done
-	$(RM) $(TARGET)
+	$(RM) $(TARGET) $(TARGET).o
 cpp.o:
 	echo "Compiling" $<
 	$(CXX) -c $(CXXFLAGS) $<

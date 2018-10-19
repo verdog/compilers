@@ -1,0 +1,177 @@
+/**
+ * JavaCC file
+ */
+ 
+options {
+  JDK_VERSION = "1.8";
+}
+
+PARSER_BEGIN(Expression1Parser)
+package parserv1;
+import astv1.ASTNode;
+
+public final class Expression1Parser {
+	
+	public static void main(String args[]) { 
+	    Expression1Parser parser;
+	    java.io.InputStream input;
+	
+	    if (args.length==1) {
+	    
+	      try {
+	        input = new java.io.FileInputStream(args[args.length-1]);
+	      } catch (java.io.FileNotFoundException e) {
+	        System.out.println("File not found.");
+	        return;
+	      }
+	      
+	    } 
+	    else {
+	      System.out.println("Usage: nsc <inputfile>");
+	      return;
+	    }
+	    try {
+	      parser = new Expression1Parser(input);
+	      ASTNode node = parser.program();
+	      System.out.println("Expr is "+node.visit());
+	    } catch (ParseException e) {
+	      System.err.println("Syntax Error: "+e.getMessage());
+	    }
+	}
+	
+}
+
+PARSER_END(Expression1Parser)
+
+SKIP :
+{
+ 	" "
+|	"\r"
+|	"\t"
+|	"\n"
+} 
+
+TOKEN : /* keywords */
+{
+	<BEGIN: "begin">
+    | <END: "end">
+    | <OUTPUT: "output">
+}
+
+TOKEN : /* other lexical tokens */
+{
+ <EQ: "=">
+| <SEMICOLON: ";">
+| <LPAREN: "(">
+| <RPAREN: ")">
+| <PLUS: "+">
+| <MINUS: "-">
+| <TIMES: "*">
+| <DIVIDE: "/">
+| <EXP: "^">
+| <#DIGIT: ["0" - "9"] >
+| <#ALPHA: ["a" - "z"] | ["A" - "Z"] >
+| <ID: <ALPHA> (<ALPHA> | <DIGIT>)*>
+| <INT: "0" | ["1" - "9"](<DIGIT>)* >
+}
+
+ASTNode program(): {
+  ASTNode exprNode = null;
+  }
+{
+  exprNode = expr() < SEMICOLON >
+  {
+    return exprNode;
+  }
+    
+}
+
+ASTNode expr() : {
+  ASTNode leftNode = null, rightNode = null, opNode = null;
+  }
+{
+  leftNode = term()
+  ( LOOKAHEAD(2)
+  	(opNode = addOp() rightNode = term() )
+  	{
+  	  opNode.setLeft(leftNode);
+  	  opNode.setRight(rightNode);
+  	  leftNode = opNode;
+  	}
+  )*
+  {
+    return leftNode;
+  }
+} 
+
+ASTNode term() : {
+  ASTNode leftNode = null, rightNode = null, opNode = null;}
+{
+   leftNode = factor() (
+     LOOKAHEAD(2)
+     (        opNode = mulOp()
+     	rightNode = factor()
+   	 )
+   	 {
+   	   opNode.setLeft(leftNode);
+   	   opNode.setRight(rightNode);
+   	   leftNode = opNode;
+  	 }
+   )*
+   {
+     return leftNode;
+   }
+ 
+}
+
+ASTNode factor() : {
+  Token id;
+  }
+{
+  id = <ID>
+  {
+    return new ASTNode(ASTNode.NodeType.ID,id.image);
+  }
+}
+
+ASTNode addOp() : {
+  ASTNode addOpNode = null;
+  }
+{
+	(	  <PLUS>
+	  {
+	    addOpNode = new ASTNode(ASTNode.NodeType.PLUS);
+	  }
+	| <MINUS>
+	  {
+	    addOpNode = new ASTNode(ASTNode.NodeType.MINUS);
+	  }
+	)
+	{
+	  return addOpNode;
+	}
+
+	  
+}
+
+ASTNode mulOp() : {
+  ASTNode mulOpNode = null;
+  }
+{
+	(
+	  <TIMES>
+	  {
+	    mulOpNode = new ASTNode(ASTNode.NodeType.TIMES);
+	  }  
+	| <DIVIDE>
+	  {
+	    mulOpNode = new ASTNode(ASTNode.NodeType.DIVIDE);
+	  }
+	)
+	{
+	  return mulOpNode;
+	}
+}
+
+
+

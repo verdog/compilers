@@ -1,0 +1,1 @@
+libparser-g.a(aststmtnode.o): aststmtnode.cpp

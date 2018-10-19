@@ -1,8 +1,13 @@
-#include <parser/nolife_parser.hpp>
 #include <iostream>
+#include <string>
 
-int main()
+#include <parser/nolife_parser.hpp>
+#include <parser/astnode.hpp>
 
-{
-  yyparse();
+extern ast::Base gASTRoot;
+
+int main(int argc, char *argv[]) {
+    yyparse();
+
+    std::cout << gASTRoot.getKind() << std::endl;
 }

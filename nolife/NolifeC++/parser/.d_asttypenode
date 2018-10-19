@@ -1,0 +1,1 @@
+libparser-g.a(asttypenode.o): asttypenode.cpp asttypenode.hpp astnode.hpp

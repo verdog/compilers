@@ -1,0 +1,3 @@
+int x,y;
+float z;
+x = y + z;

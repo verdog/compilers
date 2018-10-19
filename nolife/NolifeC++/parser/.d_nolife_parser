@@ -1,1 +1,2 @@
-libparser-g.a(nolife_parser.o): nolife_parser.cpp
+libparser-g.a(nolife_parser.o): nolife_parser.cpp astnode.hpp \
+ astsymnode.hpp astprognode.hpp astdeclnode.hpp aststmtnode.hpp

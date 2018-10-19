@@ -1,4 +1,4 @@
-SRCS = nolife_parser.cpp nolife_scanner.cpp
+SRCS = nolife_parser.cpp nolife_scanner.cpp $(wildcard *.cpp)
 LEX_SRCS = nolife_scanner.l
 YACC_SRCS = nolife_parser.y
 CXX = g++
@@ -21,7 +21,7 @@ ARFLAGS = rU
 
 RM = /bin/rm -f
 
-.SILENT:
+# .SILENT:
 
 LEX_YACC_DEPENDS = $(addprefix .d_,$(LEX_SRCS )) $(addprefix .d_,$(YACC_SRCS))
 

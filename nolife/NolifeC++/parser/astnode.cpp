@@ -1,0 +1,22 @@
+#include "astnode.hpp"
+#include "visitor.hpp"
+
+namespace ast {
+    
+    void Base::accept(Visitor *v) {
+        v->visit(this);
+    }
+
+    void Base::addChild(Base* node) {
+        mChildren.push_back(node);
+    }
+
+    std::vector<Base*>& Base::getChildren() {
+        return mChildren;
+    }
+
+    std::string Base::getKind() const {
+        return mKind;
+    }
+
+} // ast

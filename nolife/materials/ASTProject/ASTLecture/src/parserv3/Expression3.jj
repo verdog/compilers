@@ -1,0 +1,178 @@
+/**
+ * JavaCC file
+ */
+ 
+options {
+  JDK_VERSION = "1.8";
+}
+
+PARSER_BEGIN(Expression3Parser)
+package parserv3;
+import astv3.*;
+
+public final class Expression3Parser {
+
+	private static ASTNodeFactory factory;
+	
+	public static void main(String args[]) { 
+	    Expression3Parser parser;
+	    java.io.InputStream input;
+	
+	    if (args.length==1) {
+	    
+	      try {
+	        input = new java.io.FileInputStream(args[args.length-1]);
+	      } catch (java.io.FileNotFoundException e) {
+	        System.out.println("File not found.");
+	        return;
+	      }
+	      
+	    } 
+	    else {
+	      System.out.println("Usage: nsc <inputfile>");
+	      return;
+	    }
+	    try {
+	      factory = new ASTNodeFactory();
+	      parser = new Expression3Parser(input);
+	      ASTNode node = parser.program();
+	      SourceVisitor v = new SourceVisitor();
+	      node.accept(v);
+	      System.out.println("Expr is "+v.getSrc());
+	    } catch (ParseException e) {
+	      System.err.println("Syntax Error: "+e.getMessage());
+	    }
+	}
+	
+}
+
+PARSER_END(Expression3Parser)
+
+SKIP :
+{
+ 	" "
+|	"\r"
+|	"\t"
+|	"\n"
+} 
+
+TOKEN : /* keywords */
+{
+	<BEGIN: "begin">
+    | <END: "end">
+    | <OUTPUT: "output">
+}
+
+TOKEN : /* other lexical tokens */
+{
+ <EQ: "=">
+| <SEMICOLON: ";">
+| <LPAREN: "(">
+| <RPAREN: ")">
+| <PLUS: "+">
+| <MINUS: "-">
+| <TIMES: "*">
+| <DIVIDE: "/">
+| <EXP: "^">
+| <#DIGIT: ["0" - "9"] >
+| <#ALPHA: ["a" - "z"] | ["A" - "Z"] >
+| <ID: <ALPHA> (<ALPHA> | <DIGIT>)*>
+| <INT: "0" | ["1" - "9"](<DIGIT>)* >
+}
+
+ASTNode program(): {
+  ASTNode exprNode = null;
+  }
+{
+  exprNode = expr() < SEMICOLON >
+  {
+    return exprNode;
+  }
+    
+}
+
+ASTNode expr() : {
+  ASTNode leftNode = null, rightNode = null, opNode = null;
+  }
+{
+  leftNode = term()
+  ( LOOKAHEAD(2)
+  	(opNode = addOp() rightNode = term() )
+  	{
+  	  leftNode = opNode.addChild(leftNode).addChild(rightNode);
+  	}
+  )*
+  {
+    return leftNode;
+  }
+} 
+
+ASTNode term() : {
+  ASTNode leftNode = null, rightNode = null, opNode = null;}
+{
+   leftNode = factor() (
+     LOOKAHEAD(2)
+     (        opNode = mulOp()
+     	rightNode = factor()
+   	 )
+   	 {
+   	   leftNode = opNode.addChild(leftNode).addChild(rightNode);
+  	 }
+   )*
+   {
+     return leftNode;
+   }
+ 
+}
+
+ASTNode factor() : {
+  Token id;
+  }
+{
+  id = <ID>
+  {
+    return factory.makeASTNode("IdNode").addLabel(id.image);
+  }
+}
+
+ASTNode addOp() : {
+  ASTNode addOpNode = null;
+  }
+{
+	(	  <PLUS>
+	  {
+	    addOpNode = factory.makeASTNode("AddNode");
+	  }
+	| <MINUS>
+	  {
+	    addOpNode = factory.makeASTNode("SubNode");
+	  }
+	)
+	{
+	  return addOpNode;
+	}
+
+	  
+}
+
+ASTNode mulOp() : {
+  ASTNode mulOpNode = null;
+  }
+{
+	(
+	  <TIMES>
+	  {
+	    mulOpNode = factory.makeASTNode("MulNode");
+	  }  
+	| <DIVIDE>
+	  {
+	    mulOpNode = factory.makeASTNode("DivNode");
+	  }
+	)
+	{
+	  return mulOpNode;
+	}
+}
+
+
+
