@@ -2,20 +2,40 @@
 
 namespace ast {
     
-    Type::Type(Base* base)
-    : mChild {base}
-    {}
+    Type::Type() {
+        mKind = "type";
+    }
 
-    Base* Type::getChild() {
-        return mChild;
+    Integer::Integer() {
+        mKind = "integer";
+    }
+
+    Integer* Integer::clone() {
+        return new Integer();
     }
 
     Type::Types Integer::getType() {
         return Type::Types::Integer;
     }
 
+    Float::Float() {
+        mKind = "float";
+    }
+
+    Float* Float::clone() {
+        return new Float();
+    }
+
     Type::Types Float::getType() {
         return Type::Types::Float;
+    }
+
+    Character::Character() {
+        mKind = "character";
+    }
+
+    Character* Character::clone() {
+        return new Character();
     }
 
     Type::Types Character::getType() {

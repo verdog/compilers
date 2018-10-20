@@ -2,6 +2,8 @@
 
 namespace ast {
 
-    
+    Declaration::Declaration() {
+        mKind = "declaration";
+    }
 
 }

@@ -9,6 +9,7 @@ namespace ast {
 
     class Declaration : public Base {
         public:
+            Declaration();
         private:
     };
 

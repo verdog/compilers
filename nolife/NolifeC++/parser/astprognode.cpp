@@ -6,9 +6,9 @@ namespace ast {
     {
         mKind = "program";
 
-        mChildren.push_back(symNode);
-        mChildren.push_back(declNode);
-        mChildren.push_back(stmtNode);
+        addChild(symNode);
+        addChild(declNode);
+        addChild(stmtNode);
     };
 
     Program::Program(Symbol* symNode, CompoundStatement* stmtNode)

@@ -27,12 +27,19 @@ extern int yylex();
 
 %code requires {
 #include <string>
+#include <vector>
 #include "astsymnode.hpp"
+#include "asttypenode.hpp"
+#include "astdeclnode.hpp"
 }
 
 %union {
     int integer;
     ast::Symbol* symbol;
+    ast::Type* type;
+    ast::Declaration* declaration;
+    std::vector<ast::Type*>* typeList;
+    std::vector<ast::Symbol*>* symbList;
 }
 
 %start program
@@ -88,6 +95,13 @@ extern int yylex();
 %token <integer> O_MINUS        50
 %token <integer> O_CASE		    51
 
+%type <typeList> decl_list
+%type <declaration> decls
+
+%type <type> type
+%type <type> standard_type
+
+%type <symbList> identifier_list
 %type <symbol> identifier
 %type <symbol> id_s
 
@@ -102,7 +116,9 @@ extern int yylex();
 %%
 program: 
     O_PROGRAM id_s decls subprogram_decls compound_stmt {
-        std::cout << "Done\n";
+        std::cout << "Done (id_s decls sub_decls compound stmt)\n";
+
+        gASTRoot = ast::Program($2, $3, nullptr);
     }
 |   O_PROGRAM id_s decls compound_stmt { 
         std::cout << "Done\n";
@@ -117,36 +133,66 @@ program:
     }
 ;
 
-decls     : O_VAR decl_list     
-                { std::cout << "decls\n";}
-          ;       
+decls: O_VAR decl_list { 
+    // returns a declaration (ast::Declaration)
+    std::cout << "decls\n";
+    auto declNode = new ast::Declaration();
+    for (auto type : *$2) {
+        declNode->addChild(type);
+    }
 
-decl_list : identifier_list_colon  type  semicln  
-                { std::cout << "decl_list\n";}
-          | decl_list identifier_list_colon type semicln  
-                { std::cout << "decl_list\n";}
-          ;
+    delete $2; // delete vector of type nodes (decl_list)
 
+    $$ = declNode;
+};       
 
-identifier_list : identifier  
-                { std::cout << "identifier_list\n";}
-                | identifier_list comma identifier
-                { std::cout << "identifier_list\n";}
-                ;
+decl_list: identifier_list colon  type  semicln { 
+    // returns typeList (std::vector<ast::Type*>*)
+    std::cout << "decl_list (single)\n";
+    auto typeList = new std::vector<ast::Type*>();
+    for (auto sym : *$1) {
+        auto newType = $3->clone();
+        newType->addChild(sym);
+        typeList->push_back(newType);
+    }
+    $$ = typeList;
+}
+| decl_list identifier_list_colon type semicln  
+        { std::cout << "decl_list\n";}
+;
 
-type            : standard_type          
-                { std::cout << "type\n";}
-                | array_type
-                { std::cout << "type\n";}
-                ;
+identifier_list: identifier { 
+    std::cout << "identifier_list (single)\n";
+    auto symList = new std::vector<ast::Symbol*>();
+    symList->push_back($1);
+    $$ = symList;
+}
+| identifier_list comma identifier {
+    std::cout << "identifier_list (recursive)\n";
+    $1->push_back($3);
+    $$ = $1;
+};
 
-standard_type   : O_INTEGER 
-                { std::cout << "standard_type\n";}
-                | O_FLOAT   
-                { std::cout << "standard_type\n";}
-                | O_CHARACTER
-                { std::cout << "standard_type\n";}
-                ;
+type: standard_type { 
+    std::cout << "type (standard)\n";
+    $$ = $1;
+}
+| array_type { 
+    std::cout << "type\n";
+};
+
+standard_type: O_INTEGER { 
+    std::cout << "standard_type\n";
+    $$ = new ast::Integer();
+} 
+| O_FLOAT { 
+    std::cout << "standard_type\n";
+    $$ = new ast::Float();
+}
+| O_CHARACTER { 
+    std::cout << "standard_type\n";
+    $$ = new ast::Character();
+};
 
 array_type      : O_ARRAY O_LBRACKET dim O_RBRACKET O_OF standard_type  
                 { std::cout << "array_type\n";}

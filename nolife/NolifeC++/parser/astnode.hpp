@@ -17,7 +17,7 @@ namespace ast {
 
             std::string getKind() const;
 
-            void addChild(Base* node);
+            bool addChild(Base* node);
             std::vector<Base*>& getChildren();
 
         protected:

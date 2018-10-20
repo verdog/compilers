@@ -1,2 +1,3 @@
 libparser-g.a(nolife_parser.o): nolife_parser.cpp astnode.hpp \
- astprognode.hpp astsymnode.hpp astdeclnode.hpp asttypenode.hpp
+ astprognode.hpp astsymnode.hpp astdeclnode.hpp asttypenode.hpp \
+ astcompoundstmtnode.hpp

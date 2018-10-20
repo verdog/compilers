@@ -13,29 +13,30 @@ namespace ast {
                 Character
             };
 
-            Type(Base* node);
-
-            Base* getChild();
-
+            Type();
             virtual Types getType() = 0;
-
-        protected:
-            Base *mChild;
+            virtual Type* clone() = 0;
     };
 
     class Integer : public Type {
         public:
+            Integer();
             Type::Types getType();
+            Integer* clone();
     };
 
     class Float : public Type {
         public:
+            Float();
             Type::Types getType();
+            Float* clone();
     };
 
     class Character : public Type {
         public:
+            Character();
             Type::Types getType();
+            Character* clone();
     };
 
 } // ast

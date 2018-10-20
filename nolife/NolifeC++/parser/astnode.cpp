@@ -7,8 +7,9 @@ namespace ast {
         v->visit(this);
     }
 
-    void Base::addChild(Base* node) {
+    bool Base::addChild(Base* node) {
         mChildren.push_back(node);
+        return true;
     }
 
     std::vector<Base*>& Base::getChildren() {
