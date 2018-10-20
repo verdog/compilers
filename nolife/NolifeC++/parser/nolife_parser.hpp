@@ -40,15 +40,16 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 28 "nolife_parser.y" /* yacc.c:1909  */
+#line 33 "nolife_parser.y" /* yacc.c:1909  */
 
 #include <string>
 #include <vector>
 #include "astsymnode.hpp"
 #include "asttypenode.hpp"
 #include "astdeclnode.hpp"
+#include "astprocnode.hpp"
 
-#line 52 "nolife_parser.hpp" /* yacc.c:1909  */
+#line 53 "nolife_parser.hpp" /* yacc.c:1909  */
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -113,7 +114,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 36 "nolife_parser.y" /* yacc.c:1909  */
+#line 42 "nolife_parser.y" /* yacc.c:1909  */
 
     int integer;
     ast::Symbol* symbol;
@@ -122,7 +123,7 @@ union YYSTYPE
     std::vector<ast::Type*>* typeList;
     std::vector<ast::Symbol*>* symbList;
 
-#line 126 "nolife_parser.hpp" /* yacc.c:1909  */
+#line 127 "nolife_parser.hpp" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

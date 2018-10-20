@@ -8,6 +8,7 @@ namespace ast {
         public:
             enum Types {
                 Undefined,
+                Void,
                 Integer,
                 Float,
                 Character
@@ -37,6 +38,13 @@ namespace ast {
             Character();
             Type::Types getType();
             Character* clone();
+    };
+
+    class Void : public Type {
+        public:
+            Void();
+            Type::Types getType();
+            Void* clone();
     };
 
 } // ast

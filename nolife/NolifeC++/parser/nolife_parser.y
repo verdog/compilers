@@ -8,9 +8,14 @@
 
 #include <iostream>
 #include <string>
+#include <memory>
 
 #include "astnode.hpp"
 #include "astprognode.hpp"
+#include "astparamnode.hpp"
+#include "astsymnode.hpp"
+#include "astdeclnode.hpp"
+#include "astcompoundstmtnode.hpp"
 
 ast::Base gASTRoot = ast::Base();
 
@@ -31,6 +36,7 @@ extern int yylex();
 #include "astsymnode.hpp"
 #include "asttypenode.hpp"
 #include "astdeclnode.hpp"
+#include "astprocnode.hpp"
 }
 
 %union {
@@ -97,6 +103,10 @@ extern int yylex();
 
 %type <typeList> decl_list
 %type <declaration> decls
+%type <declaration> subprogram_decls
+
+%type <type> subprogram_decl
+%type <type> subprogram_head
 
 %type <type> type
 %type <type> standard_type
@@ -116,18 +126,31 @@ extern int yylex();
 %%
 program: 
     O_PROGRAM id_s decls subprogram_decls compound_stmt {
-        std::cout << "Done (id_s decls sub_decls compound stmt)\n";
+        std::cout << "Done (id_s decls sub_decls compound_stmt)\n";
+
+        // combine decls with subprogram_decls
+        for (auto typeNode : $4->getChildren()) {
+            $3->addChild(typeNode);
+        }
+
+        // delete subprogram_decls, since we saved its children
+
+        delete $4;
 
         gASTRoot = ast::Program($2, $3, nullptr);
     }
 |   O_PROGRAM id_s decls compound_stmt { 
-        std::cout << "Done\n";
+        std::cout << "Done (id_s decls compound_stmt)\n";
+
+        gASTRoot = ast::Program($2, $3, nullptr);
     }
 |   O_PROGRAM id_s subprogram_decls compound_stmt { 
-        std::cout << "Done\n";
+        std::cout << "Done (id_s sub_decls compound_stmt)\n";
+
+        gASTRoot = ast::Program($2, $3, nullptr);
     }
 |   O_PROGRAM id_s compound_stmt { 
-        std::cout << "Done\n";
+        std::cout << "Done\n (compound_stmt)";
 
         gASTRoot = ast::Program($2, nullptr, nullptr);
     }
@@ -141,7 +164,7 @@ decls: O_VAR decl_list {
         declNode->addChild(type);
     }
 
-    delete $2; // delete vector of type nodes (decl_list)
+    delete $2; // delete vector of type node pointers (decl_list)
 
     $$ = declNode;
 };       
@@ -150,18 +173,32 @@ decl_list: identifier_list colon  type  semicln {
     // returns typeList (std::vector<ast::Type*>*)
     std::cout << "decl_list (single)\n";
     auto typeList = new std::vector<ast::Type*>();
-    for (auto sym : *$1) {
+    for (auto sym : *$1) { // for each symbol node in the identifier_list
         auto newType = $3->clone();
         newType->addChild(sym);
         typeList->push_back(newType);
     }
+
+    delete $3; // delete the original type node, since we cloned it
+
     $$ = typeList;
 }
-| decl_list identifier_list_colon type semicln  
-        { std::cout << "decl_list\n";}
-;
+| decl_list identifier_list colon type semicln { 
+    // returns typeList (std::vector<ast::Type*>*)
+    std::cout << "decl_list (recursive)\n";
+    for (auto sym : *$2) { // for each symbol node in the identifier_list
+        auto newType = $4->clone();
+        newType->addChild(sym);
+        $1->push_back(newType);
+    }
+
+    delete $4; // delete the original type node, since we cloned it
+
+    $$ = $1;
+};
 
 identifier_list: identifier { 
+    // returns symbList std::vector<ast::Symbol*>*)
     std::cout << "identifier_list (single)\n";
     auto symList = new std::vector<ast::Symbol*>();
     symList->push_back($1);
@@ -173,7 +210,8 @@ identifier_list: identifier {
     $$ = $1;
 };
 
-type: standard_type { 
+type: standard_type {
+    // returns a type node (ast::Type)
     std::cout << "type (standard)\n";
     $$ = $1;
 }
@@ -204,35 +242,85 @@ dim             : intnum  O_DOTDOT intnum
                 { std::cout << "dim\n";}
                 ;
 
-subprogram_decls: subprogram_decls subprogram_decl semicln  
-                { std::cout << "subprogram_decls\n";}
-                | subprogram_decl semicln 
-                { std::cout << "subprogram_decls\n";}
-                ;
+subprogram_decls: subprogram_decls subprogram_decl semicln { 
+    // returns a declaration (ast::Declaration)
+    std::cout << "subprogram_decls\n";
 
-subprogram_decl : subprogram_head decls compound_stmt 
-                { std::cout << "subprogram_decl\n";}
-                | subprogram_head compound_stmt 
-                { std::cout << "subprogram_decl\n";}
-                ;
+    $1->addChild($2);
 
-subprogram_head : O_FUNCTION identifier arguments colon standard_type semicln  
-                { std::cout << "subprogram_head\n";}
-                | O_FUNCTION identifier  colon standard_type semicln  
-                { std::cout << "subprogram_head\n";}
-                | O_PROCEDURE identifier arguments semicln  
-                { std::cout << "subprogram_head\n";}
-                | O_PROCEDURE identifier  semicln  
-                { std::cout << "subprogram_head\n";}
-                ;
+    $$ = $1;
+}
+| subprogram_decl semicln { 
+    // returns a declaration (ast::Declaration)
+    std::cout << "subprogram_decls\n";
 
-arguments       : O_LPAREN parameter_list O_RPAREN  
-                { std::cout << "arguments\n";}
-                ;
+    auto declNode = new ast::Declaration();
+    declNode->addChild($1);
 
-parameter_list  : identifier_list_colon type
+    $$ = declNode;
+};
+
+subprogram_decl: subprogram_head decls compound_stmt { 
+    // returns a type node (ast::Type)
+    std::cout << "subprogram_decl\n";
+
+    // get func node from type node
+    auto funcNode_base = $1->getChildren()[0]; // this gets a ast::Base*
+    auto funcNode = dynamic_cast<ast::Procedure*>(funcNode_base);
+
+    if (funcNode == nullptr) {
+        std::cout << "  Error in subprogram_decl!\n";
+    }
+
+    // since subprogram_head returns a type node with a func node attached to it
+
+    funcNode->setDecl($2);
+    funcNode->setCompoundStmt(nullptr); // compoundstmt node not made yet
+
+    $$ = $1;
+}
+| subprogram_head compound_stmt { 
+    std::cout << "subprogram_decl\n";
+};
+
+subprogram_head: O_FUNCTION identifier arguments colon standard_type semicln { 
+    // returns a type node (ast::Type) that points to a func/proceedure
+    std::cout << "subprogram_head\n";
+}
+| O_FUNCTION identifier colon standard_type semicln {
+    // returns a type node (ast::Type) that points to a func/proceedure
+    std::cout << "subprogram_head\n";
+
+    auto func = new ast::Procedure(
+        $2, // identifier; symbol node
+        nullptr, // no parameters
+        nullptr, // no declarations available yet
+        nullptr // no compound statement available yet
+    );
+
+    $4->addChild(func);
+
+    $$ = $4;
+}
+| O_PROCEDURE identifier arguments semicln {
+    // returns a type node (ast::Type) that points to a func/proceedure
+    std::cout << "subprogram_head\n";
+}
+| O_PROCEDURE identifier semicln {
+    // returns a type node (ast::Type) that points to a func/proceedure
+    std::cout << "subprogram_head\n";
+};
+
+arguments: O_LPAREN parameter_list O_RPAREN { 
+    // returns a parameter node (ast::Parameters)
+    std::cout << "arguments\n";
+    // $$ = $2;
+};
+
+parameter_list  : identifier_list colon type
+// returns a parameter node (ast::Parameters)
                 { std::cout << "parameter_list\n";}
-                | parameter_list  semicln identifier_list_colon type
+                | parameter_list semicln identifier_list colon type
                 { std::cout << "parameter_list\n";}
                 ;
 
@@ -442,10 +530,6 @@ constant        : O_FLOATCON
                 { std::cout << "constant\n";}
                 ;
 
-identifier_list_colon: identifier_list colon { 
-    std::cout << "identifier_list_colon\n";
-};
-
 id_s: identifier semicln { 
     std::cout << "id_s\n";
     $$ = $1;
@@ -467,17 +551,7 @@ colon           : O_COLON
 /********************C ROUTINES *********************************/
 int yyerror(const char *s)
 {
-  std::cout << "Parse error: %s\n",s;
+  std::cout << "Parse error: " << s << "\n";
 }
 
 /******************END OF C ROUTINES**********************/
-
-
-
-
-
-
-
-
-
-

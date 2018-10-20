@@ -42,4 +42,16 @@ namespace ast {
         return Type::Types::Character;
     }
 
+    Void::Void() {
+        mKind = "void";
+    }
+
+    Void* Void::clone() {
+        return new Void();
+    }
+
+    Type::Types Void::getType() {
+        return Type::Types::Void;
+    }
+
 } // ast

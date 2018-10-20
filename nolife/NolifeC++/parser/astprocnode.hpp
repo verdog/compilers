@@ -12,6 +12,8 @@ namespace ast {
                 Parameters* paramNode, 
                 Declaration* declNode,
                 CompoundStatement *stmtNode);
+
+            void setParam(Parameters* paramNode);
         private:
     };
 

@@ -12,6 +12,10 @@ namespace ast {
             Program(Symbol* symNode, Declaration* declNode, CompoundStatement* stmtNode);
             Program(Symbol* symNode, CompoundStatement* stmtNode);
 
+            void setSymbol(Symbol *symnode);
+            void setDecl(Declaration *delcNode);
+            void setCompoundStmt(CompoundStatement *stmtNode);
+
         private:
     };
 

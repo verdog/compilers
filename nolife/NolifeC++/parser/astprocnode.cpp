@@ -8,9 +8,15 @@ namespace ast {
                 CompoundStatement *stmtNode)
     : Program(symNode, declNode, stmtNode)
     {
-        mKind = "proceedure";
+        mKind = "procedure";
 
-        addChild(paramNode);
+        mChildren.resize(4);
+
+        setParam(paramNode);
+    }
+
+    void Procedure::setParam(Parameters* paramNode) {
+        mChildren[3] = paramNode;
     }
 
 }
