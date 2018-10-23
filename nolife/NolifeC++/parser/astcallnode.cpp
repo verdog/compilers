@@ -2,8 +2,10 @@
 
 namespace ast {
 
-    Call::Call() {
+    Call::Call(Symbol* s) {
         mKind = "call";
+
+        addChild(s);
     }
 
 } // ast

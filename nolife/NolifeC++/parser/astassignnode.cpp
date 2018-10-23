@@ -2,10 +2,10 @@
 
 namespace ast {
 
-    Assign::Assign(Base* l, Base* r)
-    : Binary(l, r)
+    Assignment::Assignment(Variable* v, Expression* e)
+    : Binary(v, e)
     {
-        mKind = "assign";
+        mKind = "assignment";
     }
 
 } // ast

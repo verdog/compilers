@@ -48,7 +48,7 @@ clean:
 
 .y.cpp:
 	echo "Running bison on" $<
-	$(YACC) $(YFLAGS) -o $@ $<
+	$(YACC) $(YFLAGS) -o $@ $< -v
 
 .l.cpp:
 	echo "Running flex on" $<

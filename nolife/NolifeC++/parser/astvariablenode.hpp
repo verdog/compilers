@@ -1,12 +1,13 @@
 #pragma once
 
 #include "astnode.hpp"
+#include "astsymnode.hpp"
 
 namespace ast {
 
-    class Parameters : public Base {
+    class Variable : public Base {
         public:
-            Parameters();
+            Variable(Symbol *sym);
         private:
     };
 

@@ -75,6 +75,7 @@
 #include "astsymnode.hpp"
 #include "astdeclnode.hpp"
 #include "astcompoundstmtnode.hpp"
+#include "astassignnode.hpp"
 
 ast::Base gASTRoot = ast::Base();
 
@@ -88,7 +89,7 @@ extern FILE  *yyin;
 extern int yylex();
 
 
-#line 92 "nolife_parser.cpp" /* yacc.c:339  */
+#line 93 "nolife_parser.cpp" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -118,7 +119,7 @@ extern int yylex();
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 33 "nolife_parser.y" /* yacc.c:355  */
+#line 34 "nolife_parser.y" /* yacc.c:355  */
 
 #include <string>
 #include <vector>
@@ -127,7 +128,18 @@ extern int yydebug;
 #include "astdeclnode.hpp"
 #include "astprocnode.hpp"
 
-#line 131 "nolife_parser.cpp" /* yacc.c:355  */
+#include "astbinarynode.hpp"
+#include "aststmtnode.hpp"
+#include "astcompoundstmtnode.hpp"
+#include "astassignnode.hpp"
+#include "astexpressionnode.hpp"
+#include "astcallnode.hpp"
+#include "astvariablenode.hpp"
+#include "astarrayaccessnode.hpp"
+#include "astconstantnode.hpp"
+#include "astreturnnode.hpp"
+
+#line 143 "nolife_parser.cpp" /* yacc.c:355  */
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -192,16 +204,27 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 42 "nolife_parser.y" /* yacc.c:355  */
+#line 54 "nolife_parser.y" /* yacc.c:355  */
 
     int integer;
     ast::Symbol* symbol;
     ast::Type* type;
     ast::Declaration* declaration;
+    ast::Statement* statement;
+    ast::CompoundStatement* compoundstatement;
+    ast::Assignment* assignment;
+    ast::Expression* expression;
+    ast::Call* call;
+    ast::Variable* variable;
+    ast::Constant* constant;
+    ast::Return* rtrn;
+
     std::vector<ast::Type*>* typeList;
     std::vector<ast::Symbol*>* symbList;
+    std::vector<ast::Statement*>* stmtList;
+    std::vector<ast::Expression*>* exprList;
 
-#line 205 "nolife_parser.cpp" /* yacc.c:355  */
+#line 228 "nolife_parser.cpp" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -218,7 +241,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 222 "nolife_parser.cpp" /* yacc.c:358  */
+#line 245 "nolife_parser.cpp" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -460,16 +483,16 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  6
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   295
+#define YYLAST   207
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  53
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  48
+#define YYNNTS  47
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  105
+#define YYNRULES  97
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  210
+#define YYNSTATES  184
 
 /* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
    by yylex, with out-of-bounds checking.  */
@@ -515,17 +538,16 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   128,   128,   142,   147,   152,   159,   172,   186,   200,
-     207,   213,   218,   222,   226,   230,   235,   239,   241,   245,
-     253,   263,   282,   286,   290,   305,   309,   314,   320,   323,
-     327,   329,   331,   333,   335,   337,   339,   341,   345,   349,
-     351,   355,   357,   359,   361,   363,   365,   367,   369,   373,
-     378,   380,   384,   386,   388,   392,   396,   398,   402,   406,
-     408,   412,   414,   418,   422,   424,   428,   430,   434,   436,
-     438,   442,   444,   448,   450,   454,   456,   460,   462,   464,
-     466,   468,   472,   474,   478,   480,   484,   486,   490,   492,
-     494,   496,   498,   500,   504,   506,   510,   515,   519,   523,
-     527,   529,   533,   538,   542,   546
+       0,   178,   178,   192,   197,   202,   209,   222,   236,   250,
+     257,   263,   268,   272,   276,   280,   285,   289,   291,   295,
+     303,   313,   331,   348,   352,   367,   371,   376,   382,   385,
+     389,   393,   395,   397,   401,   403,   407,   411,   415,   422,
+     424,   428,   432,   436,   450,   452,   454,   458,   475,   485,
+     493,   498,   500,   504,   506,   510,   514,   516,   520,   529,
+     537,   541,   547,   556,   560,   567,   571,   578,   582,   589,
+     593,   597,   601,   605,   610,   614,   619,   623,   628,   632,
+     637,   641,   645,   649,   653,   657,   662,   666,   671,   676,
+     680,   685,   690,   694,   699,   704,   708,   712
 };
 #endif
 
@@ -546,12 +568,12 @@ static const char *const yytname[] =
   "decl_list", "identifier_list", "type", "standard_type", "array_type",
   "dim", "subprogram_decls", "subprogram_decl", "subprogram_head",
   "arguments", "parameter_list", "stmt", "assignment", "if_stmt",
-  "restricted_stmt", "while_stmt", "procedure_invocation", "i_o_stmt",
-  "compound_stmt", "stmt_list", "return_stmt", "case_stmt", "cases",
-  "case_element", "case_labels", "expr_list", "expr", "simple_expr",
-  "add_expr", "mul_expr", "factor", "variable", "addop", "mulop", "relop",
-  "logop", "identifier", "intnum", "char_const", "string_constant",
-  "constant", "id_s", "semicln", "comma", "colon", YY_NULLPTR
+  "while_stmt", "procedure_invocation", "i_o_stmt", "compound_stmt",
+  "stmt_list", "return_stmt", "case_stmt", "cases", "case_element",
+  "case_labels", "expr_list", "expr", "rel_expr", "add_expr", "mul_expr",
+  "factor", "variable", "addop", "mulop", "relop", "logop", "identifier",
+  "intnum", "char_const", "string_constant", "constant", "id_s", "semicln",
+  "comma", "colon", YY_NULLPTR
 };
 #endif
 
@@ -569,12 +591,12 @@ static const yytype_uint16 yytoknum[] =
 };
 # endif
 
-#define YYPACT_NINF -120
+#define YYPACT_NINF -135
 
 #define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-120)))
+  (!!((Yystate) == (-135)))
 
-#define YYTABLE_NINF -48
+#define YYTABLE_NINF -1
 
 #define yytable_value_is_error(Yytable_value) \
   0
@@ -583,27 +605,25 @@ static const yytype_uint16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int16 yypact[] =
 {
-      13,    35,    85,  -120,    51,   131,  -120,  -120,  -120,   201,
-      35,    35,    35,   152,   152,    51,    30,  -120,   230,    63,
-     230,    74,   230,   230,  -120,  -120,  -120,  -120,  -120,  -120,
-    -120,    11,  -120,  -120,    96,   101,    75,   120,    35,    14,
-    -120,   152,  -120,    51,  -120,  -120,   127,  -120,   239,   230,
-    -120,  -120,  -120,  -120,    73,   263,    61,   138,  -120,  -120,
-    -120,  -120,    35,   144,    77,   115,   150,  -120,   201,   230,
-     230,   221,  -120,    35,   105,   204,    51,  -120,    14,  -120,
-      35,   215,  -120,  -120,  -120,   263,    16,  -120,  -120,   210,
-     239,  -120,  -120,  -120,  -120,  -120,  -120,   239,  -120,  -120,
-     239,  -120,  -120,   239,   109,   124,   229,  -120,    31,   134,
-       8,  -120,   115,    39,  -120,   156,   115,    14,   106,   204,
-    -120,  -120,  -120,    51,  -120,   215,  -120,   143,    51,  -120,
-    -120,  -120,   230,  -120,   167,   178,   181,   186,   192,   218,
-     219,   222,   263,    61,   138,  -120,  -120,   230,  -120,  -120,
-    -120,  -120,  -120,  -120,  -120,  -120,  -120,  -120,  -120,    34,
-    -120,   182,  -120,  -120,  -120,   230,   215,  -120,    35,    51,
-    -120,    51,   189,  -120,    80,   201,   117,  -120,   -12,   201,
-     -12,   115,  -120,    14,  -120,  -120,  -120,   171,   190,   196,
-     210,  -120,   229,  -120,  -120,  -120,   215,   224,   191,   195,
-     235,   238,  -120,   204,  -120,  -120,   210,   229,  -120,  -120
+       8,    18,    79,  -135,    85,    90,  -135,  -135,  -135,    80,
+      18,    18,    18,   101,   101,    85,    26,  -135,    44,   125,
+      44,   144,    44,    44,  -135,  -135,  -135,  -135,  -135,  -135,
+    -135,     7,  -135,  -135,    96,    -2,   123,   143,    18,    42,
+    -135,   101,  -135,    85,  -135,  -135,   166,  -135,   130,    44,
+    -135,  -135,  -135,  -135,    84,   115,   -19,    78,  -135,  -135,
+    -135,  -135,    18,    22,   111,    93,    74,  -135,    80,    44,
+      44,   126,  -135,    18,   153,    61,    85,  -135,    42,  -135,
+      18,   124,  -135,  -135,  -135,  -135,    12,  -135,  -135,    80,
+     130,  -135,  -135,  -135,  -135,  -135,  -135,   130,  -135,  -135,
+     130,  -135,  -135,   130,   148,   152,    80,  -135,    17,   150,
+       1,  -135,    93,    70,  -135,   145,    93,    42,   132,    61,
+    -135,  -135,  -135,    85,  -135,   124,  -135,   154,    85,  -135,
+    -135,  -135,   184,   115,   -19,    78,  -135,  -135,  -135,  -135,
+    -135,  -135,    34,  -135,   120,  -135,  -135,  -135,    44,   124,
+    -135,    18,    85,  -135,    85,   137,  -135,    80,  -135,    64,
+      80,    64,    93,  -135,    42,  -135,  -135,  -135,   155,   156,
+     157,  -135,  -135,  -135,  -135,   124,   179,   146,   149,  -135,
+      61,  -135,  -135,  -135
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -611,145 +631,123 @@ static const yytype_int16 yypact[] =
      means the default is an error.  */
 static const yytype_uint8 yydefact[] =
 {
-       0,     0,     0,    96,     0,     0,     1,   103,   102,     0,
+       0,     0,     0,    88,     0,     0,     1,    95,    94,     0,
        0,     0,     0,     0,     0,     0,     0,     5,     0,     0,
-       0,     0,     0,     0,    56,    30,    31,    32,    33,    34,
-      35,     0,    36,    37,     0,    82,     0,     0,     6,     0,
+       0,     0,     0,     0,    48,    30,    31,    32,    33,    34,
+      35,     0,    36,    37,     0,    74,     0,     0,     6,     0,
        9,     0,     3,     0,     4,    20,     0,    22,     0,     0,
-      98,   101,   100,    81,     0,    68,    71,    73,    75,    77,
-      79,    78,     0,     0,     0,    58,     0,    55,     0,     0,
-       0,     0,   105,     0,     0,     0,     0,    26,     0,   104,
-       0,     0,     2,    19,    21,    70,     0,    94,    95,     0,
-       0,    88,    89,    90,    91,    92,    93,     0,    84,    85,
-       0,    86,    87,     0,     0,    82,     0,    99,     0,     0,
-       0,    57,    38,     0,    50,     0,    66,     0,     0,     0,
+      90,    93,    92,    73,     0,    60,    63,    65,    67,    69,
+      71,    70,     0,     0,     0,    50,     0,    47,     0,     0,
+       0,     0,    97,     0,     0,     0,     0,    26,     0,    96,
+       0,     0,     2,    19,    21,    62,     0,    86,    87,     0,
+       0,    80,    81,    82,    83,    84,    85,     0,    76,    77,
+       0,    78,    79,     0,     0,    74,     0,    91,     0,     0,
+       0,    49,    38,     0,    42,     0,    58,     0,     0,     0,
       15,    14,    13,     0,    25,     0,    10,     0,     0,    11,
-      12,    80,     0,    40,    30,     0,    32,    33,    34,    35,
-      36,    37,    69,    72,    74,    76,    52,     0,    41,    49,
-      42,    44,    43,    45,    46,    47,    53,    54,    60,     0,
-      61,     0,    64,    83,    51,     0,     0,    27,     0,     0,
-      24,     0,     0,     7,     0,     0,     0,    59,     0,     0,
-       0,    67,    28,     0,    23,     8,    97,     0,     0,     0,
-       0,    39,     0,    62,    63,    65,     0,     0,     0,     0,
-       0,     0,    29,     0,    17,    18,     0,     0,    16,    48
+      12,    72,    40,    61,    64,    66,    68,    44,    41,    45,
+      46,    52,     0,    53,     0,    56,    75,    43,     0,     0,
+      27,     0,     0,    24,     0,     0,     7,     0,    51,     0,
+       0,     0,    59,    28,     0,    23,     8,    89,     0,     0,
+       0,    39,    54,    55,    57,     0,     0,     0,     0,    29,
+       0,    17,    18,    16
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int16 yypgoto[] =
 {
-    -120,  -120,   233,  -120,   -34,  -104,   -60,  -120,  -120,   237,
-      54,  -120,   220,  -120,    -3,   -84,  -120,   -73,   -62,    -2,
-     -28,    -5,  -120,     1,     5,  -120,    81,  -120,  -120,     3,
-     -20,   158,   163,   155,    -8,  -120,  -120,  -120,  -120,     2,
-      66,  -119,  -120,   -81,  -120,   -13,   151,   -29
+    -135,  -135,   183,  -135,   -34,  -103,   -58,  -135,  -135,   187,
+      -5,  -135,   164,  -135,   -41,  -135,  -135,  -135,    -8,  -135,
+     122,  -135,  -135,  -135,  -135,    43,  -135,  -135,   -15,   113,
+     107,   105,   -37,    -9,  -135,  -135,  -135,  -135,     2,    29,
+    -134,  -135,   -91,  -135,   -13,    92,   -33
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int16 yydefgoto[] =
 {
-      -1,     2,    13,    38,    39,   128,   129,   130,   187,    14,
-      15,    16,    74,   118,   133,    25,    26,   209,    27,    53,
-      29,    30,    31,    32,    33,   159,   160,   161,   115,    54,
-      55,    56,    57,    58,    59,   100,   103,    97,    90,    35,
-     188,    60,   109,    61,     5,     8,    80,    75
+      -1,     2,    13,    38,    39,   128,   129,   130,   168,    14,
+      15,    16,    74,   118,    24,    25,    26,    27,    53,    29,
+      30,    31,    32,    33,   142,   143,   144,   115,    54,    55,
+      56,    57,    58,    59,   100,   103,    97,    90,    35,   169,
+      60,   109,    61,     5,     8,    80,    75
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
      positive, shift that token.  If negative, reduce the rule whose
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
-static const yytype_int16 yytable[] =
+static const yytype_uint8 yytable[] =
 {
-      17,    34,    45,     4,    78,   134,    24,    28,    42,    44,
-      81,    47,    36,    37,    40,   123,   135,   158,    68,    87,
-      67,   171,   148,    63,    77,    65,    66,   136,    85,   162,
-      83,     1,    88,   149,    87,     9,    82,    51,    52,   117,
-      40,    84,    87,   177,   150,   119,     7,    88,    72,   125,
-      79,    12,    86,   189,   104,    88,   131,    51,    52,   169,
-      34,   138,   182,   124,   105,   111,    28,   108,    43,   178,
-     142,   156,   112,   113,   116,    40,    87,   163,   152,     3,
-     205,    34,   126,    87,   139,     6,     7,   137,   166,    88,
-     140,    48,   202,    89,   141,    43,    88,   162,    34,   195,
-     190,   153,    62,    98,   151,   168,   134,   154,   148,    72,
-     170,   155,    99,    64,    73,   173,    49,   200,    87,   201,
-      87,     3,   134,   148,    50,   107,    51,    52,   136,    69,
-     150,    88,     9,    88,   183,   174,     9,   192,    70,    72,
-      71,     7,    10,   208,   136,   150,   167,    87,    11,   146,
-     176,   106,    12,    87,   196,     7,   184,     9,   185,    73,
-      88,    70,   138,    10,   152,   110,    88,    34,   181,    11,
-      40,    34,   191,    28,   157,   -41,   194,    28,   138,   152,
-     172,   101,    34,   102,    34,   139,   175,   153,   137,   -42,
-     151,   140,    79,   154,   -44,   141,   164,   155,    34,    34,
-     -43,   139,   153,   191,   137,   151,     9,   140,   154,   197,
-     120,   141,   155,    18,   121,     9,   179,   122,   180,   127,
-      19,   120,   132,    20,    21,   121,   -45,   -46,   122,    19,
-     -47,   198,    20,    21,     9,    48,    50,   199,   186,   203,
-     186,   147,    50,   206,    48,     3,   207,    22,    19,    46,
-      41,    20,    21,    23,     3,   143,    22,    76,   145,   193,
-      49,   114,    23,   144,   204,     3,   165,     0,    50,    49,
-      51,    52,     0,     3,     3,    22,     0,    50,    49,    51,
-      52,    23,     0,     3,     0,     0,    50,     0,    51,    52,
-      91,    92,    93,    94,    95,    96
+      34,    28,    45,     4,    78,    63,    81,    65,    66,    43,
+     141,    85,    36,    37,    40,    87,    67,   123,    68,   145,
+      87,   170,   154,    98,    77,    87,     1,   111,    88,   106,
+      83,     9,    99,    88,    86,    70,    43,    71,    88,   117,
+      40,   119,     7,   158,   182,   125,   163,    12,   132,   108,
+      51,    52,   131,   104,   112,   113,   116,   139,    48,    34,
+      28,   152,     3,   124,   105,   138,   136,   120,   145,   159,
+     174,   121,   179,    87,   122,    40,    72,    87,    79,     6,
+      34,    28,   126,    49,   149,     9,    88,    87,     3,   110,
+      88,    50,    18,    51,    52,     9,    87,    34,    28,    19,
+      88,    10,    20,    21,    89,   151,     9,    11,   146,    88,
+     153,    12,    10,    51,    52,   156,   171,   164,    11,   173,
+       7,   101,   183,   102,     3,    48,    22,    17,   127,    69,
+     120,   175,    23,   162,   121,    42,    44,   122,    47,   165,
+      48,   166,    91,    92,    93,    94,    95,    96,    34,    28,
+      49,    34,    28,    40,   160,     3,   161,    72,    50,   107,
+      51,    52,    73,    82,    62,    49,   114,     7,    84,    49,
+       3,     9,   150,    50,     3,    51,    52,    50,     7,    51,
+      52,    79,    73,    64,    50,   147,   167,    72,   137,    70,
+     140,   155,   157,   176,   180,   167,    50,   177,   178,    46,
+      41,    76,   172,   133,   134,   135,   181,   148
 };
 
-static const yytype_int16 yycheck[] =
+static const yytype_uint8 yycheck[] =
 {
-       5,     9,    15,     1,    38,    89,     9,     9,    13,    14,
-      39,    16,    10,    11,    12,    75,    89,     9,    31,     3,
-       9,   125,   106,    20,    37,    22,    23,    89,    48,   110,
-      43,    18,    16,   106,     3,     5,    41,    49,    50,    73,
-      38,    46,     3,     9,   106,    74,    35,    16,    34,    78,
-      36,    21,    49,   172,    62,    16,    40,    49,    50,   119,
-      68,    89,   166,    76,    62,    68,    68,    64,    14,    35,
-      90,    40,    69,    70,    71,    73,     3,    38,   106,    44,
-     199,    89,    80,     3,    89,     0,    35,    89,   117,    16,
-      89,    14,   196,    20,    89,    41,    16,   178,   106,   180,
-      20,   106,    39,    42,   106,   118,   190,   106,   192,    34,
-     123,   106,    51,    39,    39,   128,    39,   190,     3,   192,
-       3,    44,   206,   207,    47,    48,    49,    50,   190,    33,
-     192,    16,     5,    16,   168,   132,     5,    20,    37,    34,
-      39,    35,    11,   203,   206,   207,    40,     3,    17,    40,
-     147,     7,    21,     3,   183,    35,   169,     5,   171,    39,
-      16,    37,   190,    11,   192,    15,    16,   175,   165,    17,
-     168,   179,   175,   175,    40,     8,   179,   179,   206,   207,
-      37,    43,   190,    45,   192,   190,     8,   192,   190,     8,
-     192,   190,    36,   192,     8,   190,    40,   192,   206,   207,
-       8,   206,   207,   206,   206,   207,     5,   206,   207,    38,
-       6,   206,   207,    12,    10,     5,    34,    13,    36,     4,
-      19,     6,    12,    22,    23,    10,     8,     8,    13,    19,
-       8,    41,    22,    23,     5,    14,    47,    41,    49,    15,
-      49,    12,    47,     8,    14,    44,     8,    46,    19,    16,
-      13,    22,    23,    52,    44,    97,    46,    37,   103,   178,
-      39,    40,    52,   100,   198,    44,   115,    -1,    47,    39,
-      49,    50,    -1,    44,    44,    46,    -1,    47,    39,    49,
-      50,    52,    -1,    44,    -1,    -1,    47,    -1,    49,    50,
-      27,    28,    29,    30,    31,    32
+       9,     9,    15,     1,    38,    20,    39,    22,    23,    14,
+       9,    48,    10,    11,    12,     3,     9,    75,    31,   110,
+       3,   155,   125,    42,    37,     3,    18,    68,    16,     7,
+      43,     5,    51,    16,    49,    37,    41,    39,    16,    73,
+      38,    74,    35,     9,   178,    78,   149,    21,    89,    64,
+      49,    50,    40,    62,    69,    70,    71,    40,    14,    68,
+      68,   119,    44,    76,    62,   106,   103,     6,   159,    35,
+     161,    10,   175,     3,    13,    73,    34,     3,    36,     0,
+      89,    89,    80,    39,   117,     5,    16,     3,    44,    15,
+      16,    47,    12,    49,    50,     5,     3,   106,   106,    19,
+      16,    11,    22,    23,    20,   118,     5,    17,    38,    16,
+     123,    21,    11,    49,    50,   128,   157,   151,    17,   160,
+      35,    43,   180,    45,    44,    14,    46,     5,     4,    33,
+       6,   164,    52,   148,    10,    13,    14,    13,    16,   152,
+      14,   154,    27,    28,    29,    30,    31,    32,   157,   157,
+      39,   160,   160,   151,    34,    44,    36,    34,    47,    48,
+      49,    50,    39,    41,    39,    39,    40,    35,    46,    39,
+      44,     5,    40,    47,    44,    49,    50,    47,    35,    49,
+      50,    36,    39,    39,    47,    40,    49,    34,    40,    37,
+      40,    37,     8,    38,    15,    49,    47,    41,    41,    16,
+      13,    37,   159,    90,    97,   100,   177,   115
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
      symbol of state STATE-NUM.  */
 static const yytype_uint8 yystos[] =
 {
-       0,    18,    54,    44,    92,    97,     0,    35,    98,     5,
-      11,    17,    21,    55,    62,    63,    64,    74,    12,    19,
-      22,    23,    46,    52,    67,    68,    69,    71,    72,    73,
-      74,    75,    76,    77,    87,    92,    92,    92,    56,    57,
-      92,    62,    74,    63,    74,    98,    55,    74,    14,    39,
-      47,    49,    50,    72,    82,    83,    84,    85,    86,    87,
-      94,    96,    39,    82,    39,    82,    82,     9,    98,    33,
-      37,    39,    34,    39,    65,   100,    65,    98,    57,    36,
-      99,   100,    74,    98,    74,    83,    82,     3,    16,    20,
-      91,    27,    28,    29,    30,    31,    32,    90,    42,    51,
-      88,    43,    45,    89,    87,    92,     7,    48,    82,    95,
-      15,    67,    82,    82,    40,    81,    82,    57,    66,   100,
-       6,    10,    13,    59,    98,   100,    92,     4,    58,    59,
-      60,    40,    12,    67,    68,    70,    71,    72,    73,    74,
-      76,    77,    83,    84,    85,    86,    40,    12,    68,    70,
-      71,    72,    73,    74,    76,    77,    40,    40,     9,    78,
-      79,    80,    96,    38,    40,    99,   100,    40,    98,    59,
-      98,    58,    37,    98,    82,     8,    82,     9,    35,    34,
-      36,    82,    58,    57,    98,    98,    49,    61,    93,    94,
-      20,    67,    20,    79,    67,    96,   100,    38,    41,    41,
-      70,    70,    58,    15,    93,    94,     8,     8,    59,    70
+       0,    18,    54,    44,    91,    96,     0,    35,    97,     5,
+      11,    17,    21,    55,    62,    63,    64,    73,    12,    19,
+      22,    23,    46,    52,    67,    68,    69,    70,    71,    72,
+      73,    74,    75,    76,    86,    91,    91,    91,    56,    57,
+      91,    62,    73,    63,    73,    97,    55,    73,    14,    39,
+      47,    49,    50,    71,    81,    82,    83,    84,    85,    86,
+      93,    95,    39,    81,    39,    81,    81,     9,    97,    33,
+      37,    39,    34,    39,    65,    99,    65,    97,    57,    36,
+      98,    99,    73,    97,    73,    85,    81,     3,    16,    20,
+      90,    27,    28,    29,    30,    31,    32,    89,    42,    51,
+      87,    43,    45,    88,    86,    91,     7,    48,    81,    94,
+      15,    67,    81,    81,    40,    80,    81,    57,    66,    99,
+       6,    10,    13,    59,    97,    99,    91,     4,    58,    59,
+      60,    40,    67,    82,    83,    84,    85,    40,    67,    40,
+      40,     9,    77,    78,    79,    95,    38,    40,    98,    99,
+      40,    97,    59,    97,    58,    37,    97,     8,     9,    35,
+      34,    36,    81,    58,    57,    97,    97,    49,    61,    92,
+      93,    67,    78,    67,    95,    99,    38,    41,    41,    58,
+      15,    92,    93,    59
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
@@ -759,13 +757,12 @@ static const yytype_uint8 yyr1[] =
       57,    58,    58,    59,    59,    59,    60,    61,    61,    62,
       62,    63,    63,    64,    64,    64,    64,    65,    66,    66,
       67,    67,    67,    67,    67,    67,    67,    67,    68,    69,
-      69,    70,    70,    70,    70,    70,    70,    70,    70,    71,
-      72,    72,    73,    73,    73,    74,    75,    75,    76,    77,
-      77,    78,    78,    79,    80,    80,    81,    81,    82,    82,
-      82,    83,    83,    84,    84,    85,    85,    86,    86,    86,
-      86,    86,    87,    87,    88,    88,    89,    89,    90,    90,
-      90,    90,    90,    90,    91,    91,    92,    93,    94,    95,
-      96,    96,    97,    98,    99,   100
+      69,    70,    71,    71,    72,    72,    72,    73,    74,    74,
+      75,    76,    76,    77,    77,    78,    79,    79,    80,    80,
+      81,    81,    81,    82,    82,    83,    83,    84,    84,    85,
+      85,    85,    85,    85,    86,    86,    87,    87,    88,    88,
+      89,    89,    89,    89,    89,    89,    90,    90,    91,    92,
+      93,    94,    95,    95,    96,    97,    98,    99
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
@@ -775,13 +772,12 @@ static const yytype_uint8 yyr2[] =
        3,     1,     1,     1,     1,     1,     6,     3,     3,     3,
        2,     3,     2,     6,     5,     4,     3,     3,     3,     5,
        1,     1,     1,     1,     1,     1,     1,     1,     3,     6,
-       4,     1,     1,     1,     1,     1,     1,     1,     6,     4,
-       3,     4,     4,     4,     4,     3,     1,     3,     2,     5,
-       4,     1,     3,     3,     1,     3,     1,     3,     1,     3,
-       2,     1,     3,     1,     3,     1,     3,     1,     1,     1,
-       3,     1,     1,     4,     1,     1,     1,     1,     1,     1,
+       4,     4,     3,     4,     4,     4,     4,     3,     1,     3,
+       2,     5,     4,     1,     3,     3,     1,     3,     1,     3,
+       1,     3,     2,     1,     3,     1,     3,     1,     3,     1,
+       1,     1,     3,     1,     1,     4,     1,     1,     1,     1,
        1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
-       1,     1,     2,     1,     1,     1
+       1,     1,     1,     1,     2,     1,     1,     1
 };
 
 
@@ -1458,7 +1454,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 128 "nolife_parser.y" /* yacc.c:1646  */
+#line 178 "nolife_parser.y" /* yacc.c:1646  */
     {
         std::cout << "Done (id_s decls sub_decls compound_stmt)\n";
 
@@ -1471,43 +1467,43 @@ yyreduce:
 
         delete (yyvsp[-1].declaration);
 
-        gASTRoot = ast::Program((yyvsp[-3].symbol), (yyvsp[-2].declaration), nullptr);
+        gASTRoot = ast::Program((yyvsp[-3].symbol), (yyvsp[-2].declaration), (yyvsp[0].compoundstatement));
     }
-#line 1477 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1473 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 142 "nolife_parser.y" /* yacc.c:1646  */
+#line 192 "nolife_parser.y" /* yacc.c:1646  */
     { 
         std::cout << "Done (id_s decls compound_stmt)\n";
 
-        gASTRoot = ast::Program((yyvsp[-2].symbol), (yyvsp[-1].declaration), nullptr);
+        gASTRoot = ast::Program((yyvsp[-2].symbol), (yyvsp[-1].declaration), (yyvsp[0].compoundstatement));
     }
-#line 1487 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1483 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 147 "nolife_parser.y" /* yacc.c:1646  */
+#line 197 "nolife_parser.y" /* yacc.c:1646  */
     { 
         std::cout << "Done (id_s sub_decls compound_stmt)\n";
 
-        gASTRoot = ast::Program((yyvsp[-2].symbol), (yyvsp[-1].declaration), nullptr);
+        gASTRoot = ast::Program((yyvsp[-2].symbol), (yyvsp[-1].declaration), (yyvsp[0].compoundstatement));
     }
-#line 1497 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1493 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 152 "nolife_parser.y" /* yacc.c:1646  */
+#line 202 "nolife_parser.y" /* yacc.c:1646  */
     { 
         std::cout << "Done\n (compound_stmt)";
 
-        gASTRoot = ast::Program((yyvsp[-1].symbol), nullptr, nullptr);
+        gASTRoot = ast::Program((yyvsp[-1].symbol), nullptr, (yyvsp[0].compoundstatement));
     }
-#line 1507 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1503 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 159 "nolife_parser.y" /* yacc.c:1646  */
+#line 209 "nolife_parser.y" /* yacc.c:1646  */
     { 
     // returns a declaration (ast::Declaration)
     std::cout << "decls\n";
@@ -1520,11 +1516,11 @@ yyreduce:
 
     (yyval.declaration) = declNode;
 }
-#line 1524 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1520 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 172 "nolife_parser.y" /* yacc.c:1646  */
+#line 222 "nolife_parser.y" /* yacc.c:1646  */
     { 
     // returns typeList (std::vector<ast::Type*>*)
     std::cout << "decl_list (single)\n";
@@ -1539,11 +1535,11 @@ yyreduce:
 
     (yyval.typeList) = typeList;
 }
-#line 1543 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1539 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 186 "nolife_parser.y" /* yacc.c:1646  */
+#line 236 "nolife_parser.y" /* yacc.c:1646  */
     { 
     // returns typeList (std::vector<ast::Type*>*)
     std::cout << "decl_list (recursive)\n";
@@ -1557,11 +1553,11 @@ yyreduce:
 
     (yyval.typeList) = (yyvsp[-4].typeList);
 }
-#line 1561 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1557 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 200 "nolife_parser.y" /* yacc.c:1646  */
+#line 250 "nolife_parser.y" /* yacc.c:1646  */
     { 
     // returns symbList std::vector<ast::Symbol*>*)
     std::cout << "identifier_list (single)\n";
@@ -1569,84 +1565,84 @@ yyreduce:
     symList->push_back((yyvsp[0].symbol));
     (yyval.symbList) = symList;
 }
-#line 1573 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1569 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 207 "nolife_parser.y" /* yacc.c:1646  */
+#line 257 "nolife_parser.y" /* yacc.c:1646  */
     {
     std::cout << "identifier_list (recursive)\n";
     (yyvsp[-2].symbList)->push_back((yyvsp[0].symbol));
     (yyval.symbList) = (yyvsp[-2].symbList);
 }
-#line 1583 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1579 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 213 "nolife_parser.y" /* yacc.c:1646  */
+#line 263 "nolife_parser.y" /* yacc.c:1646  */
     {
     // returns a type node (ast::Type)
     std::cout << "type (standard)\n";
     (yyval.type) = (yyvsp[0].type);
 }
-#line 1593 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1589 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 218 "nolife_parser.y" /* yacc.c:1646  */
+#line 268 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "type\n";
 }
-#line 1601 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1597 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 222 "nolife_parser.y" /* yacc.c:1646  */
+#line 272 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "standard_type\n";
     (yyval.type) = new ast::Integer();
 }
-#line 1610 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1606 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 226 "nolife_parser.y" /* yacc.c:1646  */
+#line 276 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "standard_type\n";
     (yyval.type) = new ast::Float();
 }
-#line 1619 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1615 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 230 "nolife_parser.y" /* yacc.c:1646  */
+#line 280 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "standard_type\n";
     (yyval.type) = new ast::Character();
 }
-#line 1628 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1624 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 236 "nolife_parser.y" /* yacc.c:1646  */
+#line 286 "nolife_parser.y" /* yacc.c:1646  */
     { std::cout << "array_type\n";}
-#line 1634 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1630 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 240 "nolife_parser.y" /* yacc.c:1646  */
+#line 290 "nolife_parser.y" /* yacc.c:1646  */
     { std::cout << "dim\n";}
-#line 1640 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1636 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 242 "nolife_parser.y" /* yacc.c:1646  */
+#line 292 "nolife_parser.y" /* yacc.c:1646  */
     { std::cout << "dim\n";}
-#line 1646 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1642 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 245 "nolife_parser.y" /* yacc.c:1646  */
+#line 295 "nolife_parser.y" /* yacc.c:1646  */
     { 
     // returns a declaration (ast::Declaration)
     std::cout << "subprogram_decls\n";
@@ -1655,11 +1651,11 @@ yyreduce:
 
     (yyval.declaration) = (yyvsp[-2].declaration);
 }
-#line 1659 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1655 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 253 "nolife_parser.y" /* yacc.c:1646  */
+#line 303 "nolife_parser.y" /* yacc.c:1646  */
     { 
     // returns a declaration (ast::Declaration)
     std::cout << "subprogram_decls\n";
@@ -1669,52 +1665,64 @@ yyreduce:
 
     (yyval.declaration) = declNode;
 }
-#line 1673 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1669 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 263 "nolife_parser.y" /* yacc.c:1646  */
+#line 313 "nolife_parser.y" /* yacc.c:1646  */
     { 
     // returns a type node (ast::Type)
     std::cout << "subprogram_decl\n";
 
     // get func node from type node
-    auto funcNode_base = (yyvsp[-2].type)->getChildren()[0]; // this gets a ast::Base*
+    // since subprogram_head returns a type node with a func node attached to it
+    auto funcNode_base = (yyvsp[-2].type)->getChildren()[0]; // this gets an ast::Base*
     auto funcNode = dynamic_cast<ast::Procedure*>(funcNode_base);
 
     if (funcNode == nullptr) {
         std::cout << "  Error in subprogram_decl!\n";
     }
 
-    // since subprogram_head returns a type node with a func node attached to it
-
     funcNode->setDecl((yyvsp[-1].declaration));
-    funcNode->setCompoundStmt(nullptr); // compoundstmt node not made yet
+    funcNode->setCompoundStmt((yyvsp[0].compoundstatement));
 
     (yyval.type) = (yyvsp[-2].type);
 }
-#line 1697 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1692 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 282 "nolife_parser.y" /* yacc.c:1646  */
+#line 331 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "subprogram_decl\n";
+
+    // get func node from type node
+    // since subprogram_head returns a type node with a func node attached to it
+    auto funcNode_base = (yyvsp[-1].type)->getChildren()[0]; // this gets an ast::Base*
+    auto funcNode = dynamic_cast<ast::Procedure*>(funcNode_base);
+
+    if (funcNode == nullptr) {
+        std::cout << "  Error in subprogram_decl!\n";
+    }
+
+    funcNode->setCompoundStmt((yyvsp[0].compoundstatement));
+
+    (yyval.type) = (yyvsp[-1].type);
 }
-#line 1705 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1713 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 286 "nolife_parser.y" /* yacc.c:1646  */
+#line 348 "nolife_parser.y" /* yacc.c:1646  */
     { 
     // returns a type node (ast::Type) that points to a func/proceedure
     std::cout << "subprogram_head\n";
 }
-#line 1714 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1722 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 290 "nolife_parser.y" /* yacc.c:1646  */
+#line 352 "nolife_parser.y" /* yacc.c:1646  */
     {
     // returns a type node (ast::Type) that points to a func/proceedure
     std::cout << "subprogram_head\n";
@@ -1730,513 +1738,650 @@ yyreduce:
 
     (yyval.type) = (yyvsp[-1].type);
 }
-#line 1734 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1742 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 305 "nolife_parser.y" /* yacc.c:1646  */
+#line 367 "nolife_parser.y" /* yacc.c:1646  */
     {
     // returns a type node (ast::Type) that points to a func/proceedure
     std::cout << "subprogram_head\n";
 }
-#line 1743 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1751 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 309 "nolife_parser.y" /* yacc.c:1646  */
+#line 371 "nolife_parser.y" /* yacc.c:1646  */
     {
     // returns a type node (ast::Type) that points to a func/proceedure
     std::cout << "subprogram_head\n";
 }
-#line 1752 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1760 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 314 "nolife_parser.y" /* yacc.c:1646  */
+#line 376 "nolife_parser.y" /* yacc.c:1646  */
     { 
     // returns a parameter node (ast::Parameters)
     std::cout << "arguments\n";
     // $$ = $2;
 }
-#line 1762 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1770 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 322 "nolife_parser.y" /* yacc.c:1646  */
+#line 384 "nolife_parser.y" /* yacc.c:1646  */
     { std::cout << "parameter_list\n";}
-#line 1768 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1776 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 324 "nolife_parser.y" /* yacc.c:1646  */
+#line 386 "nolife_parser.y" /* yacc.c:1646  */
     { std::cout << "parameter_list\n";}
-#line 1774 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1782 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 328 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "stmt\n";}
-#line 1780 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 389 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "stmt (assignment)\n";
+    (yyval.statement) = (yyvsp[0].assignment);
+}
+#line 1791 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 31:
-#line 330 "nolife_parser.y" /* yacc.c:1646  */
+#line 394 "nolife_parser.y" /* yacc.c:1646  */
     { std::cout << "stmt\n";}
-#line 1786 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1797 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 332 "nolife_parser.y" /* yacc.c:1646  */
+#line 396 "nolife_parser.y" /* yacc.c:1646  */
     { std::cout << "stmt\n";}
-#line 1792 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1803 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 33:
-#line 334 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "stmt\n";}
-#line 1798 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 397 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "stmt (proc invoke)\n";
+    // $$ = $1;
+}
+#line 1812 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 336 "nolife_parser.y" /* yacc.c:1646  */
+#line 402 "nolife_parser.y" /* yacc.c:1646  */
     { std::cout << "stmt\n";}
-#line 1804 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1818 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 338 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "stmt\n";}
-#line 1810 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 403 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "stmt (compound_stmt)\n";
+    (yyval.statement) = (yyvsp[0].compoundstatement);
+}
+#line 1827 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 36:
-#line 340 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "stmt\n";}
-#line 1816 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 407 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "stmt (return)\n";
+    // $$ = $1;
+}
+#line 1836 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 37:
-#line 342 "nolife_parser.y" /* yacc.c:1646  */
+#line 412 "nolife_parser.y" /* yacc.c:1646  */
     { std::cout << "stmt\n";}
-#line 1822 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1842 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 346 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "assignment\n";}
-#line 1828 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 415 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    // returns assignment (ast::Assignement)
+    std::cout << "assignment\n";
+
+    (yyval.assignment) = new ast::Assignment((yyvsp[-2].variable), (yyvsp[0].expression));
+}
+#line 1853 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 39:
-#line 350 "nolife_parser.y" /* yacc.c:1646  */
+#line 423 "nolife_parser.y" /* yacc.c:1646  */
     { std::cout << "if_stmt\n";}
-#line 1834 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1859 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 352 "nolife_parser.y" /* yacc.c:1646  */
+#line 425 "nolife_parser.y" /* yacc.c:1646  */
     { std::cout << "if_stmt\n";}
-#line 1840 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 1865 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 356 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "restricted_stmt\n";}
-#line 1846 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 429 "nolife_parser.y" /* yacc.c:1646  */
+    { std::cout << "while_stmt\n";}
+#line 1871 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 42:
-#line 358 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "restricted_stmt\n";}
-#line 1852 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 432 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "procedure_invocation\n";
+    (yyval.call) = new ast::Call((yyvsp[-2].symbol));
+}
+#line 1880 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 360 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "restricted_stmt\n";}
-#line 1858 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 436 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "procedure_invocation\n";
+    
+    auto callNode = new ast::Call((yyvsp[-3].symbol));
+
+    for (auto expr : *(yyvsp[-1].exprList)) {
+        callNode->addChild(expr);
+    }
+
+    delete (yyvsp[-1].exprList);
+
+    (yyval.call) = callNode;
+}
+#line 1898 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 362 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "restricted_stmt\n";}
-#line 1864 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 451 "nolife_parser.y" /* yacc.c:1646  */
+    { std::cout << "io_stmt\n";}
+#line 1904 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 364 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "restricted_stmt\n";}
-#line 1870 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 453 "nolife_parser.y" /* yacc.c:1646  */
+    { std::cout << "io_stmt\n";}
+#line 1910 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 366 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "restricted_stmt\n";}
-#line 1876 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 455 "nolife_parser.y" /* yacc.c:1646  */
+    { std::cout << "io_stmt\n";}
+#line 1916 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 368 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "restricted_stmt\n";}
-#line 1882 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 458 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    // returns a compoundstatement (ast::CompoundStatement)
+    std::cout << "compound_stmt\n";
+
+    auto list = (yyvsp[-1].stmtList);
+
+    auto compoundstmt = new ast::CompoundStatement;
+
+    for (auto stmt : *list) {
+        compoundstmt->addChild(stmt);
+    }
+
+    delete (yyvsp[-1].stmtList);
+
+    (yyval.compoundstatement) = compoundstmt;
+}
+#line 1937 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 370 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "restricted_stmt\n";}
-#line 1888 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 475 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    // returns a stmtList (std::vector<ast::Statement>*)
+    std::cout << "stmt_list (single)\n";
+
+    auto list = new std::vector<ast::Statement*>;
+
+    list->push_back((yyvsp[0].statement));
+
+    (yyval.stmtList) = list;
+}
+#line 1952 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 374 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "while_stmt\n";}
-#line 1894 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 485 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "stmt_list (recursive)\n";
+
+    (yyvsp[-2].stmtList)->push_back((yyvsp[0].statement));
+
+    (yyval.stmtList) = (yyvsp[-2].stmtList);
+}
+#line 1964 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 379 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "procedure_invocation\n";}
-#line 1900 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 493 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "return_stmt\n";
+    (yyval.rtrn) = new ast::Return((yyvsp[0].expression));
+}
+#line 1973 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 381 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "procedure_invocation\n";}
-#line 1906 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 499 "nolife_parser.y" /* yacc.c:1646  */
+    { std::cout << "case_stmt";}
+#line 1979 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 385 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "io_stmt\n";}
-#line 1912 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 501 "nolife_parser.y" /* yacc.c:1646  */
+    { std::cout << "case_stmt";}
+#line 1985 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 387 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "io_stmt\n";}
-#line 1918 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 505 "nolife_parser.y" /* yacc.c:1646  */
+    { std::cout << "cases\n";}
+#line 1991 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 54:
-#line 389 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "io_stmt\n";}
-#line 1924 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 507 "nolife_parser.y" /* yacc.c:1646  */
+    { std::cout << "cases\n";}
+#line 1997 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 55:
-#line 393 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "compound_stmt\n";}
-#line 1930 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 511 "nolife_parser.y" /* yacc.c:1646  */
+    {std::cout << "case_element\n";}
+#line 2003 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 56:
-#line 397 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "stmt_list\n";}
-#line 1936 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 515 "nolife_parser.y" /* yacc.c:1646  */
+    {std::cout << "case_element\n";}
+#line 2009 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 57:
-#line 399 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "stmt_list\n";}
-#line 1942 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 517 "nolife_parser.y" /* yacc.c:1646  */
+    {std::cout << "case_element\n";}
+#line 2015 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 58:
-#line 403 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "return_stmt\n";}
-#line 1948 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 520 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "expr_list (single)\n";
+
+    auto list = new std::vector<ast::Expression*>;
+
+    list->push_back((yyvsp[0].expression));
+
+    (yyval.exprList) = list;
+}
+#line 2029 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 59:
-#line 407 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "case_stmt";}
-#line 1954 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 529 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "expr_list (recursive)\n";
+
+    (yyvsp[-2].exprList)->push_back((yyvsp[0].expression));
+
+    (yyval.exprList) = (yyvsp[-2].exprList);
+}
+#line 2041 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 60:
-#line 409 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "case_stmt";}
-#line 1960 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 61:
-#line 413 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "cases\n";}
-#line 1966 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 62:
-#line 415 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "cases\n";}
-#line 1972 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 63:
-#line 419 "nolife_parser.y" /* yacc.c:1646  */
-    {std::cout << "case_element\n";}
-#line 1978 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 64:
-#line 423 "nolife_parser.y" /* yacc.c:1646  */
-    {std::cout << "case_element\n";}
-#line 1984 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 65:
-#line 425 "nolife_parser.y" /* yacc.c:1646  */
-    {std::cout << "case_element\n";}
-#line 1990 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 66:
-#line 429 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "expr_list\n";}
-#line 1996 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 67:
-#line 431 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "expr_list\n";}
-#line 2002 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 68:
-#line 435 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "expr\n";}
-#line 2008 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 69:
-#line 437 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "expr\n";}
-#line 2014 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 70:
-#line 439 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "expr\n";}
-#line 2020 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 71:
-#line 443 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "simple_expr\n";}
-#line 2026 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 72:
-#line 445 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "simple_expr\n";}
-#line 2032 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 73:
-#line 449 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "add_expr\n";}
-#line 2038 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 74:
-#line 451 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "add_expr\n";}
-#line 2044 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 75:
-#line 455 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "mul_expr\n";}
+#line 537 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "expr\n";
+    (yyval.expression) = (yyvsp[0].expression);
+}
 #line 2050 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
-  case 76:
-#line 457 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "mul_expr\n";}
-#line 2056 "nolife_parser.cpp" /* yacc.c:1646  */
+  case 61:
+#line 541 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "expr\n";
+    (yyvsp[-1].expression)->addChild((yyvsp[-2].expression));
+    (yyvsp[-1].expression)->addChild((yyvsp[0].expression));
+    (yyval.expression) = (yyvsp[-1].expression);
+}
+#line 2061 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
-  case 77:
-#line 461 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "factor\n";}
-#line 2062 "nolife_parser.cpp" /* yacc.c:1646  */
+  case 62:
+#line 547 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "expr\n";
+    auto exprNode = new ast::Expression(ast::Expression::Operation::Not);
+    exprNode->addChild((yyvsp[0].expression));
+    (yyval.expression) = exprNode;
+}
+#line 2072 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
-  case 78:
-#line 463 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "factor\n";}
-#line 2068 "nolife_parser.cpp" /* yacc.c:1646  */
+  case 63:
+#line 556 "nolife_parser.y" /* yacc.c:1646  */
+    {
+    std::cout << "rel_expr\n";
+    (yyval.expression) = (yyvsp[0].expression);
+}
+#line 2081 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
-  case 79:
-#line 465 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "factor\n";}
-#line 2074 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 80:
-#line 467 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "factor\n";}
-#line 2080 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 81:
-#line 469 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "factor\n";}
-#line 2086 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 82:
-#line 473 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "variable\n";}
+  case 64:
+#line 560 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "rel_expr\n";
+    (yyvsp[-1].expression)->addChild((yyvsp[-2].expression));
+    (yyvsp[-1].expression)->addChild((yyvsp[0].expression));
+    (yyval.expression) = (yyvsp[-1].expression);
+}
 #line 2092 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
+  case 65:
+#line 567 "nolife_parser.y" /* yacc.c:1646  */
+    {
+    std::cout << "add_expr\n";
+    (yyval.expression) = (yyvsp[0].expression);
+}
+#line 2101 "nolife_parser.cpp" /* yacc.c:1646  */
+    break;
+
+  case 66:
+#line 571 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "add_expr\n";
+    (yyvsp[-1].expression)->addChild((yyvsp[-2].expression));
+    (yyvsp[-1].expression)->addChild((yyvsp[0].expression));
+    (yyval.expression) = (yyvsp[-1].expression);
+}
+#line 2112 "nolife_parser.cpp" /* yacc.c:1646  */
+    break;
+
+  case 67:
+#line 578 "nolife_parser.y" /* yacc.c:1646  */
+    {
+    std::cout << "mul_expr\n";
+    (yyval.expression) = (yyvsp[0].expression);
+}
+#line 2121 "nolife_parser.cpp" /* yacc.c:1646  */
+    break;
+
+  case 68:
+#line 582 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "mul_expr\n";
+    (yyvsp[-1].expression)->addChild((yyvsp[-2].expression));
+    (yyvsp[-1].expression)->addChild((yyvsp[0].expression));
+    (yyval.expression) = (yyvsp[-1].expression);
+}
+#line 2132 "nolife_parser.cpp" /* yacc.c:1646  */
+    break;
+
+  case 69:
+#line 589 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "factor\n";
+    (yyval.expression) = new ast::Expression((yyvsp[0].variable));
+}
+#line 2141 "nolife_parser.cpp" /* yacc.c:1646  */
+    break;
+
+  case 70:
+#line 593 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "factor\n";
+    (yyval.expression) = new ast::Expression((yyvsp[0].constant));
+}
+#line 2150 "nolife_parser.cpp" /* yacc.c:1646  */
+    break;
+
+  case 71:
+#line 597 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "factor\n";
+    (yyval.expression) = new ast::Expression((yyvsp[0].constant));
+}
+#line 2159 "nolife_parser.cpp" /* yacc.c:1646  */
+    break;
+
+  case 72:
+#line 601 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "factor\n";
+    (yyval.expression) = (yyvsp[-1].expression);
+}
+#line 2168 "nolife_parser.cpp" /* yacc.c:1646  */
+    break;
+
+  case 73:
+#line 605 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "factor\n";
+    (yyval.expression) = new ast::Expression((yyvsp[0].call));
+}
+#line 2177 "nolife_parser.cpp" /* yacc.c:1646  */
+    break;
+
+  case 74:
+#line 610 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "variable\n";
+    (yyval.variable) = new ast::Variable((yyvsp[0].symbol));
+}
+#line 2186 "nolife_parser.cpp" /* yacc.c:1646  */
+    break;
+
+  case 75:
+#line 614 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "variable\n";
+    (yyval.variable) = new ast::ArrayAccess((yyvsp[-3].symbol), (yyvsp[-1].expression));
+}
+#line 2195 "nolife_parser.cpp" /* yacc.c:1646  */
+    break;
+
+  case 76:
+#line 619 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "addop\n";
+    (yyval.expression) = new ast::Expression(ast::Expression::Operation::Plus);
+}
+#line 2204 "nolife_parser.cpp" /* yacc.c:1646  */
+    break;
+
+  case 77:
+#line 623 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "addop\n";
+    (yyval.expression) = new ast::Expression(ast::Expression::Operation::Minus);
+}
+#line 2213 "nolife_parser.cpp" /* yacc.c:1646  */
+    break;
+
+  case 78:
+#line 628 "nolife_parser.y" /* yacc.c:1646  */
+    {
+    std::cout << "mulop\n";
+    (yyval.expression) = new ast::Expression(ast::Expression::Operation::Multiply);
+}
+#line 2222 "nolife_parser.cpp" /* yacc.c:1646  */
+    break;
+
+  case 79:
+#line 632 "nolife_parser.y" /* yacc.c:1646  */
+    {
+    std::cout << "mulop\n";
+    (yyval.expression) = new ast::Expression(ast::Expression::Operation::Modulo);
+}
+#line 2231 "nolife_parser.cpp" /* yacc.c:1646  */
+    break;
+
+  case 80:
+#line 637 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "relop\n";
+    (yyval.expression) = new ast::Expression(ast::Expression::Operation::LessThanOrEqual);
+}
+#line 2240 "nolife_parser.cpp" /* yacc.c:1646  */
+    break;
+
+  case 81:
+#line 641 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "relop\n";
+    (yyval.expression) = new ast::Expression(ast::Expression::Operation::LessThan);
+}
+#line 2249 "nolife_parser.cpp" /* yacc.c:1646  */
+    break;
+
+  case 82:
+#line 645 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "relop\n";
+    (yyval.expression) = new ast::Expression(ast::Expression::Operation::GreaterThanOrEqual);
+}
+#line 2258 "nolife_parser.cpp" /* yacc.c:1646  */
+    break;
+
   case 83:
-#line 475 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "variable\n";}
-#line 2098 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 649 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "relop\n";
+    (yyval.expression) = new ast::Expression(ast::Expression::Operation::GreaterThan);
+}
+#line 2267 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 84:
-#line 479 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "addop\n";}
-#line 2104 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 653 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "relop\n";
+    (yyval.expression) = new ast::Expression(ast::Expression::Operation::Equals);
+}
+#line 2276 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 85:
-#line 481 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "addop\n";}
-#line 2110 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 657 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "relop\n";
+    (yyval.expression) = new ast::Expression(ast::Expression::Operation::NotEqual);
+}
+#line 2285 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 86:
-#line 485 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "mulop\n";}
-#line 2116 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 662 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "logop\n";
+    (yyval.expression) = new ast::Expression(ast::Expression::Operation::And);
+}
+#line 2294 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 87:
-#line 487 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "mulop\n";}
-#line 2122 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 666 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "logop\n";
+    (yyval.expression) = new ast::Expression(ast::Expression::Operation::Or);
+}
+#line 2303 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 88:
-#line 491 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "relop\n";}
-#line 2128 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 671 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "identifier (" << yytext << ") \n";
+    (yyval.symbol) = new ast::Symbol(yytext);
+}
+#line 2312 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 89:
-#line 493 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "relop\n";}
-#line 2134 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 677 "nolife_parser.y" /* yacc.c:1646  */
+    { std::cout << "intnum\n";}
+#line 2318 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 90:
-#line 495 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "relop\n";}
-#line 2140 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 680 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "char_const" << yytext << "\n";
+    (yyval.constant) = new ast::Constant(yytext);
+}
+#line 2327 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 91:
-#line 497 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "relop\n";}
-#line 2146 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 685 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "string_constant" << yytext << "\n";
+    (yyval.constant) = new ast::Constant(yytext);
+}
+#line 2336 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 92:
-#line 499 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "relop\n";}
-#line 2152 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 690 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "constant" << yytext << "\n";
+    (yyval.constant) = new ast::Constant(yytext);
+}
+#line 2345 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 93:
-#line 501 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "relop\n";}
-#line 2158 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 694 "nolife_parser.y" /* yacc.c:1646  */
+    { 
+    std::cout << "constant" << yytext << "\n";
+    (yyval.constant) = new ast::Constant(yytext);
+}
+#line 2354 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 94:
-#line 505 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "logop\n";}
-#line 2164 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 95:
-#line 507 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "logop\n";}
-#line 2170 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 96:
-#line 510 "nolife_parser.y" /* yacc.c:1646  */
-    { 
-    std::cout << "identifier\n";
-    (yyval.symbol) = new ast::Symbol(yytext);
-}
-#line 2179 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 97:
-#line 516 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "intnum\n";}
-#line 2185 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 98:
-#line 520 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "char_const\n";}
-#line 2191 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 99:
-#line 524 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "string_constant\n";}
-#line 2197 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 100:
-#line 528 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "constant\n";}
-#line 2203 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 101:
-#line 530 "nolife_parser.y" /* yacc.c:1646  */
-    { std::cout << "constant\n";}
-#line 2209 "nolife_parser.cpp" /* yacc.c:1646  */
-    break;
-
-  case 102:
-#line 533 "nolife_parser.y" /* yacc.c:1646  */
+#line 699 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "id_s\n";
     (yyval.symbol) = (yyvsp[-1].symbol);
 }
-#line 2218 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2363 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
-  case 103:
-#line 539 "nolife_parser.y" /* yacc.c:1646  */
+  case 95:
+#line 705 "nolife_parser.y" /* yacc.c:1646  */
     { std::cout << "semicln\n";}
-#line 2224 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2369 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
-  case 104:
-#line 543 "nolife_parser.y" /* yacc.c:1646  */
+  case 96:
+#line 709 "nolife_parser.y" /* yacc.c:1646  */
     { std::cout << "comma\n";}
-#line 2230 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2375 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
-  case 105:
-#line 547 "nolife_parser.y" /* yacc.c:1646  */
+  case 97:
+#line 713 "nolife_parser.y" /* yacc.c:1646  */
     { std::cout << "colon\n";}
-#line 2236 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2381 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
 
-#line 2240 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2385 "nolife_parser.cpp" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2464,10 +2609,11 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 549 "nolife_parser.y" /* yacc.c:1906  */
+#line 715 "nolife_parser.y" /* yacc.c:1906  */
 
 
 /********************C ROUTINES *********************************/
+
 int yyerror(const char *s)
 {
   std::cout << "Parse error: " << s << "\n";

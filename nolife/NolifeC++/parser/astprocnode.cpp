@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "astprocnode.hpp"
 
 namespace ast {
@@ -16,6 +18,7 @@ namespace ast {
     }
 
     void Procedure::setParam(Parameters* paramNode) {
+        std::cout << "  Set param.\n";
         mChildren[3] = paramNode;
     }
 

@@ -1,2 +1,3 @@
 libparser-g.a(astassignnode.o): astassignnode.cpp astassignnode.hpp \
- astbinarynode.hpp astnode.hpp
+ astbinarynode.hpp aststmtnode.hpp astnode.hpp astvariablenode.hpp \
+ astsymnode.hpp astexpressionnode.hpp astcallnode.hpp astconstantnode.hpp

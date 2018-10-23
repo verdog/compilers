@@ -1,7 +1,7 @@
 PROGRAM func;
 
 VAR 
-c, d :INTEGER;
+a, c, d :INTEGER;
 f :FLOAT;
 
 FUNCTION b : INTEGER;

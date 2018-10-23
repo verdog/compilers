@@ -16,6 +16,7 @@
 #include "astsymnode.hpp"
 #include "astdeclnode.hpp"
 #include "astcompoundstmtnode.hpp"
+#include "astassignnode.hpp"
 
 ast::Base gASTRoot = ast::Base();
 
@@ -37,6 +38,17 @@ extern int yylex();
 #include "asttypenode.hpp"
 #include "astdeclnode.hpp"
 #include "astprocnode.hpp"
+
+#include "astbinarynode.hpp"
+#include "aststmtnode.hpp"
+#include "astcompoundstmtnode.hpp"
+#include "astassignnode.hpp"
+#include "astexpressionnode.hpp"
+#include "astcallnode.hpp"
+#include "astvariablenode.hpp"
+#include "astarrayaccessnode.hpp"
+#include "astconstantnode.hpp"
+#include "astreturnnode.hpp"
 }
 
 %union {
@@ -44,8 +56,19 @@ extern int yylex();
     ast::Symbol* symbol;
     ast::Type* type;
     ast::Declaration* declaration;
+    ast::Statement* statement;
+    ast::CompoundStatement* compoundstatement;
+    ast::Assignment* assignment;
+    ast::Expression* expression;
+    ast::Call* call;
+    ast::Variable* variable;
+    ast::Constant* constant;
+    ast::Return* rtrn;
+
     std::vector<ast::Type*>* typeList;
     std::vector<ast::Symbol*>* symbList;
+    std::vector<ast::Statement*>* stmtList;
+    std::vector<ast::Expression*>* exprList;
 }
 
 %start program
@@ -115,6 +138,33 @@ extern int yylex();
 %type <symbol> identifier
 %type <symbol> id_s
 
+%type <stmtList> stmt_list
+%type <statement> stmt
+
+%type <compoundstatement> compound_stmt
+
+%type <assignment> assignment
+
+%type <exprList> expr_list
+%type <expression> expr
+%type <expression> rel_expr
+%type <expression> add_expr
+%type <expression> mul_expr
+%type <expression> factor
+%type <expression> addop
+%type <expression> mulop
+%type <expression> relop
+%type <expression> logop
+
+%type <call> procedure_invocation
+
+%type <variable> variable
+%type <constant> constant
+%type <constant> char_const
+%type <constant> string_constant
+
+%type <rtrn> return_stmt;
+
 %left O_OR
 %left O_AND
 %left O_NOT
@@ -137,22 +187,22 @@ program:
 
         delete $4;
 
-        gASTRoot = ast::Program($2, $3, nullptr);
+        gASTRoot = ast::Program($2, $3, $5);
     }
 |   O_PROGRAM id_s decls compound_stmt { 
         std::cout << "Done (id_s decls compound_stmt)\n";
 
-        gASTRoot = ast::Program($2, $3, nullptr);
+        gASTRoot = ast::Program($2, $3, $4);
     }
 |   O_PROGRAM id_s subprogram_decls compound_stmt { 
         std::cout << "Done (id_s sub_decls compound_stmt)\n";
 
-        gASTRoot = ast::Program($2, $3, nullptr);
+        gASTRoot = ast::Program($2, $3, $4);
     }
 |   O_PROGRAM id_s compound_stmt { 
         std::cout << "Done\n (compound_stmt)";
 
-        gASTRoot = ast::Program($2, nullptr, nullptr);
+        gASTRoot = ast::Program($2, nullptr, $3);
     }
 ;
 
@@ -236,7 +286,7 @@ array_type      : O_ARRAY O_LBRACKET dim O_RBRACKET O_OF standard_type
                 { std::cout << "array_type\n";}
                 ;
 
-dim             : intnum  O_DOTDOT intnum
+dim             : intnum O_DOTDOT intnum
                 { std::cout << "dim\n";}
                 | char_const O_DOTDOT char_const 
                 { std::cout << "dim\n";}
@@ -265,22 +315,34 @@ subprogram_decl: subprogram_head decls compound_stmt {
     std::cout << "subprogram_decl\n";
 
     // get func node from type node
-    auto funcNode_base = $1->getChildren()[0]; // this gets a ast::Base*
+    // since subprogram_head returns a type node with a func node attached to it
+    auto funcNode_base = $1->getChildren()[0]; // this gets an ast::Base*
     auto funcNode = dynamic_cast<ast::Procedure*>(funcNode_base);
 
     if (funcNode == nullptr) {
         std::cout << "  Error in subprogram_decl!\n";
     }
 
-    // since subprogram_head returns a type node with a func node attached to it
-
     funcNode->setDecl($2);
-    funcNode->setCompoundStmt(nullptr); // compoundstmt node not made yet
+    funcNode->setCompoundStmt($3);
 
     $$ = $1;
 }
 | subprogram_head compound_stmt { 
     std::cout << "subprogram_decl\n";
+
+    // get func node from type node
+    // since subprogram_head returns a type node with a func node attached to it
+    auto funcNode_base = $1->getChildren()[0]; // this gets an ast::Base*
+    auto funcNode = dynamic_cast<ast::Procedure*>(funcNode_base);
+
+    if (funcNode == nullptr) {
+        std::cout << "  Error in subprogram_decl!\n";
+    }
+
+    funcNode->setCompoundStmt($2);
+
+    $$ = $1;
 };
 
 subprogram_head: O_FUNCTION identifier arguments colon standard_type semicln { 
@@ -324,62 +386,66 @@ parameter_list  : identifier_list colon type
                 { std::cout << "parameter_list\n";}
                 ;
 
-stmt            : assignment
-                { std::cout << "stmt\n";}
-                | if_stmt
-                { std::cout << "stmt\n";}
-                | while_stmt
-                { std::cout << "stmt\n";}
-                | procedure_invocation
-                { std::cout << "stmt\n";}
-                | i_o_stmt  
-                { std::cout << "stmt\n";}
-                | compound_stmt
-                { std::cout << "stmt\n";}
-                | return_stmt
-                { std::cout << "stmt\n";}
-                | case_stmt
-                { std::cout << "stmt\n";}
-                ;
+stmt: assignment { 
+    std::cout << "stmt (assignment)\n";
+    $$ = $1;
+}
+| if_stmt
+{ std::cout << "stmt\n";}
+| while_stmt
+{ std::cout << "stmt\n";}
+| procedure_invocation { 
+    std::cout << "stmt (proc invoke)\n";
+    // $$ = $1;
+}
+| i_o_stmt  
+{ std::cout << "stmt\n";}
+| compound_stmt { 
+    std::cout << "stmt (compound_stmt)\n";
+    $$ = $1;
+}
+| return_stmt { 
+    std::cout << "stmt (return)\n";
+    // $$ = $1;
+}
+| case_stmt
+{ std::cout << "stmt\n";}
+;
 
-assignment      : variable O_ASSIGN expr    
-                { std::cout << "assignment\n";}
-                ;
+assignment: variable O_ASSIGN expr { 
+    // returns assignment (ast::Assignement)
+    std::cout << "assignment\n";
 
-if_stmt         : O_IF expr O_THEN restricted_stmt O_ELSE stmt
+    $$ = new ast::Assignment($1, $3);
+};
+
+if_stmt         : O_IF expr O_THEN stmt O_ELSE stmt
                 { std::cout << "if_stmt\n";}
                 | O_IF expr O_THEN stmt        
                 { std::cout << "if_stmt\n";}
                 ;
 
-restricted_stmt : assignment
-                { std::cout << "restricted_stmt\n";}
-                | while_stmt    
-                { std::cout << "restricted_stmt\n";}
-                | i_o_stmt      
-                { std::cout << "restricted_stmt\n";}
-                | procedure_invocation 
-                { std::cout << "restricted_stmt\n";}
-                | compound_stmt        
-                { std::cout << "restricted_stmt\n";}
-                | return_stmt          
-                { std::cout << "restricted_stmt\n";}
-                | case_stmt          
-                { std::cout << "restricted_stmt\n";}
-                | O_IF expr O_THEN restricted_stmt O_ELSE restricted_stmt
-                { std::cout << "restricted_stmt\n";}
-                ;
-
-while_stmt     : O_WHILE expr O_DO restricted_stmt         
+while_stmt     : O_WHILE expr O_DO stmt         
                 { std::cout << "while_stmt\n";}
                ;
-
                
-procedure_invocation : identifier O_LPAREN O_RPAREN
-                { std::cout << "procedure_invocation\n";}
-                     | identifier O_LPAREN expr_list O_RPAREN 
-                { std::cout << "procedure_invocation\n";}
-                     ;
+procedure_invocation: identifier O_LPAREN O_RPAREN { 
+    std::cout << "procedure_invocation\n";
+    $$ = new ast::Call($1);
+}
+| identifier O_LPAREN expr_list O_RPAREN { 
+    std::cout << "procedure_invocation\n";
+    
+    auto callNode = new ast::Call($1);
+
+    for (auto expr : *$3) {
+        callNode->addChild(expr);
+    }
+
+    delete $3;
+
+    $$ = callNode;
+};
 
 i_o_stmt        : O_READ O_LPAREN variable O_RPAREN  
                 { std::cout << "io_stmt\n";}
@@ -389,19 +455,45 @@ i_o_stmt        : O_READ O_LPAREN variable O_RPAREN
                 { std::cout << "io_stmt\n";}
                 ;
 
-compound_stmt   : O_BEGIN stmt_list   O_END  
-                { std::cout << "compound_stmt\n";}
-                ;
+compound_stmt: O_BEGIN stmt_list O_END { 
+    // returns a compoundstatement (ast::CompoundStatement)
+    std::cout << "compound_stmt\n";
 
-stmt_list       : stmt
-                { std::cout << "stmt_list\n";}
-                | stmt_list semicln stmt     
-                { std::cout << "stmt_list\n";}
-                ;
+    auto list = $2;
 
-return_stmt     : O_RETURN expr 
-                { std::cout << "return_stmt\n";}
-                ;
+    auto compoundstmt = new ast::CompoundStatement;
+
+    for (auto stmt : *list) {
+        compoundstmt->addChild(stmt);
+    }
+
+    delete $2;
+
+    $$ = compoundstmt;
+};
+
+stmt_list: stmt { 
+    // returns a stmtList (std::vector<ast::Statement>*)
+    std::cout << "stmt_list (single)\n";
+
+    auto list = new std::vector<ast::Statement*>;
+
+    list->push_back($1);
+
+    $$ = list;
+}
+| stmt_list semicln stmt { 
+    std::cout << "stmt_list (recursive)\n";
+
+    $1->push_back($3);
+
+    $$ = $1;
+};
+
+return_stmt: O_RETURN expr { 
+    std::cout << "return_stmt\n";
+    $$ = new ast::Return($2);
+};
 
 case_stmt	: O_CASE expr O_OF cases O_END
                 { std::cout << "case_stmt";}
@@ -425,90 +517,159 @@ case_labels	: constant
                 {std::cout << "case_element\n";}
                 ;
 
-expr_list       : expr 
-                { std::cout << "expr_list\n";}
-                | expr_list comma expr
-                { std::cout << "expr_list\n";}
-                ;
+expr_list: expr { 
+    std::cout << "expr_list (single)\n";
 
-expr            : simple_expr
-                { std::cout << "expr\n";}
-                | expr logop simple_expr 
-                { std::cout << "expr\n";}
-                | O_NOT simple_expr 
-                { std::cout << "expr\n";}
-                ;
+    auto list = new std::vector<ast::Expression*>;
 
-simple_expr     : add_expr
-                { std::cout << "simple_expr\n";}
-                | simple_expr relop add_expr
-                { std::cout << "simple_expr\n";}
-                ;
+    list->push_back($1);
 
-add_expr        :  mul_expr            
-                { std::cout << "add_expr\n";}
-                |  add_expr addop mul_expr
-                { std::cout << "add_expr\n";}
-                ;
+    $$ = list;
+}
+| expr_list comma expr { 
+    std::cout << "expr_list (recursive)\n";
 
-mul_expr        :  factor
-                { std::cout << "mul_expr\n";}
-                |  mul_expr mulop factor
-                { std::cout << "mul_expr\n";}
-                ;
+    $1->push_back($3);
 
-factor          : variable
-                { std::cout << "factor\n";}
-                | constant
-                { std::cout << "factor\n";}
-                | char_const  
-                { std::cout << "factor\n";}
-                | O_LPAREN expr O_RPAREN
-                { std::cout << "factor\n";}
-                | procedure_invocation
-                { std::cout << "factor\n";}
-                ;  
+    $$ = $1;
+};
 
-variable        : identifier
-                { std::cout << "variable\n";}
-                | identifier O_LBRACKET expr O_RBRACKET    
-                { std::cout << "variable\n";}
-                ;			       
+expr: rel_expr { 
+    std::cout << "expr\n";
+    $$ = $1;
+}
+| expr logop rel_expr { 
+    std::cout << "expr\n";
+    $2->addChild($1);
+    $2->addChild($3);
+    $$ = $2;
+}
+| O_NOT factor { 
+    std::cout << "expr\n";
+    auto exprNode = new ast::Expression(ast::Expression::Operation::Not);
+    exprNode->addChild($2);
+    $$ = exprNode;
+};
 
-addop           : O_PLUS  
-                { std::cout << "addop\n";}
-                | O_MINUS 
-                { std::cout << "addop\n";}
-                ;
+// structured for precdedence...
 
-mulop           : O_TIMES
-                { std::cout << "mulop\n";}
-                | O_MOD  
-                { std::cout << "mulop\n";}
-                ;
+rel_expr: add_expr {
+    std::cout << "rel_expr\n";
+    $$ = $1;
+}
+| rel_expr relop add_expr { 
+    std::cout << "rel_expr\n";
+    $2->addChild($1);
+    $2->addChild($3);
+    $$ = $2;
+};
 
-relop           : O_LE
-                { std::cout << "relop\n";}
-                | O_LT
-                { std::cout << "relop\n";}
-                | O_GE
-                { std::cout << "relop\n";}
-                | O_GT
-                { std::cout << "relop\n";}
-                | O_EQ
-                { std::cout << "relop\n";}
-                | O_NE
-                { std::cout << "relop\n";}
-                ;
+add_expr: mul_expr {
+    std::cout << "add_expr\n";
+    $$ = $1;
+}
+| add_expr addop mul_expr { 
+    std::cout << "add_expr\n";
+    $2->addChild($1);
+    $2->addChild($3);
+    $$ = $2;
+};
 
-logop           : O_AND
-                { std::cout << "logop\n";}
-                | O_OR 
-                { std::cout << "logop\n";}
-                ;
+mul_expr: factor {
+    std::cout << "mul_expr\n";
+    $$ = $1;
+}
+| mul_expr mulop factor { 
+    std::cout << "mul_expr\n";
+    $2->addChild($1);
+    $2->addChild($3);
+    $$ = $2;
+};
+
+factor: variable { 
+    std::cout << "factor\n";
+    $$ = new ast::Expression($1);
+}
+| constant { 
+    std::cout << "factor\n";
+    $$ = new ast::Expression($1);
+}
+| char_const { 
+    std::cout << "factor\n";
+    $$ = new ast::Expression($1);
+}
+| O_LPAREN expr O_RPAREN { 
+    std::cout << "factor\n";
+    $$ = $2;
+}
+| procedure_invocation { 
+    std::cout << "factor\n";
+    $$ = new ast::Expression($1);
+};  
+
+variable: identifier { 
+    std::cout << "variable\n";
+    $$ = new ast::Variable($1);
+}
+| identifier O_LBRACKET expr O_RBRACKET { 
+    std::cout << "variable\n";
+    $$ = new ast::ArrayAccess($1, $3);
+}			       
+
+addop: O_PLUS  { 
+    std::cout << "addop\n";
+    $$ = new ast::Expression(ast::Expression::Operation::Plus);
+}
+| O_MINUS { 
+    std::cout << "addop\n";
+    $$ = new ast::Expression(ast::Expression::Operation::Minus);
+};
+
+mulop: O_TIMES {
+    std::cout << "mulop\n";
+    $$ = new ast::Expression(ast::Expression::Operation::Multiply);
+}
+| O_MOD {
+    std::cout << "mulop\n";
+    $$ = new ast::Expression(ast::Expression::Operation::Modulo);
+};
+
+relop: O_LE { 
+    std::cout << "relop\n";
+    $$ = new ast::Expression(ast::Expression::Operation::LessThanOrEqual);
+}
+| O_LT { 
+    std::cout << "relop\n";
+    $$ = new ast::Expression(ast::Expression::Operation::LessThan);
+}
+| O_GE { 
+    std::cout << "relop\n";
+    $$ = new ast::Expression(ast::Expression::Operation::GreaterThanOrEqual);
+}
+| O_GT { 
+    std::cout << "relop\n";
+    $$ = new ast::Expression(ast::Expression::Operation::GreaterThan);
+}
+| O_EQ { 
+    std::cout << "relop\n";
+    $$ = new ast::Expression(ast::Expression::Operation::Equals);
+}
+| O_NE { 
+    std::cout << "relop\n";
+    $$ = new ast::Expression(ast::Expression::Operation::NotEqual);
+};
+
+logop: O_AND { 
+    std::cout << "logop\n";
+    $$ = new ast::Expression(ast::Expression::Operation::And);
+}
+| O_OR { 
+    std::cout << "logop\n";
+    $$ = new ast::Expression(ast::Expression::Operation::Or);
+};
 
 identifier: O_IDENTIFER { 
-    std::cout << "identifier\n";
+    std::cout << "identifier (" << yytext << ") \n";
     $$ = new ast::Symbol(yytext);
 };
 
@@ -516,19 +677,24 @@ intnum          : O_INT
                 { std::cout << "intnum\n";}
                 ;
 
-char_const      : O_CHAR
-                { std::cout << "char_const\n";}
-                ;
+char_const: O_CHAR { 
+    std::cout << "char_const" << yytext << "\n";
+    $$ = new ast::Constant(yytext);
+};
 
-string_constant : O_STRING
-                { std::cout << "string_constant\n";}
-                ;
+string_constant: O_STRING { 
+    std::cout << "string_constant" << yytext << "\n";
+    $$ = new ast::Constant(yytext);
+};
 
-constant        : O_FLOATCON    
-                { std::cout << "constant\n";}
-                | O_INT
-                { std::cout << "constant\n";}
-                ;
+constant: O_FLOATCON     { 
+    std::cout << "constant" << yytext << "\n";
+    $$ = new ast::Constant(yytext);
+}
+| O_INT { 
+    std::cout << "constant" << yytext << "\n";
+    $$ = new ast::Constant(yytext);
+};
 
 id_s: identifier semicln { 
     std::cout << "id_s\n";
@@ -549,6 +715,7 @@ colon           : O_COLON
 %%
 
 /********************C ROUTINES *********************************/
+
 int yyerror(const char *s)
 {
   std::cout << "Parse error: " << s << "\n";

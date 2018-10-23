@@ -4,9 +4,9 @@
 
 namespace ast {
 
-    class Parameters : public Base {
+    class Statement : public Base {
         public:
-            Parameters();
+            Statement();
         private:
     };
 

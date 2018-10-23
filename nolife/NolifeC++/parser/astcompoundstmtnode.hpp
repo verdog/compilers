@@ -1,12 +1,12 @@
 #pragma once
 
-#include "astnode.hpp"
+#include "aststmtnode.hpp"
 
 namespace ast {
 
-    class CompoundStatement : public Base {
+    class CompoundStatement : public Statement {
         public:
-
+            CompoundStatement();
         private:
     };
 

@@ -15,7 +15,7 @@ RM = /bin/rm -f
 
 CXXFLAGS = $(INCLUDES) $(ENV) 
 
-# .SILENT:
+.SILENT:
 
 $(TARGET): $(LIBS) $(OBJS)
 	echo "Creating $@"

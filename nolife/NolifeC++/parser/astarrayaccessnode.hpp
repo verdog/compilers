@@ -1,14 +1,14 @@
 #pragma once
 
-#include "astbinarynode.hpp"
 #include "astvariablenode.hpp"
 #include "astexpressionnode.hpp"
 
 namespace ast {
 
-    class Assignment : public Binary {
+    class ArrayAccess : public Variable {
         public:
-            Assignment(Variable* v, Expression* e);
+            ArrayAccess(Symbol* sym, Expression* e);
+        private:
     };
 
 } // ast

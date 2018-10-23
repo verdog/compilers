@@ -40,7 +40,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 33 "nolife_parser.y" /* yacc.c:1909  */
+#line 34 "nolife_parser.y" /* yacc.c:1909  */
 
 #include <string>
 #include <vector>
@@ -49,7 +49,18 @@ extern int yydebug;
 #include "astdeclnode.hpp"
 #include "astprocnode.hpp"
 
-#line 53 "nolife_parser.hpp" /* yacc.c:1909  */
+#include "astbinarynode.hpp"
+#include "aststmtnode.hpp"
+#include "astcompoundstmtnode.hpp"
+#include "astassignnode.hpp"
+#include "astexpressionnode.hpp"
+#include "astcallnode.hpp"
+#include "astvariablenode.hpp"
+#include "astarrayaccessnode.hpp"
+#include "astconstantnode.hpp"
+#include "astreturnnode.hpp"
+
+#line 64 "nolife_parser.hpp" /* yacc.c:1909  */
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -114,16 +125,27 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 42 "nolife_parser.y" /* yacc.c:1909  */
+#line 54 "nolife_parser.y" /* yacc.c:1909  */
 
     int integer;
     ast::Symbol* symbol;
     ast::Type* type;
     ast::Declaration* declaration;
+    ast::Statement* statement;
+    ast::CompoundStatement* compoundstatement;
+    ast::Assignment* assignment;
+    ast::Expression* expression;
+    ast::Call* call;
+    ast::Variable* variable;
+    ast::Constant* constant;
+    ast::Return* rtrn;
+
     std::vector<ast::Type*>* typeList;
     std::vector<ast::Symbol*>* symbList;
+    std::vector<ast::Statement*>* stmtList;
+    std::vector<ast::Expression*>* exprList;
 
-#line 127 "nolife_parser.hpp" /* yacc.c:1909  */
+#line 149 "nolife_parser.hpp" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

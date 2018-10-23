@@ -1,12 +1,13 @@
 #pragma once
 
-#include "astnode.hpp"
+#include "aststmtnode.hpp"
+#include "astsymnode.hpp"
 
 namespace ast {
 
-    class Call : public Base {
+    class Call : public Statement {
         public:
-            Call();
+            Call(Symbol* s);
         private:
     };
 

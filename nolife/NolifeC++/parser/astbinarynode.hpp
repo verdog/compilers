@@ -1,10 +1,10 @@
 #pragma once
 
-#include "astnode.hpp"
+#include "aststmtnode.hpp"
 
 namespace ast {
 
-    class Binary : public Base {
+    class Binary : public Statement {
         public:
             Binary(Base* l, Base* r);
 
