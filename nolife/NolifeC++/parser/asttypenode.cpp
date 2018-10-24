@@ -1,4 +1,6 @@
 #include "asttypenode.hpp"
+#include "astsymnode.hpp"
+#include "astprocnode.hpp"
 
 namespace ast {
     

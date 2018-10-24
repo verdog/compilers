@@ -225,7 +225,7 @@ decl_list: identifier_list colon  type  semicln {
     auto typeList = new std::vector<ast::Type*>();
     for (auto sym : *$1) { // for each symbol node in the identifier_list
         auto newType = $3->clone();
-        newType->addChild(sym);
+        newType->setSymbol(sym);
         typeList->push_back(newType);
     }
 
@@ -238,7 +238,7 @@ decl_list: identifier_list colon  type  semicln {
     std::cout << "decl_list (recursive, )\n";
     for (auto sym : *$2) { // for each symbol node in the identifier_list
         auto newType = $4->clone();
-        newType->addChild(sym);
+        newType->setSymbol(sym);
         $1->push_back(newType);
     }
 

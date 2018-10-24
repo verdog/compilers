@@ -1,10 +1,11 @@
 #pragma once
 
 #include "astnode.hpp"
-#include "astsymnode.hpp"
-#include "astprocnode.hpp"
 
 namespace ast {
+
+    class Procedure;
+    class Symbol;
 
     class Type : public Base {
         public:

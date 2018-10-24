@@ -1527,7 +1527,7 @@ yyreduce:
     auto typeList = new std::vector<ast::Type*>();
     for (auto sym : *(yyvsp[-3].symbList)) { // for each symbol node in the identifier_list
         auto newType = (yyvsp[-1].type)->clone();
-        newType->addChild(sym);
+        newType->setSymbol(sym);
         typeList->push_back(newType);
     }
 
@@ -1545,7 +1545,7 @@ yyreduce:
     std::cout << "decl_list (recursive, )\n";
     for (auto sym : *(yyvsp[-3].symbList)) { // for each symbol node in the identifier_list
         auto newType = (yyvsp[-1].type)->clone();
-        newType->addChild(sym);
+        newType->setSymbol(sym);
         (yyvsp[-4].typeList)->push_back(newType);
     }
 
