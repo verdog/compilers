@@ -1,6 +1,8 @@
 #pragma once
 
 #include "astnode.hpp"
+#include "astsymnode.hpp"
+#include "astprocnode.hpp"
 
 namespace ast {
 
@@ -17,6 +19,9 @@ namespace ast {
             Type();
             virtual Types getType() = 0;
             virtual Type* clone() = 0;
+            void setSymbol(Symbol* s);
+            void setFunc(Procedure* p);
+            void addChild() = delete;
     };
 
     class Integer : public Type {

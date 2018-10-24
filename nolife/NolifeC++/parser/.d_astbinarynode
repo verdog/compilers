@@ -1,2 +1,2 @@
 libparser-g.a(astbinarynode.o): astbinarynode.cpp astbinarynode.hpp \
- astnode.hpp
+ aststmtnode.hpp astnode.hpp

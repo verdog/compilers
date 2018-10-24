@@ -1,11 +1,11 @@
 #pragma once
 
-#include "astnode.hpp"
+#include "aststmtnode.hpp"
 #include "astexpressionnode.hpp"
 
 namespace ast {
 
-    class Return : public Base {
+    class Return : public Statement {
         public:
             Return(Expression* e);
     };

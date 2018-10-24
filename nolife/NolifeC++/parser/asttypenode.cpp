@@ -6,6 +6,14 @@ namespace ast {
         mKind = "type";
     }
 
+    void Type::setSymbol(Symbol* s) {
+        Base::addChild(s);
+    }
+
+    void Type::setFunc(Procedure* p) {
+        Base::addChild(p);
+    }
+
     Integer::Integer() {
         mKind = "integer";
     }

@@ -13,24 +13,32 @@ namespace ast {
     Expression::Expression(Variable *var) 
     : mOperation { Operation::Noop }
     {
+        mKind = "expression";
+        
         addChild(var);
     }
 
     Expression::Expression(Symbol *sym) 
     : mOperation { Operation::Noop }
     {
+        mKind = "expression";
+        
         addChild(sym);
     }
 
     Expression::Expression(Call *call) 
     : mOperation { Operation::Noop }
     {
+        mKind = "expression";
+        
         addChild(call);
     }
 
     Expression::Expression(Constant *constant) 
     : mOperation { Operation::Noop }
     {
+        mKind = "expression";
+        
         addChild(constant);
     }
 

@@ -235,7 +235,7 @@ decl_list: identifier_list colon  type  semicln {
 }
 | decl_list identifier_list colon type semicln { 
     // returns typeList (std::vector<ast::Type*>*)
-    std::cout << "decl_list (recursive)\n";
+    std::cout << "decl_list (recursive, )\n";
     for (auto sym : *$2) { // for each symbol node in the identifier_list
         auto newType = $4->clone();
         newType->addChild(sym);
@@ -266,7 +266,8 @@ type: standard_type {
     $$ = $1;
 }
 | array_type { 
-    std::cout << "type\n";
+    std::cout << "type (array)\n";
+    // $$ = $1;
 };
 
 standard_type: O_INTEGER { 
@@ -360,7 +361,7 @@ subprogram_head: O_FUNCTION identifier arguments colon standard_type semicln {
         nullptr // no compound statement available yet
     );
 
-    $4->addChild(func);
+    $4->setFunc(func);
 
     $$ = $4;
 }
@@ -406,7 +407,7 @@ stmt: assignment {
 }
 | return_stmt { 
     std::cout << "stmt (return)\n";
-    // $$ = $1;
+    $$ = $1;
 }
 | case_stmt
 { std::cout << "stmt\n";}

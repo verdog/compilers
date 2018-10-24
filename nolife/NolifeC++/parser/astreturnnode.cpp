@@ -5,6 +5,8 @@
 namespace ast {
 
     Return::Return(Expression* e) {
+        mKind = "return";
+        
         addChild(e);
     }
 
