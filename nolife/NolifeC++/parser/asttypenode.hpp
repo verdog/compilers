@@ -6,6 +6,7 @@ namespace ast {
 
     class Procedure;
     class Symbol;
+    class Array;
 
     class Type : public Base {
         public:
@@ -22,7 +23,8 @@ namespace ast {
             virtual Type* clone() = 0;
             void setSymbol(Symbol* s);
             void setFunc(Procedure* p);
-            void addChild() = delete;
+            void setArray(Array* a);
+        protected:
     };
 
     class Integer : public Type {

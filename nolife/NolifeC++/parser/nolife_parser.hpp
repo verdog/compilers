@@ -40,7 +40,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 34 "nolife_parser.y" /* yacc.c:1909  */
+#line 35 "nolife_parser.y" /* yacc.c:1909  */
 
 #include <string>
 #include <vector>
@@ -125,7 +125,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 54 "nolife_parser.y" /* yacc.c:1909  */
+#line 55 "nolife_parser.y" /* yacc.c:1909  */
 
     int integer;
     ast::Symbol* symbol;

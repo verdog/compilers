@@ -1,6 +1,9 @@
+#include <iostream>
+
 #include "asttypenode.hpp"
 #include "astsymnode.hpp"
 #include "astprocnode.hpp"
+#include "astarraynode.hpp"
 
 namespace ast {
     
@@ -9,55 +12,127 @@ namespace ast {
     }
 
     void Type::setSymbol(Symbol* s) {
-        Base::addChild(s);
+        // if there is a child, it is an array.
+        // set the symbol on the array child.
+        // otherwise, just add the symbol to the node itself.
+
+        if (mChildren.size() > 0) {
+            auto child = dynamic_cast<Array*>(mChildren[0]);
+            if (child != nullptr) {
+                std::cout << "  Array detected in set symbol.\n";
+                child->setSymbol(s);
+            }
+        } else {
+            Base::addChild(s);
+        }
     }
 
     void Type::setFunc(Procedure* p) {
         Base::addChild(p);
     }
 
-    Integer::Integer() {
+    void Type::setArray(Array* a) {
+        std::cout << "  Set array!\n";
+        if (mChildren.size() > 0) {
+            mChildren.clear();
+        }
+        Base::addChild(a);
+    }
+
+    Integer::Integer() 
+    : Type()
+    {
         mKind = "integer";
     }
 
     Integer* Integer::clone() {
-        return new Integer();
+        auto clone = new Integer(*this);
+        
+        if (mChildren.size() > 0 && mChildren[0] != nullptr) {
+            // has and array child
+            auto typeChild = dynamic_cast<Array*>(mChildren[0]);
+
+            if (typeChild != nullptr) {
+                clone->setArray(typeChild->clone());
+            }
+        }
+
+        return clone;
     }
 
     Type::Types Integer::getType() {
         return Type::Types::Integer;
     }
 
-    Float::Float() {
+    Float::Float() 
+    : Type::Type()
+    {
         mKind = "float";
     }
 
     Float* Float::clone() {
-        return new Float();
+        auto clone = new Float(*this);
+        
+        if (mChildren.size() > 0 && mChildren[0] != nullptr) {
+            // has and array child
+            auto typeChild = dynamic_cast<Array*>(mChildren[0]);
+
+            if (typeChild != nullptr) {
+                clone->setArray(typeChild->clone());
+            }
+        }
+
+        return clone;
     }
 
     Type::Types Float::getType() {
         return Type::Types::Float;
     }
 
-    Character::Character() {
+    Character::Character() 
+    : Type::Type()
+    {
         mKind = "character";
     }
 
     Character* Character::clone() {
-        return new Character();
+        auto clone = new Character(*this);
+        
+        if (mChildren.size() > 0 && mChildren[0] != nullptr) {
+            // has and array child
+            auto typeChild = dynamic_cast<Array*>(mChildren[0]);
+
+            if (typeChild != nullptr) {
+                clone->setArray(typeChild->clone());
+            }
+        }
+
+        return clone;
     }
 
     Type::Types Character::getType() {
         return Type::Types::Character;
     }
 
-    Void::Void() {
+    Void::Void() 
+    : Type::Type()
+    {
         mKind = "void";
     }
 
     Void* Void::clone() {
-        return new Void();
+        auto clone = new Void(*this);
+        
+        if (mChildren.size() > 0 && mChildren[0] != nullptr) {
+            // has and array child
+            auto typeChild = dynamic_cast<Array*>(mChildren[0]);
+
+            if (typeChild != nullptr) {
+                clone->setArray(typeChild->clone());
+            }
+        }
+
+        return clone;
     }
 
     Type::Types Void::getType() {

@@ -17,6 +17,7 @@
 #include "astdeclnode.hpp"
 #include "astcompoundstmtnode.hpp"
 #include "astassignnode.hpp"
+#include "astarraynode.hpp"
 
 ast::Base gASTRoot = ast::Base();
 
@@ -133,6 +134,9 @@ extern int yylex();
 
 %type <type> type
 %type <type> standard_type
+%type <type> array_type
+%type <symbol> intnum
+%type <symbList> dim
 
 %type <symbList> identifier_list
 %type <symbol> identifier
@@ -219,7 +223,7 @@ decls: O_VAR decl_list {
     $$ = declNode;
 };       
 
-decl_list: identifier_list colon  type  semicln { 
+decl_list: identifier_list colon type semicln { 
     // returns typeList (std::vector<ast::Type*>*)
     std::cout << "decl_list (single)\n";
     auto typeList = new std::vector<ast::Type*>();
@@ -267,7 +271,7 @@ type: standard_type {
 }
 | array_type { 
     std::cout << "type (array)\n";
-    // $$ = $1;
+    $$ = $1;
 };
 
 standard_type: O_INTEGER { 
@@ -283,15 +287,34 @@ standard_type: O_INTEGER {
     $$ = new ast::Character();
 };
 
-array_type      : O_ARRAY O_LBRACKET dim O_RBRACKET O_OF standard_type  
-                { std::cout << "array_type\n";}
-                ;
+array_type: O_ARRAY O_LBRACKET dim O_RBRACKET O_OF standard_type { 
+    std::cout << "array_type\n";
+    auto array = new ast::Array();
 
-dim             : intnum O_DOTDOT intnum
-                { std::cout << "dim\n";}
-                | char_const O_DOTDOT char_const 
-                { std::cout << "dim\n";}
-                ;
+    auto dimlist = $3;
+    auto type = $6;
+
+    array->setBounds((*dimlist)[0], (*dimlist)[1]);
+
+    type->setArray(array);
+
+    $$ = type;
+};
+
+dim: intnum O_DOTDOT intnum { 
+    std::cout << "dim\n";
+    auto list = new std::vector<ast::Symbol*>;
+    list->push_back($1);
+    list->push_back($3);
+    $$ = list;
+}
+| char_const O_DOTDOT char_const  { 
+    std::cout << "dim\n";
+    auto list = new std::vector<ast::Symbol*>;
+    list->push_back($1);
+    list->push_back($3);
+    $$ = list;
+};
 
 subprogram_decls: subprogram_decls subprogram_decl semicln { 
     // returns a declaration (ast::Declaration)
@@ -354,6 +377,8 @@ subprogram_head: O_FUNCTION identifier arguments colon standard_type semicln {
     // returns a type node (ast::Type) that points to a func/proceedure
     std::cout << "subprogram_head\n";
 
+    auto type = $4;
+
     auto func = new ast::Procedure(
         $2, // identifier; symbol node
         nullptr, // no parameters
@@ -361,9 +386,9 @@ subprogram_head: O_FUNCTION identifier arguments colon standard_type semicln {
         nullptr // no compound statement available yet
     );
 
-    $4->setFunc(func);
+    type->setFunc(func);
 
-    $$ = $4;
+    $$ = type;
 }
 | O_PROCEDURE identifier arguments semicln {
     // returns a type node (ast::Type) that points to a func/proceedure
@@ -674,9 +699,10 @@ identifier: O_IDENTIFER {
     $$ = new ast::Symbol(yytext);
 };
 
-intnum          : O_INT  
-                { std::cout << "intnum\n";}
-                ;
+intnum: O_INT { 
+    std::cout << "intnum\n";
+    $$ = new ast::Constant(yytext);
+};
 
 char_const: O_CHAR { 
     std::cout << "char_const" << yytext << "\n";

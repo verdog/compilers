@@ -1,3 +1,4 @@
 libparser-g.a(asttypenode.o): asttypenode.cpp asttypenode.hpp astnode.hpp \
  astsymnode.hpp astprocnode.hpp astprognode.hpp astdeclnode.hpp \
- astcompoundstmtnode.hpp aststmtnode.hpp astparamnode.hpp
+ astcompoundstmtnode.hpp aststmtnode.hpp astparamnode.hpp \
+ astarraynode.hpp
