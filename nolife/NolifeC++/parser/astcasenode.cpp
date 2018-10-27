@@ -5,13 +5,15 @@
 
 namespace ast {
 
-    Case::Case(Expression* e, std::vector<Clause*> &list) {
+    Case::Case(Expression* e, std::vector<Clause*>* list) {
         mKind = "case";
 
         addChild(e);
 
-        for (auto clause : list) {
-            addChild(clause);
+        if (list != nullptr) {
+            for (auto clause : *list) {
+                addChild(clause);
+            }
         }
     }
 

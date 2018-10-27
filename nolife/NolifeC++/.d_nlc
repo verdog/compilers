@@ -9,4 +9,4 @@
  parser/astreturnnode.hpp parser/astifnode.hpp parser/astwhilenode.hpp \
  parser/astreadnode.hpp parser/astwritenode.hpp \
  parser/astcaselabelsnode.hpp parser/astclausenode.hpp \
- parser/astcasenode.hpp
+ parser/astcasenode.hpp parser/visitor.hpp parser/visitorprinter.hpp

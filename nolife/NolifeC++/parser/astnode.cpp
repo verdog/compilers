@@ -16,7 +16,7 @@ namespace ast {
         return mChildren;
     }
 
-    std::string Base::getKind() const {
+    std::string Base::getKind() {
         return mKind;
     }
 

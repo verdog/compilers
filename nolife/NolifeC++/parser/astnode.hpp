@@ -15,7 +15,7 @@ namespace ast {
 
             virtual void accept(Visitor &v);
 
-            std::string getKind() const;
+            virtual std::string getKind();
 
             bool addChild(Base* node);
             std::vector<Base*>& getChildren();

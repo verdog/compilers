@@ -561,11 +561,11 @@ static const yytype_uint16 yyrline[] =
      357,   367,   385,   402,   419,   436,   453,   471,   477,   493,
      507,   510,   513,   516,   519,   522,   525,   528,   533,   540,
      545,   551,   557,   561,   575,   578,   581,   586,   603,   613,
-     621,   626,   628,   632,   640,   648,   653,   661,   667,   676,
-     684,   688,   694,   703,   707,   714,   718,   725,   729,   736,
-     740,   744,   748,   752,   757,   761,   766,   770,   775,   779,
-     784,   788,   792,   796,   800,   804,   809,   813,   818,   823,
-     828,   833,   838,   842,   847,   852,   856,   860
+     621,   626,   629,   634,   642,   650,   655,   663,   669,   678,
+     686,   690,   696,   705,   709,   716,   720,   727,   731,   738,
+     742,   746,   750,   754,   759,   763,   768,   772,   777,   781,
+     786,   790,   794,   798,   802,   806,   811,   815,   820,   825,
+     830,   835,   840,   844,   849,   854,   858,   862
 };
 #endif
 
@@ -2121,20 +2121,22 @@ yyreduce:
 #line 626 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "case_stmt";
+    (yyval._case) = new ast::Case((yyvsp[-3].expression), (yyvsp[-1].clauseList));
 }
-#line 2126 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2127 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 628 "nolife_parser.y" /* yacc.c:1646  */
+#line 629 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "case_stmt";
+    (yyval._case) = new ast::Case((yyvsp[-2].expression), nullptr);
 }
-#line 2134 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2136 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 632 "nolife_parser.y" /* yacc.c:1646  */
+#line 634 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "cases\n";
 
@@ -2144,11 +2146,11 @@ yyreduce:
 
     (yyval.clauseList) = list;
 }
-#line 2148 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2150 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 54:
-#line 640 "nolife_parser.y" /* yacc.c:1646  */
+#line 642 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "cases (recursive)\n";
 
@@ -2156,20 +2158,20 @@ yyreduce:
 
     (yyval.clauseList) = (yyvsp[-2].clauseList);
 }
-#line 2160 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2162 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 55:
-#line 648 "nolife_parser.y" /* yacc.c:1646  */
+#line 650 "nolife_parser.y" /* yacc.c:1646  */
     {
     std::cout << "case_element\n";
     (yyval.clause) = new ast::Clause((yyvsp[-2].caseLabels), (yyvsp[0].statement));
 }
-#line 2169 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2171 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 56:
-#line 653 "nolife_parser.y" /* yacc.c:1646  */
+#line 655 "nolife_parser.y" /* yacc.c:1646  */
     {
     std::cout << "case_element\n";
 
@@ -2179,21 +2181,21 @@ yyreduce:
 
     (yyval.caseLabels) = caseLabels;
 }
-#line 2183 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2185 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 57:
-#line 661 "nolife_parser.y" /* yacc.c:1646  */
+#line 663 "nolife_parser.y" /* yacc.c:1646  */
     {
     std::cout << "case_element (recursive)\n";
     (yyvsp[-2].caseLabels)->addChild((yyvsp[0].constant));
     (yyval.caseLabels) = (yyvsp[-2].caseLabels);
 }
-#line 2193 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2195 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 58:
-#line 667 "nolife_parser.y" /* yacc.c:1646  */
+#line 669 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "expr_list (single)\n";
 
@@ -2203,11 +2205,11 @@ yyreduce:
 
     (yyval.exprList) = list;
 }
-#line 2207 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2209 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 59:
-#line 676 "nolife_parser.y" /* yacc.c:1646  */
+#line 678 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "expr_list (recursive)\n";
 
@@ -2215,354 +2217,354 @@ yyreduce:
 
     (yyval.exprList) = (yyvsp[-2].exprList);
 }
-#line 2219 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2221 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 60:
-#line 684 "nolife_parser.y" /* yacc.c:1646  */
+#line 686 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "expr\n";
     (yyval.expression) = (yyvsp[0].expression);
 }
-#line 2228 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2230 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 61:
-#line 688 "nolife_parser.y" /* yacc.c:1646  */
+#line 690 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "expr\n";
     (yyvsp[-1].expression)->addChild((yyvsp[-2].expression));
     (yyvsp[-1].expression)->addChild((yyvsp[0].expression));
     (yyval.expression) = (yyvsp[-1].expression);
 }
-#line 2239 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2241 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 62:
-#line 694 "nolife_parser.y" /* yacc.c:1646  */
+#line 696 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "expr\n";
     auto exprNode = new ast::Expression(ast::Expression::Operation::Not);
     exprNode->addChild((yyvsp[0].expression));
     (yyval.expression) = exprNode;
 }
-#line 2250 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2252 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 63:
-#line 703 "nolife_parser.y" /* yacc.c:1646  */
+#line 705 "nolife_parser.y" /* yacc.c:1646  */
     {
     std::cout << "rel_expr\n";
     (yyval.expression) = (yyvsp[0].expression);
 }
-#line 2259 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2261 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 64:
-#line 707 "nolife_parser.y" /* yacc.c:1646  */
+#line 709 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "rel_expr\n";
     (yyvsp[-1].expression)->addChild((yyvsp[-2].expression));
     (yyvsp[-1].expression)->addChild((yyvsp[0].expression));
     (yyval.expression) = (yyvsp[-1].expression);
 }
-#line 2270 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2272 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 65:
-#line 714 "nolife_parser.y" /* yacc.c:1646  */
+#line 716 "nolife_parser.y" /* yacc.c:1646  */
     {
     std::cout << "add_expr\n";
     (yyval.expression) = (yyvsp[0].expression);
 }
-#line 2279 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2281 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 66:
-#line 718 "nolife_parser.y" /* yacc.c:1646  */
+#line 720 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "add_expr\n";
     (yyvsp[-1].expression)->addChild((yyvsp[-2].expression));
     (yyvsp[-1].expression)->addChild((yyvsp[0].expression));
     (yyval.expression) = (yyvsp[-1].expression);
 }
-#line 2290 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2292 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 67:
-#line 725 "nolife_parser.y" /* yacc.c:1646  */
+#line 727 "nolife_parser.y" /* yacc.c:1646  */
     {
     std::cout << "mul_expr\n";
     (yyval.expression) = (yyvsp[0].expression);
 }
-#line 2299 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2301 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 68:
-#line 729 "nolife_parser.y" /* yacc.c:1646  */
+#line 731 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "mul_expr\n";
     (yyvsp[-1].expression)->addChild((yyvsp[-2].expression));
     (yyvsp[-1].expression)->addChild((yyvsp[0].expression));
     (yyval.expression) = (yyvsp[-1].expression);
 }
-#line 2310 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2312 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 69:
-#line 736 "nolife_parser.y" /* yacc.c:1646  */
+#line 738 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "factor\n";
     (yyval.expression) = new ast::Expression((yyvsp[0].variable));
 }
-#line 2319 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2321 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 70:
-#line 740 "nolife_parser.y" /* yacc.c:1646  */
+#line 742 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "factor\n";
     (yyval.expression) = new ast::Expression((yyvsp[0].constant));
 }
-#line 2328 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2330 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 71:
-#line 744 "nolife_parser.y" /* yacc.c:1646  */
+#line 746 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "factor\n";
     (yyval.expression) = new ast::Expression((yyvsp[0].constant));
 }
-#line 2337 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2339 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 72:
-#line 748 "nolife_parser.y" /* yacc.c:1646  */
+#line 750 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "factor\n";
     (yyval.expression) = (yyvsp[-1].expression);
 }
-#line 2346 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2348 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 73:
-#line 752 "nolife_parser.y" /* yacc.c:1646  */
+#line 754 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "factor\n";
     (yyval.expression) = new ast::Expression((yyvsp[0].call));
 }
-#line 2355 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2357 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 74:
-#line 757 "nolife_parser.y" /* yacc.c:1646  */
+#line 759 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "variable\n";
     (yyval.variable) = new ast::Variable((yyvsp[0].symbol));
 }
-#line 2364 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2366 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 75:
-#line 761 "nolife_parser.y" /* yacc.c:1646  */
+#line 763 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "variable\n";
     (yyval.variable) = new ast::ArrayAccess((yyvsp[-3].symbol), (yyvsp[-1].expression));
 }
-#line 2373 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2375 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 76:
-#line 766 "nolife_parser.y" /* yacc.c:1646  */
+#line 768 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "addop\n";
     (yyval.expression) = new ast::Expression(ast::Expression::Operation::Plus);
 }
-#line 2382 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2384 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 77:
-#line 770 "nolife_parser.y" /* yacc.c:1646  */
+#line 772 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "addop\n";
     (yyval.expression) = new ast::Expression(ast::Expression::Operation::Minus);
 }
-#line 2391 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2393 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 78:
-#line 775 "nolife_parser.y" /* yacc.c:1646  */
+#line 777 "nolife_parser.y" /* yacc.c:1646  */
     {
     std::cout << "mulop\n";
     (yyval.expression) = new ast::Expression(ast::Expression::Operation::Multiply);
 }
-#line 2400 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2402 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 79:
-#line 779 "nolife_parser.y" /* yacc.c:1646  */
+#line 781 "nolife_parser.y" /* yacc.c:1646  */
     {
     std::cout << "mulop\n";
     (yyval.expression) = new ast::Expression(ast::Expression::Operation::Modulo);
 }
-#line 2409 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2411 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 80:
-#line 784 "nolife_parser.y" /* yacc.c:1646  */
+#line 786 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "relop\n";
     (yyval.expression) = new ast::Expression(ast::Expression::Operation::LessThanOrEqual);
 }
-#line 2418 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2420 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 81:
-#line 788 "nolife_parser.y" /* yacc.c:1646  */
+#line 790 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "relop\n";
     (yyval.expression) = new ast::Expression(ast::Expression::Operation::LessThan);
 }
-#line 2427 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2429 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 82:
-#line 792 "nolife_parser.y" /* yacc.c:1646  */
+#line 794 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "relop\n";
     (yyval.expression) = new ast::Expression(ast::Expression::Operation::GreaterThanOrEqual);
 }
-#line 2436 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2438 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 83:
-#line 796 "nolife_parser.y" /* yacc.c:1646  */
+#line 798 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "relop\n";
     (yyval.expression) = new ast::Expression(ast::Expression::Operation::GreaterThan);
 }
-#line 2445 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2447 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 84:
-#line 800 "nolife_parser.y" /* yacc.c:1646  */
+#line 802 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "relop\n";
     (yyval.expression) = new ast::Expression(ast::Expression::Operation::Equals);
 }
-#line 2454 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2456 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 85:
-#line 804 "nolife_parser.y" /* yacc.c:1646  */
+#line 806 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "relop\n";
     (yyval.expression) = new ast::Expression(ast::Expression::Operation::NotEqual);
 }
-#line 2463 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2465 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 86:
-#line 809 "nolife_parser.y" /* yacc.c:1646  */
+#line 811 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "logop\n";
     (yyval.expression) = new ast::Expression(ast::Expression::Operation::And);
 }
-#line 2472 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2474 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 87:
-#line 813 "nolife_parser.y" /* yacc.c:1646  */
+#line 815 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "logop\n";
     (yyval.expression) = new ast::Expression(ast::Expression::Operation::Or);
 }
-#line 2481 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2483 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 88:
-#line 818 "nolife_parser.y" /* yacc.c:1646  */
+#line 820 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "identifier (" << yytext << ") \n";
     (yyval.symbol) = new ast::Symbol(yytext);
 }
-#line 2490 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2492 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 89:
-#line 823 "nolife_parser.y" /* yacc.c:1646  */
+#line 825 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "intnum\n";
     (yyval.symbol) = new ast::Constant(yytext);
 }
-#line 2499 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2501 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 90:
-#line 828 "nolife_parser.y" /* yacc.c:1646  */
+#line 830 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "char_const" << yytext << "\n";
     (yyval.constant) = new ast::Constant(yytext);
 }
-#line 2508 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2510 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 91:
-#line 833 "nolife_parser.y" /* yacc.c:1646  */
+#line 835 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "string_constant" << yytext << "\n";
     (yyval.constant) = new ast::Constant(yytext);
 }
-#line 2517 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2519 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 92:
-#line 838 "nolife_parser.y" /* yacc.c:1646  */
+#line 840 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "constant" << yytext << "\n";
     (yyval.constant) = new ast::Constant(yytext);
 }
-#line 2526 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2528 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 93:
-#line 842 "nolife_parser.y" /* yacc.c:1646  */
+#line 844 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "constant" << yytext << "\n";
     (yyval.constant) = new ast::Constant(yytext);
 }
-#line 2535 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2537 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 94:
-#line 847 "nolife_parser.y" /* yacc.c:1646  */
+#line 849 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "id_s\n";
     (yyval.symbol) = (yyvsp[-1].symbol);
 }
-#line 2544 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2546 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 95:
-#line 853 "nolife_parser.y" /* yacc.c:1646  */
+#line 855 "nolife_parser.y" /* yacc.c:1646  */
     { std::cout << "semicln\n";}
-#line 2550 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2552 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 96:
-#line 857 "nolife_parser.y" /* yacc.c:1646  */
+#line 859 "nolife_parser.y" /* yacc.c:1646  */
     { std::cout << "comma\n";}
-#line 2556 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2558 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
   case 97:
-#line 861 "nolife_parser.y" /* yacc.c:1646  */
+#line 863 "nolife_parser.y" /* yacc.c:1646  */
     { std::cout << "colon\n";}
-#line 2562 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2564 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
 
 
-#line 2566 "nolife_parser.cpp" /* yacc.c:1646  */
+#line 2568 "nolife_parser.cpp" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2790,7 +2792,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 863 "nolife_parser.y" /* yacc.c:1906  */
+#line 865 "nolife_parser.y" /* yacc.c:1906  */
 
 
 /********************C ROUTINES *********************************/

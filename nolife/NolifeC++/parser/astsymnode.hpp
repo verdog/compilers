@@ -9,6 +9,7 @@ namespace ast {
             Symbol(std::string image);
 
             std::string getImage();
+            std::string getKind();
 
             virtual void accept(Visitor &v);
 

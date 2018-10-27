@@ -13,4 +13,7 @@ namespace ast {
         v.visit(this);
     }
 
+    std::string Constant::getKind() {
+        return Symbol::getKind();
+    }
 } // ast

@@ -18,4 +18,8 @@ namespace ast {
         v.visit(this);
     }
 
+    std::string Symbol::getKind() {
+        return Base::getKind() + " " + getImage();
+    }
+
 } // ast

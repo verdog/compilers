@@ -625,8 +625,10 @@ return_stmt: O_RETURN expr {
 
 case_stmt: O_CASE expr O_OF cases O_END { 
     std::cout << "case_stmt";
+    $$ = new ast::Case($2, $4);
 } | O_CASE expr O_OF O_END { 
     std::cout << "case_stmt";
+    $$ = new ast::Case($2, nullptr);
 } ;
 
 cases: case_element { 

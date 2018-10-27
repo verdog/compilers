@@ -11,7 +11,7 @@ namespace ast {
 
     class Case : public Statement {
         public:
-            Case(Expression* e, std::vector<Clause*> &list);
+            Case(Expression* e, std::vector<Clause*>* list);
 
             virtual void accept(Visitor &v);
     };

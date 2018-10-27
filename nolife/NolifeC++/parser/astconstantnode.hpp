@@ -9,6 +9,7 @@ namespace ast {
             Constant(std::string image);
 
             virtual void accept(Visitor &v);
+            std::string getKind();
         private:
     };
 
