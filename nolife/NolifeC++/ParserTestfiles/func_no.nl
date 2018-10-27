@@ -5,7 +5,7 @@ a, c, d :INTEGER;
 f :FLOAT;
 l: ARRAY [1..10] OF INTEGER;
 
-FUNCTION b : INTEGER;
+PROCEDURE b;
 
   BEGIN
     RETURN 4

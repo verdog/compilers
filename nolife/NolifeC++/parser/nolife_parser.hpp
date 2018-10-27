@@ -59,8 +59,9 @@ extern int yydebug;
 #include "astarrayaccessnode.hpp"
 #include "astconstantnode.hpp"
 #include "astreturnnode.hpp"
+#include "astparamnode.hpp"
 
-#line 64 "nolife_parser.hpp" /* yacc.c:1909  */
+#line 65 "nolife_parser.hpp" /* yacc.c:1909  */
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -125,7 +126,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 55 "nolife_parser.y" /* yacc.c:1909  */
+#line 56 "nolife_parser.y" /* yacc.c:1909  */
 
     int integer;
     ast::Symbol* symbol;
@@ -139,13 +140,14 @@ union YYSTYPE
     ast::Variable* variable;
     ast::Constant* constant;
     ast::Return* rtrn;
+    ast::Parameters* parameters;
 
     std::vector<ast::Type*>* typeList;
     std::vector<ast::Symbol*>* symbList;
     std::vector<ast::Statement*>* stmtList;
     std::vector<ast::Expression*>* exprList;
 
-#line 149 "nolife_parser.hpp" /* yacc.c:1909  */
+#line 151 "nolife_parser.hpp" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

@@ -50,6 +50,7 @@ extern int yylex();
 #include "astarrayaccessnode.hpp"
 #include "astconstantnode.hpp"
 #include "astreturnnode.hpp"
+#include "astparamnode.hpp"
 }
 
 %union {
@@ -65,6 +66,7 @@ extern int yylex();
     ast::Variable* variable;
     ast::Constant* constant;
     ast::Return* rtrn;
+    ast::Parameters* parameters;
 
     std::vector<ast::Type*>* typeList;
     std::vector<ast::Symbol*>* symbList;
@@ -131,6 +133,8 @@ extern int yylex();
 
 %type <type> subprogram_decl
 %type <type> subprogram_head
+%type <parameters> arguments
+%type <parameters> parameter_list
 
 %type <type> type
 %type <type> standard_type
@@ -372,6 +376,19 @@ subprogram_decl: subprogram_head decls compound_stmt {
 subprogram_head: O_FUNCTION identifier arguments colon standard_type semicln { 
     // returns a type node (ast::Type) that points to a func/proceedure
     std::cout << "subprogram_head\n";
+
+    auto type = $5;
+
+    auto func = new ast::Procedure(
+        $2, // identifier; symbol node
+        $3, // parameters
+        nullptr, // no declarations available yet
+        nullptr // no compound statement available yet
+    );
+
+    type->setFunc(func);
+
+    $$ = type;
 }
 | O_FUNCTION identifier colon standard_type semicln {
     // returns a type node (ast::Type) that points to a func/proceedure
@@ -392,25 +409,74 @@ subprogram_head: O_FUNCTION identifier arguments colon standard_type semicln {
 }
 | O_PROCEDURE identifier arguments semicln {
     // returns a type node (ast::Type) that points to a func/proceedure
-    std::cout << "subprogram_head\n";
+    std::cout << "subprogram_head (proc)\n";
+
+    auto type = new ast::Void();
+
+    auto func = new ast::Procedure(
+        $2, // identifier; symbol node
+        $3, // parameters
+        nullptr, // no declarations available yet
+        nullptr // no compound statement available yet
+    );
+
+    type->setFunc(func);
+
+    $$ = type;
 }
 | O_PROCEDURE identifier semicln {
     // returns a type node (ast::Type) that points to a func/proceedure
-    std::cout << "subprogram_head\n";
+    std::cout << "subprogram_head (proc, no args)\n";
+
+    auto type = new ast::Void();
+
+    auto func = new ast::Procedure(
+        $2, // identifier; symbol node
+        nullptr, // no parameters
+        nullptr, // no declarations available yet
+        nullptr // no compound statement available yet
+    );
+
+    type->setFunc(func);
+
+    $$ = type;
 };
 
 arguments: O_LPAREN parameter_list O_RPAREN { 
     // returns a parameter node (ast::Parameters)
     std::cout << "arguments\n";
-    // $$ = $2;
+    $$ = $2;
 };
 
-parameter_list  : identifier_list colon type
-// returns a parameter node (ast::Parameters)
-                { std::cout << "parameter_list\n";}
-                | parameter_list semicln identifier_list colon type
-                { std::cout << "parameter_list\n";}
-                ;
+parameter_list: identifier_list colon type { 
+    // returns a parameter node (ast::Parameters)
+    std::cout << "parameter_list (single)\n";
+
+    auto paramNode = new ast::Parameters;
+
+    for (auto sym : *$1) {
+        auto newType = $3->clone();
+        newType->setSymbol(sym);
+        paramNode->addChild(newType);
+    }
+
+    delete $3;
+
+    $$ = paramNode;
+
+} | parameter_list semicln identifier_list colon type { 
+    std::cout << "parameter_list (recursive)\n";
+
+    for (auto sym : *$3) {
+        auto newType = $5->clone();
+        newType->setSymbol(sym);
+        $1->addChild(newType);
+    }
+
+    delete $5;
+
+    $$ = $1;
+} ;
 
 stmt: assignment { 
     std::cout << "stmt (assignment)\n";
