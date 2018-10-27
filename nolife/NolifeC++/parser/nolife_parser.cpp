@@ -78,7 +78,7 @@
 #include "astassignnode.hpp"
 #include "astarraynode.hpp"
 
-ast::Base gASTRoot = ast::Base();
+ast::Base* gASTRoot = nullptr;
 
 int errcount=0;
 int yyerror(const char *s);
@@ -1485,7 +1485,7 @@ yyreduce:
 
         delete (yyvsp[-1].declaration);
 
-        gASTRoot = ast::Program((yyvsp[-3].symbol), (yyvsp[-2].declaration), (yyvsp[0].compoundstatement));
+        gASTRoot = new ast::Program((yyvsp[-3].symbol), (yyvsp[-2].declaration), (yyvsp[0].compoundstatement));
     }
 #line 1491 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
@@ -1495,7 +1495,7 @@ yyreduce:
     { 
         std::cout << "Done (id_s decls compound_stmt)\n";
 
-        gASTRoot = ast::Program((yyvsp[-2].symbol), (yyvsp[-1].declaration), (yyvsp[0].compoundstatement));
+        gASTRoot = new ast::Program((yyvsp[-2].symbol), (yyvsp[-1].declaration), (yyvsp[0].compoundstatement));
     }
 #line 1501 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
@@ -1505,7 +1505,7 @@ yyreduce:
     { 
         std::cout << "Done (id_s sub_decls compound_stmt)\n";
 
-        gASTRoot = ast::Program((yyvsp[-2].symbol), (yyvsp[-1].declaration), (yyvsp[0].compoundstatement));
+        gASTRoot = new ast::Program((yyvsp[-2].symbol), (yyvsp[-1].declaration), (yyvsp[0].compoundstatement));
     }
 #line 1511 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
@@ -1515,7 +1515,7 @@ yyreduce:
     { 
         std::cout << "Done\n (compound_stmt)";
 
-        gASTRoot = ast::Program((yyvsp[-1].symbol), nullptr, (yyvsp[0].compoundstatement));
+        gASTRoot = new ast::Program((yyvsp[-1].symbol), nullptr, (yyvsp[0].compoundstatement));
     }
 #line 1521 "nolife_parser.cpp" /* yacc.c:1646  */
     break;

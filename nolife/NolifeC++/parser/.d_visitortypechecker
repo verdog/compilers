@@ -1,0 +1,4 @@
+libparser-g.a(visitortypechecker.o): visitortypechecker.cpp \
+ visitortypechecker.hpp visitor.hpp astnode.hpp asttypenode.hpp \
+ astprognode.hpp astsymnode.hpp astdeclnode.hpp astcompoundstmtnode.hpp \
+ aststmtnode.hpp astparamnode.hpp

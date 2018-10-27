@@ -1,1 +1,1 @@
-libparser-g.a(visitor.o): visitor.cpp
+libparser-g.a(visitor.o): visitor.cpp visitor.hpp astnode.hpp

@@ -11,6 +11,7 @@ namespace ast {
 class PrintVisitor : public Visitor {
     public:
         PrintVisitor();
+        
         void visit(ast::Base* b);
     private:
         std::string mIndentString;

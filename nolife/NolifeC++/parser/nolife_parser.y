@@ -19,7 +19,7 @@
 #include "astassignnode.hpp"
 #include "astarraynode.hpp"
 
-ast::Base gASTRoot = ast::Base();
+ast::Base* gASTRoot = nullptr;
 
 int errcount=0;
 int yyerror(const char *s);
@@ -221,22 +221,22 @@ program:
 
         delete $4;
 
-        gASTRoot = ast::Program($2, $3, $5);
+        gASTRoot = new ast::Program($2, $3, $5);
     }
 |   O_PROGRAM id_s decls compound_stmt { 
         std::cout << "Done (id_s decls compound_stmt)\n";
 
-        gASTRoot = ast::Program($2, $3, $4);
+        gASTRoot = new ast::Program($2, $3, $4);
     }
 |   O_PROGRAM id_s subprogram_decls compound_stmt { 
         std::cout << "Done (id_s sub_decls compound_stmt)\n";
 
-        gASTRoot = ast::Program($2, $3, $4);
+        gASTRoot = new ast::Program($2, $3, $4);
     }
 |   O_PROGRAM id_s compound_stmt { 
         std::cout << "Done\n (compound_stmt)";
 
-        gASTRoot = ast::Program($2, nullptr, $3);
+        gASTRoot = new ast::Program($2, nullptr, $3);
     }
 ;
 
