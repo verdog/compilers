@@ -1,2 +1,2 @@
 libparser-g.a(astdeclnode.o): astdeclnode.cpp astdeclnode.hpp astnode.hpp \
- asttypenode.hpp
+ asttypenode.hpp visitor.hpp

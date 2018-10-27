@@ -1,5 +1,6 @@
 #include "astwhilenode.hpp"
 #include "astexpressionnode.hpp"
+#include "visitor.hpp"
 
 namespace ast {
 
@@ -9,6 +10,10 @@ namespace ast {
 
         mChildren[0] = e;
         mChildren[1] = s;
+    }
+
+    void While::accept(Visitor &v) {
+        v.visit(this);
     }
 
 } // ast

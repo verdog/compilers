@@ -14,6 +14,8 @@ namespace ast {
             void setCondition(Expression* e);
             void setThen(Statement* s);
             void setElse(Statement* s);
+
+            virtual void accept(Visitor &v);
         private:
     };
 

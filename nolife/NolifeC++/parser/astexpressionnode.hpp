@@ -39,6 +39,8 @@ namespace ast {
             Expression(Constant *constant);
 
             Operation getOperation();
+
+            virtual void accept(Visitor &v);
         private:
             Operation mOperation;
     };

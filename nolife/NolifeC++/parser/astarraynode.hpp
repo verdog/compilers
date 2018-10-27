@@ -12,6 +12,8 @@ namespace ast {
             void setSymbol(Symbol* s);
             void setBounds(Symbol* min, Symbol* max);
             void addChild(Base* b) = delete;
+
+            virtual void accept(Visitor &v);
     };
 
 } // ast

@@ -9,6 +9,8 @@ namespace ast {
     class Read : public Statement {
         public:
             Read(Variable* v);
+
+            virtual void accept(Visitor &v);
     };
 
 } // ast

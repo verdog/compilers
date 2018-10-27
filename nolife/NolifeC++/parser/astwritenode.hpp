@@ -11,6 +11,8 @@ namespace ast {
         public:
             Write(Expression* e);
             Write(Constant* c);
+
+            virtual void accept(Visitor &v);
     };
 
 } //

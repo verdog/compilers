@@ -7,6 +7,8 @@ namespace ast {
     class Constant : public Symbol {
         public:
             Constant(std::string image);
+
+            virtual void accept(Visitor &v);
         private:
     };
 

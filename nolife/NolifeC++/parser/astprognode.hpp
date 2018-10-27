@@ -16,6 +16,8 @@ namespace ast {
             void setDecl(Declaration *delcNode);
             void setCompoundStmt(CompoundStatement *stmtNode);
 
+            virtual void accept(Visitor &v);
+
         private:
     };
 

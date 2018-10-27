@@ -1,6 +1,7 @@
 #include "astcasenode.hpp"
 #include "astexpressionnode.hpp"
 #include "astclausenode.hpp"
+#include "visitor.hpp"
 
 namespace ast {
 
@@ -12,6 +13,10 @@ namespace ast {
         for (auto clause : list) {
             addChild(clause);
         }
+    }
+
+    void Case::accept(Visitor &v) {
+        v.visit(this);
     }
     
 } // ast

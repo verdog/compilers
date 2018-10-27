@@ -1,5 +1,6 @@
 #include "astifnode.hpp"
 #include "astexpressionnode.hpp"
+#include "visitor.hpp"
 
 namespace ast {
 
@@ -26,6 +27,10 @@ namespace ast {
 
     void If::setElse(Statement *s) {
         mChildren[2] = s;
+    }
+
+    void If::accept(Visitor &v) {
+        v.visit(this);
     }
 
 } // ast

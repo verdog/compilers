@@ -10,6 +10,8 @@ namespace ast {
 
             Base* getLeft();
             Base* getRight();
+
+            virtual void accept(Visitor &v);
         private:
     };
 

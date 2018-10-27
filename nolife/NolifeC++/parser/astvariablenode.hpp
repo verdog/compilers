@@ -8,6 +8,8 @@ namespace ast {
     class Variable : public Base {
         public:
             Variable(Symbol *sym);
+
+            virtual void accept(Visitor &v);
         private:
     };
 

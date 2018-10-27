@@ -14,6 +14,8 @@ namespace ast {
                 CompoundStatement *stmtNode);
 
             void setParam(Parameters* paramNode);
+
+            virtual void accept(Visitor &v);
         private:
     };
 

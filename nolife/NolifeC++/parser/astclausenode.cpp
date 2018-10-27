@@ -1,6 +1,7 @@
 #include "astclausenode.hpp"
 #include "astcaselabelsnode.hpp"
 #include "aststmtnode.hpp"
+#include "visitor.hpp"
 
 namespace ast {
 
@@ -11,6 +12,10 @@ namespace ast {
 
         mChildren[0] = cl;
         mChildren[1] = s;
+    }
+
+    void Clause::accept(Visitor &v) {
+        v.visit(this);
     }
 
 } // ast

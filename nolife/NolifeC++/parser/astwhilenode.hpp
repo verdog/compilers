@@ -9,6 +9,8 @@ namespace ast {
     class While : public Statement {
         public:
             While(Expression* e, Statement *s);
+
+            virtual void accept(Visitor &v);
     };
 
 } // ast

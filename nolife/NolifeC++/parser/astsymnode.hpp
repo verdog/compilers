@@ -10,6 +10,8 @@ namespace ast {
 
             std::string getImage();
 
+            virtual void accept(Visitor &v);
+
         private:
             std::string mImage;
     };

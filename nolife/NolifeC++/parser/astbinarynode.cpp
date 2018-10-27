@@ -1,4 +1,5 @@
 #include "astbinarynode.hpp"
+#include "visitor.hpp"
 
 namespace ast {
 
@@ -15,6 +16,10 @@ namespace ast {
 
     Base* Binary::getRight() {
         return mChildren[1];
+    }
+
+    void Binary::accept(Visitor &v) {
+        v.visit(this);
     }
 
 }

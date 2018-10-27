@@ -13,7 +13,7 @@ namespace ast {
             : mKind {"base"}
             {}
 
-            virtual void accept(Visitor *v);
+            virtual void accept(Visitor &v);
 
             std::string getKind() const;
 

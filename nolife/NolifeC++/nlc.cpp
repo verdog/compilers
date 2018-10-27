@@ -8,7 +8,7 @@
 extern ast::Base gASTRoot;
 
 int main(int argc, char *argv[]) {
-    yyparse();
+    yyparse(); // sets gASTRoot to the root of the ast.
 
-    std::cout << gASTRoot.getKind() << std::endl;
+    
 }

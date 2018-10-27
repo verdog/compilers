@@ -1,5 +1,6 @@
 #include "astreadnode.hpp"
 #include "astvariablenode.hpp"
+#include "visitor.hpp"
 
 namespace ast {
 
@@ -7,6 +8,10 @@ namespace ast {
         mKind = "read";
         
         addChild(v);
+    }
+
+    void Read::accept(Visitor &v) {
+        v.visit(this);
     }
 
 } // ast 

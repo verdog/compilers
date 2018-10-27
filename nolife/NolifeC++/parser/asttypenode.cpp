@@ -4,6 +4,7 @@
 #include "astsymnode.hpp"
 #include "astprocnode.hpp"
 #include "astarraynode.hpp"
+#include "visitor.hpp"
 
 namespace ast {
     
@@ -39,6 +40,10 @@ namespace ast {
         Base::addChild(a);
     }
 
+    void Type::accept(Visitor &v) {
+        v.visit(this);
+    }
+
     Integer::Integer() 
     : Type()
     {
@@ -62,6 +67,10 @@ namespace ast {
 
     Type::Types Integer::getType() {
         return Type::Types::Integer;
+    }
+
+    void Integer::accept(Visitor &v) {
+        v.visit(this);
     }
 
     Float::Float() 
@@ -89,6 +98,10 @@ namespace ast {
         return Type::Types::Float;
     }
 
+    void Float::accept(Visitor &v) {
+        v.visit(this);
+    }
+
     Character::Character() 
     : Type::Type()
     {
@@ -114,6 +127,10 @@ namespace ast {
         return Type::Types::Character;
     }
 
+    void Character::accept(Visitor &v) {
+        v.visit(this);
+    }
+
     Void::Void() 
     : Type::Type()
     {
@@ -137,6 +154,10 @@ namespace ast {
 
     Type::Types Void::getType() {
         return Type::Types::Void;
+    }
+
+    void Void::accept(Visitor &v) {
+        v.visit(this);
     }
 
 } // ast

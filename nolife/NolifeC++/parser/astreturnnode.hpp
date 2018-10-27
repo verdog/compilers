@@ -8,6 +8,8 @@ namespace ast {
     class Return : public Statement {
         public:
             Return(Expression* e);
+
+            virtual void accept(Visitor &v);
     };
 
 } // ast

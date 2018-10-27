@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "astexpressionnode.hpp"
+#include "visitor.hpp"
 
 namespace ast {
     
@@ -44,6 +45,10 @@ namespace ast {
 
     Expression::Operation Expression::getOperation() {
         return mOperation;
+    }
+
+    void Expression::accept(Visitor &v) {
+        v.visit(this);
     }
 
 } // ast

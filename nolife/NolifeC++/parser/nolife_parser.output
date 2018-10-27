@@ -5,9 +5,6 @@ Terminals unused in grammar
    O_CONSTANT
 
 
-State 132 conflicts: 1 shift/reduce
-
-
 Grammar
 
     0 $accept: program $end
@@ -1769,7 +1766,6 @@ State 132
 
     O_ELSE  shift, and go to state 157
 
-    O_ELSE    [reduce using rule 39 (if_stmt)]
     $default  reduce using rule 39 (if_stmt)
 
 

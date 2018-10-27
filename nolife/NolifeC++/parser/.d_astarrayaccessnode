@@ -1,4 +1,4 @@
 libparser-g.a(astarrayaccessnode.o): astarrayaccessnode.cpp \
  astarrayaccessnode.hpp astvariablenode.hpp astnode.hpp astsymnode.hpp \
  astexpressionnode.hpp astcallnode.hpp aststmtnode.hpp \
- astconstantnode.hpp
+ astconstantnode.hpp visitor.hpp

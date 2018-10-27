@@ -3,8 +3,8 @@
 
 namespace ast {
     
-    void Base::accept(Visitor *v) {
-        v->visit(this);
+    void Base::accept(Visitor &v) {
+        v.visit(this);
     }
 
     bool Base::addChild(Base* node) {

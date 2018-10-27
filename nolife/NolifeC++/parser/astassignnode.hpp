@@ -9,6 +9,8 @@ namespace ast {
     class Assignment : public Binary {
         public:
             Assignment(Variable* v, Expression* e);
+
+            virtual void accept(Visitor &v);
     };
 
 } // ast

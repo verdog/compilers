@@ -203,7 +203,9 @@ extern int yylex();
 %left O_LT O_LE O_GT O_GE O_NE O_EQ
 %left O_PLUS O_MINUS
 %left O_TIMES O_MOD
-  
+
+%right O_THEN O_ELSE
+
 /***********************PRODUCTIONS****************************/
 %%
 program: 

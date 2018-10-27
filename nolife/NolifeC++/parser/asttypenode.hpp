@@ -24,6 +24,8 @@ namespace ast {
             void setSymbol(Symbol* s);
             void setFunc(Procedure* p);
             void setArray(Array* a);
+
+            virtual void accept(Visitor &v);
         protected:
     };
 
@@ -32,6 +34,8 @@ namespace ast {
             Integer();
             Type::Types getType();
             Integer* clone();
+
+            virtual void accept(Visitor &v);
     };
 
     class Float : public Type {
@@ -39,6 +43,8 @@ namespace ast {
             Float();
             Type::Types getType();
             Float* clone();
+
+            virtual void accept(Visitor &v);
     };
 
     class Character : public Type {
@@ -46,6 +52,8 @@ namespace ast {
             Character();
             Type::Types getType();
             Character* clone();
+
+            virtual void accept(Visitor &v);
     };
 
     class Void : public Type {
@@ -53,6 +61,8 @@ namespace ast {
             Void();
             Type::Types getType();
             Void* clone();
+
+            virtual void accept(Visitor &v);
     };
 
 } // ast

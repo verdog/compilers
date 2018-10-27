@@ -8,6 +8,7 @@ namespace ast {
     class ArrayAccess : public Variable {
         public:
             ArrayAccess(Symbol* sym, Expression* e);
+            virtual void accept(Visitor &v);
         private:
     };
 

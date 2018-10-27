@@ -1,4 +1,5 @@
 #include "astarrayaccessnode.hpp"
+#include "visitor.hpp"
 
 namespace ast {
 
@@ -7,6 +8,10 @@ namespace ast {
     {
         mKind = "arrayaccess";
         addChild(e);
+    }
+
+    void ArrayAccess::accept(Visitor &v) {
+        v.visit(this);
     }
 
 } // ast

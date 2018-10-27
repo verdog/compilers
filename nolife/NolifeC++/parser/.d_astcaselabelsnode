@@ -1,2 +1,2 @@
 libparser-g.a(astcaselabelsnode.o): astcaselabelsnode.cpp \
- astcaselabelsnode.hpp astnode.hpp
+ astcaselabelsnode.hpp astnode.hpp visitor.hpp

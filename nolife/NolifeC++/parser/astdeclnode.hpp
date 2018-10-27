@@ -10,6 +10,8 @@ namespace ast {
     class Declaration : public Base {
         public:
             Declaration();
+
+            virtual void accept(Visitor &v);
         private:
     };
 

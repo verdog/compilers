@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "astprognode.hpp"
+#include "visitor.hpp"
 
 namespace ast {
     
@@ -32,6 +33,10 @@ namespace ast {
     void Program::setCompoundStmt(CompoundStatement* stmtNode) {
         std::cout << "  Set stmt.\n";
         mChildren[2] = stmtNode;
+    }
+
+    void Program::accept(Visitor &v) {
+        v.visit(this);
     }
 
 } // ast

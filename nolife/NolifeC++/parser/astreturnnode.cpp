@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "astreturnnode.hpp"
+#include "visitor.hpp"
 
 namespace ast {
 
@@ -8,6 +9,10 @@ namespace ast {
         mKind = "return";
         
         addChild(e);
+    }
+
+    void Return::accept(Visitor &v) {
+        v.visit(this);
     }
 
 } // ast

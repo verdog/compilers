@@ -2,6 +2,7 @@
 
 #include "astarraynode.hpp"
 #include "astsymnode.hpp"
+#include "visitor.hpp"
 
 namespace ast {
 
@@ -48,6 +49,10 @@ namespace ast {
     void Array::setBounds(Symbol* min, Symbol* max) {
         mChildren[1] = min;
         mChildren[2] = max;
+    }
+
+    void Array::accept(Visitor &v) {
+        v.visit(this);
     }
 
 }

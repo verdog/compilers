@@ -1,2 +1,3 @@
 libparser-g.a(astreadnode.o): astreadnode.cpp astreadnode.hpp \
- aststmtnode.hpp astnode.hpp astvariablenode.hpp astsymnode.hpp
+ aststmtnode.hpp astnode.hpp astvariablenode.hpp astsymnode.hpp \
+ visitor.hpp

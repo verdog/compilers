@@ -1,4 +1,5 @@
 #include "astassignnode.hpp"
+#include "visitor.hpp"
 
 namespace ast {
 
@@ -6,6 +7,10 @@ namespace ast {
     : Binary(v, e)
     {
         mKind = "assignment";
+    }
+
+    void Assignment::accept(Visitor &v) {
+        v.visit(this);
     }
 
 } // ast
