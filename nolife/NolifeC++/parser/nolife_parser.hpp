@@ -60,8 +60,15 @@ extern int yydebug;
 #include "astconstantnode.hpp"
 #include "astreturnnode.hpp"
 #include "astparamnode.hpp"
+#include "astifnode.hpp"
+#include "astwhilenode.hpp"
+#include "astreadnode.hpp"
+#include "astwritenode.hpp"
+#include "astcaselabelsnode.hpp"
+#include "astclausenode.hpp"
+#include "astcasenode.hpp"
 
-#line 65 "nolife_parser.hpp" /* yacc.c:1909  */
+#line 72 "nolife_parser.hpp" /* yacc.c:1909  */
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -126,7 +133,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 56 "nolife_parser.y" /* yacc.c:1909  */
+#line 63 "nolife_parser.y" /* yacc.c:1909  */
 
     int integer;
     ast::Symbol* symbol;
@@ -139,15 +146,23 @@ union YYSTYPE
     ast::Call* call;
     ast::Variable* variable;
     ast::Constant* constant;
-    ast::Return* rtrn;
+    ast::Return* _return;
     ast::Parameters* parameters;
+    ast::If* _if;
+    ast::While* _while;
+    ast::Read* read;
+    ast::Write* write;
+    ast::CaseLabels* caseLabels;
+    ast::Clause* clause;
+    ast::Case* _case;
 
     std::vector<ast::Type*>* typeList;
     std::vector<ast::Symbol*>* symbList;
     std::vector<ast::Statement*>* stmtList;
     std::vector<ast::Expression*>* exprList;
+    std::vector<ast::Clause*>* clauseList;
 
-#line 151 "nolife_parser.hpp" /* yacc.c:1909  */
+#line 166 "nolife_parser.hpp" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

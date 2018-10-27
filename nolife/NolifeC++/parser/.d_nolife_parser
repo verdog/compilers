@@ -4,4 +4,5 @@ libparser-g.a(nolife_parser.o): nolife_parser.cpp astnode.hpp \
  astassignnode.hpp astbinarynode.hpp astvariablenode.hpp \
  astexpressionnode.hpp astcallnode.hpp astconstantnode.hpp \
  astarraynode.hpp astprocnode.hpp astarrayaccessnode.hpp \
- astreturnnode.hpp
+ astreturnnode.hpp astifnode.hpp astwhilenode.hpp astreadnode.hpp \
+ astwritenode.hpp astcaselabelsnode.hpp astclausenode.hpp astcasenode.hpp

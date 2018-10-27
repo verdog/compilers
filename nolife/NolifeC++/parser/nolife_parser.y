@@ -51,6 +51,13 @@ extern int yylex();
 #include "astconstantnode.hpp"
 #include "astreturnnode.hpp"
 #include "astparamnode.hpp"
+#include "astifnode.hpp"
+#include "astwhilenode.hpp"
+#include "astreadnode.hpp"
+#include "astwritenode.hpp"
+#include "astcaselabelsnode.hpp"
+#include "astclausenode.hpp"
+#include "astcasenode.hpp"
 }
 
 %union {
@@ -65,13 +72,21 @@ extern int yylex();
     ast::Call* call;
     ast::Variable* variable;
     ast::Constant* constant;
-    ast::Return* rtrn;
+    ast::Return* _return;
     ast::Parameters* parameters;
+    ast::If* _if;
+    ast::While* _while;
+    ast::Read* read;
+    ast::Write* write;
+    ast::CaseLabels* caseLabels;
+    ast::Clause* clause;
+    ast::Case* _case;
 
     std::vector<ast::Type*>* typeList;
     std::vector<ast::Symbol*>* symbList;
     std::vector<ast::Statement*>* stmtList;
     std::vector<ast::Expression*>* exprList;
+    std::vector<ast::Clause*>* clauseList;
 }
 
 %start program
@@ -149,6 +164,15 @@ extern int yylex();
 %type <stmtList> stmt_list
 %type <statement> stmt
 
+%type <_if> if_stmt
+%type <_while> while_stmt
+%type <statement> i_o_stmt
+
+%type <caseLabels> case_labels
+%type <clause> case_element
+%type <clauseList> cases
+%type <_case> case_stmt
+
 %type <compoundstatement> compound_stmt
 
 %type <assignment> assignment
@@ -171,7 +195,7 @@ extern int yylex();
 %type <constant> char_const
 %type <constant> string_constant
 
-%type <rtrn> return_stmt;
+%type <_return> return_stmt;
 
 %left O_OR
 %left O_AND
@@ -481,28 +505,28 @@ parameter_list: identifier_list colon type {
 stmt: assignment { 
     std::cout << "stmt (assignment)\n";
     $$ = $1;
-}
-| if_stmt
-{ std::cout << "stmt\n";}
-| while_stmt
-{ std::cout << "stmt\n";}
-| procedure_invocation { 
+} | if_stmt {
+    std::cout << "stmt (if)\n";
+    $$ = $1;
+} | while_stmt {
+    std::cout << "stmt (while)\n";
+    $$ = $1;
+} | procedure_invocation { 
     std::cout << "stmt (proc invoke)\n";
-    // $$ = $1;
-}
-| i_o_stmt  
-{ std::cout << "stmt\n";}
-| compound_stmt { 
+    $$ = $1;
+} | i_o_stmt { 
+    std::cout << "stmt\n";
+    $$ = $1;
+} | compound_stmt { 
     std::cout << "stmt (compound_stmt)\n";
     $$ = $1;
-}
-| return_stmt { 
+} | return_stmt { 
     std::cout << "stmt (return)\n";
     $$ = $1;
-}
-| case_stmt
-{ std::cout << "stmt\n";}
-;
+} | case_stmt { 
+    std::cout << "stmt\n";
+    $$ = $1;
+};
 
 assignment: variable O_ASSIGN expr { 
     // returns assignment (ast::Assignement)
@@ -511,15 +535,22 @@ assignment: variable O_ASSIGN expr {
     $$ = new ast::Assignment($1, $3);
 };
 
-if_stmt         : O_IF expr O_THEN stmt O_ELSE stmt
-                { std::cout << "if_stmt\n";}
-                | O_IF expr O_THEN stmt        
-                { std::cout << "if_stmt\n";}
-                ;
+if_stmt: O_IF expr O_THEN stmt O_ELSE stmt {
+    std::cout << "if_stmt\n";
 
-while_stmt     : O_WHILE expr O_DO stmt         
-                { std::cout << "while_stmt\n";}
-               ;
+    $$ = new ast::If($2, $4, $6);
+}
+| O_IF expr O_THEN stmt {
+    std::cout << "if_stmt\n";
+
+    $$ = new ast::If($2, $4, nullptr);
+};
+
+while_stmt: O_WHILE expr O_DO stmt { 
+    std::cout << "while_stmt\n";
+
+    $$ = new ast::While($2, $4);
+};
                
 procedure_invocation: identifier O_LPAREN O_RPAREN { 
     std::cout << "procedure_invocation\n";
@@ -539,13 +570,16 @@ procedure_invocation: identifier O_LPAREN O_RPAREN {
     $$ = callNode;
 };
 
-i_o_stmt        : O_READ O_LPAREN variable O_RPAREN  
-                { std::cout << "io_stmt\n";}
-                | O_WRITE O_LPAREN expr O_RPAREN     
-                { std::cout << "io_stmt\n";}
-                | O_WRITE O_LPAREN string_constant O_RPAREN           
-                { std::cout << "io_stmt\n";}
-                ;
+i_o_stmt: O_READ O_LPAREN variable O_RPAREN { 
+    std::cout << "io_stmt\n";
+    $$ = new ast::Read($3);
+}| O_WRITE O_LPAREN expr O_RPAREN { 
+    std::cout << "io_stmt\n";
+    $$ = new ast::Write($3);
+}| O_WRITE O_LPAREN string_constant O_RPAREN          { 
+    std::cout << "io_stmt\n";
+    $$ = new ast::Write($3);
+};
 
 compound_stmt: O_BEGIN stmt_list O_END { 
     // returns a compoundstatement (ast::CompoundStatement)
@@ -587,27 +621,46 @@ return_stmt: O_RETURN expr {
     $$ = new ast::Return($2);
 };
 
-case_stmt	: O_CASE expr O_OF cases O_END
-                { std::cout << "case_stmt";}
-                | O_CASE expr O_OF O_END
-                { std::cout << "case_stmt";}
-                ;
+case_stmt: O_CASE expr O_OF cases O_END { 
+    std::cout << "case_stmt";
+} | O_CASE expr O_OF O_END { 
+    std::cout << "case_stmt";
+} ;
 
-cases		: case_element
-                { std::cout << "cases\n";}
-                | cases O_SEMICOLON case_element
-                { std::cout << "cases\n";}
-                ;
+cases: case_element { 
+    std::cout << "cases\n";
 
-case_element	: case_labels O_COLON stmt
-                {std::cout << "case_element\n";}
-                ;
+    auto list = new std::vector<ast::Clause*>;
 
-case_labels	: constant
-                {std::cout << "case_element\n";}
-                | case_labels O_COMMA constant
-                {std::cout << "case_element\n";}
-                ;
+    list->push_back($1);
+
+    $$ = list;
+} | cases O_SEMICOLON case_element { 
+    std::cout << "cases (recursive)\n";
+
+    $1->push_back($3);
+
+    $$ = $1;
+} ;
+
+case_element: case_labels O_COLON stmt {
+    std::cout << "case_element\n";
+    $$ = new ast::Clause($1, $3);
+};
+
+case_labels: constant {
+    std::cout << "case_element\n";
+
+    auto caseLabels = new ast::CaseLabels();
+
+    caseLabels->addChild($1);
+
+    $$ = caseLabels;
+} | case_labels O_COMMA constant {
+    std::cout << "case_element (recursive)\n";
+    $1->addChild($3);
+    $$ = $1;
+};
 
 expr_list: expr { 
     std::cout << "expr_list (single)\n";
