@@ -23,6 +23,14 @@ namespace ast {
         mChildren[3] = paramNode;
     }
 
+    Parameters* Procedure::getParameters() {
+        if (mChildren.size() >= 3) {
+            return dynamic_cast<Parameters*>(mChildren[3]);
+        } else {
+            return nullptr;
+        }
+    }
+
     void Procedure::accept(Visitor &v) {
         v.visit(this);
     }

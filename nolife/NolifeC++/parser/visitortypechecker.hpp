@@ -17,12 +17,14 @@ class SymbolInfo {
             isProcedure = false;
             arrayLowBound = "";
             arrayHighBound = "";
+            isReal = false;
         }
 
         SymbolInfo(std::string id) 
         : SymbolInfo()
         {
             name = id;
+            isReal = true;
         }
 
         void dumpInfo();
@@ -33,6 +35,7 @@ class SymbolInfo {
         bool isProcedure;
         std::string arrayLowBound;
         std::string arrayHighBound;
+        bool isReal;
 };
 
 class TypeCheckVisitor : public Visitor {
@@ -67,7 +70,14 @@ class TypeCheckVisitor : public Visitor {
 
         void visit_type(ast::Type* t);
 
+        void pushNewSymbolTable();
+        void popSymbolTable();
         void dumpTable();
     private:
-        std::map<std::string, SymbolInfo> mSymbolTable;
+        using tSymbolTable = std::map<std::string, SymbolInfo>;
+        std::vector<tSymbolTable> mSymbolTableStack;
+
+        void writeSymbol(std::string key, SymbolInfo value);
+        SymbolInfo& lookupSymbol(std::string key);
+        bool symbolExists(std::string key);
 };

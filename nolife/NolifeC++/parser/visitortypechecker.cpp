@@ -27,6 +27,46 @@
 #include "astwhilenode.hpp"
 #include "astwritenode.hpp"
 
+void TypeCheckVisitor::pushNewSymbolTable() {
+    mSymbolTableStack.push_back(tSymbolTable());
+    std::cout << "Created a new symbol table. (number of tables remaining: " << mSymbolTableStack.size() << ")\n";
+}
+
+void TypeCheckVisitor::popSymbolTable() {
+    mSymbolTableStack.pop_back();
+    std::cout << "Destroyed top symbol table. (number of tables remaining: " << mSymbolTableStack.size() << ")\n";
+}
+
+void TypeCheckVisitor::writeSymbol(std::string key, SymbolInfo value) {
+    auto& topTable = mSymbolTableStack.back();
+    topTable[key] = value;
+    std::cout << "  - inserted \"" << key << "\" into topmost table.\n";
+}
+
+bool TypeCheckVisitor::symbolExists(std::string key) {
+    for (auto it = mSymbolTableStack.rbegin(); it != mSymbolTableStack.rend(); ++it) {
+        auto& table = *it;
+        if (table.count(key) != 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+SymbolInfo& TypeCheckVisitor::lookupSymbol(std::string key) {
+    if (!symbolExists(key)) {
+        throw "Symbol " + key + " does not exist in any symbol table.";
+    }
+
+    for (auto it = mSymbolTableStack.rbegin(); it != mSymbolTableStack.rend(); ++it) {
+        auto& table = *it;
+        if (table.count(key) != 0) {
+            return table[key];
+        }
+    }
+}
+
 void TypeCheckVisitor::visit(ast::Base* b) {
     std::cout << "Visited a base node.\n";
 }
@@ -34,13 +74,16 @@ void TypeCheckVisitor::visit(ast::Base* b) {
 void TypeCheckVisitor::visit(ast::Program* p) {
     std::cout << "Visited a program node.\n";
 
+    // create new symbol table
+    pushNewSymbolTable();
+
     // store info about the program
     std::string programName = p->getSymbol()->getImage();
 
     SymbolInfo programInfo = SymbolInfo(programName);
     programInfo.isProcedure = true;
 
-    mSymbolTable[programName] = programInfo;
+    writeSymbol(programName, programInfo);
 
     // visit the symbol
     p->getSymbol()->accept(*this);
@@ -58,6 +101,13 @@ void TypeCheckVisitor::visit(ast::Program* p) {
     } else {
         std::cout << programName << " has no compound statement.\n";
     }
+
+    // dump tables
+    std::cout << "Tables after processing the entire program:\n";
+    dumpTable();
+
+    // remove symbol table
+    popSymbolTable();
 }
 
 void TypeCheckVisitor::visit(ast::Declaration* d) {
@@ -105,7 +155,7 @@ void TypeCheckVisitor::visit_type(ast::Type* t) {
         auto symInfo = SymbolInfo(sym->getImage());
         symInfo.type = t->getType();
 
-        mSymbolTable[sym->getImage()] = symInfo;
+        writeSymbol(sym->getImage(), symInfo);
 
     } else if (auto arr = dynamic_cast<ast::Array*>(t->getChild())) {
         std::cout << "  Detected an array.\n";
@@ -116,7 +166,7 @@ void TypeCheckVisitor::visit_type(ast::Type* t) {
         symInfo.arrayLowBound = arr->getLowBound()->getImage();
         symInfo.arrayHighBound = arr->getHighBound()->getImage();
 
-        mSymbolTable[arr->getSymbol()->getImage()] = symInfo;
+        writeSymbol(arr->getSymbol()->getImage(), symInfo);
 
     } else if (auto proc = dynamic_cast<ast::Procedure*>(t->getChild())) {
         std::cout << "  Detected a procedure.\n";
@@ -125,7 +175,7 @@ void TypeCheckVisitor::visit_type(ast::Type* t) {
         symInfo.type = t->getType();
         symInfo.isProcedure = true;
 
-        mSymbolTable[proc->getSymbol()->getImage()] = symInfo;
+        writeSymbol(proc->getSymbol()->getImage(), symInfo);
 
     }
 
@@ -185,6 +235,40 @@ void TypeCheckVisitor::visit(ast::If* i) {
 
 void TypeCheckVisitor::visit(ast::Procedure* p) {
     std::cout << "Visited a procedure node.\n";
+
+    // create new symbol table
+    pushNewSymbolTable();
+
+    // visit the symbol
+    p->getSymbol()->accept(*this);
+
+    // process parameters
+    if (p->getParameters()) { // exists
+        p->getParameters()->accept(*this);
+    } else {
+        std::cout << "procedure \"" << p->getSymbol()->getImage() << "\" has no parameters.\n";
+    }
+
+    // process declarations
+    if (p->getDecl()) { // exists
+        p->getDecl()->accept(*this);
+    } else {
+        std::cout << "procedure \"" << p->getSymbol()->getImage() << "\" has no decls.\n";
+    }
+
+    // process compound statement
+    if (p->getCompoundStatement()) { // exists
+        p->getCompoundStatement()->accept(*this);
+    } else {
+        std::cout << "procedure \"" << p->getSymbol()->getImage() << "\" has no compound statement.\n";
+    }
+
+    // dump tables
+    std::cout << "Tables after processing procedure " << p->getSymbol()->getImage() << ":\n";
+    dumpTable();
+
+    // remove symbol table
+    popSymbolTable();
 }
 
 void TypeCheckVisitor::visit(ast::Return* r) {
@@ -203,9 +287,14 @@ void TypeCheckVisitor::visit(ast::Write* w) {
 }
 
 void TypeCheckVisitor::dumpTable() {
-    std::cout << "Symbol table dump:\n";
-    for (auto pair : mSymbolTable) {
-        pair.second.dumpInfo();
+    std::cout << "Symbol table dump (topmost table writen first):\n";
+    
+    for (auto it = mSymbolTableStack.rbegin(); it != mSymbolTableStack.rend(); ++it) {
+        std::cout << "--------- NEW TABLE --------\n";
+        auto& table = *it;
+        for (auto pair : table) {
+            pair.second.dumpInfo();
+        }
     }
 }
 
