@@ -5,7 +5,7 @@ i :INTEGER;
 f :FLOAT;
 c :CHARACTER;
 l: ARRAY [1 .. 8] OF INTEGER;
-{*
+
 FUNCTION b (x: INTEGER): INTEGER;
   BEGIN
     RETURN 4 * x
@@ -15,7 +15,7 @@ PROCEDURE p;
   BEGIN
     WRITE('hey.')
   END;
-*}
+
 BEGIN
   {*
   i := 6 + b(4);
@@ -23,7 +23,9 @@ BEGIN
   c := 'j';
   *}
   
-  f := 2.0 + ('e' + 'c');
+  c := 2.0 + ('e' + 'c');
+
+  c := b(2);
 
   p()
 END

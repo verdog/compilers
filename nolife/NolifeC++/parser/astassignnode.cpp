@@ -13,4 +13,12 @@ namespace ast {
         v.visit(this);
     }
 
+    Variable* Assignment::getVariable() {
+        if (mChildren.size() > 0) {
+            return dynamic_cast<Variable*>(mChildren[0]);
+        } else {
+            return nullptr;
+        }
+    }
+
 } // ast

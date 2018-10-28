@@ -83,6 +83,16 @@ TypeCheckVisitor::TypeCheckVisitor() {
     mOpToTableMap[ast::Expression::Operation::NotEqual] = relTable;
 
     mOpToTableMap[ast::Expression::Operation::Modulo] = modTable;
+
+    mAssignmentConversionTable[TypePair(INT, INT)] = INT;
+    mAssignmentConversionTable[TypePair(INT, FLOAT)] = INT;
+    mAssignmentConversionTable[TypePair(INT, CHAR)] = ERROR;
+    mAssignmentConversionTable[TypePair(FLOAT, INT)] = FLOAT;
+    mAssignmentConversionTable[TypePair(FLOAT, FLOAT)] = FLOAT;
+    mAssignmentConversionTable[TypePair(FLOAT, CHAR)] = ERROR;
+    mAssignmentConversionTable[TypePair(CHAR, INT)] = ERROR;
+    mAssignmentConversionTable[TypePair(CHAR, FLOAT)] = ERROR;
+    mAssignmentConversionTable[TypePair(CHAR, CHAR)] = CHAR;
 }
 
 void TypeCheckVisitor::pushNewSymbolTable() {
@@ -301,22 +311,27 @@ void TypeCheckVisitor::visit(ast::Array* a) {
     std::cout << "Visited an array node.\n";
 }
 
-void TypeCheckVisitor::visit(ast::ArrayAccess* aa) {
-}
-
 void TypeCheckVisitor::visit(ast::Assignment* a) {
+    using TypePair = std::pair<ast::Type::Types, ast::Type::Types>;
+
     std::cout << "visited assignment node.\n";
 
     // visit children to deterimine their type
     auto children = a->getChildren();
     auto left = children[0];
-    auto right = children[1];
+    auto right = dynamic_cast<ast::Expression*>(children[1]);
 
     left->accept(*this);
     right->accept(*this);
 
-    
+    std::string leftImage = a->getVariable()->getSymbol()->getImage();
+    auto leftType = lookupSymbol(leftImage).type;
 
+    auto combineType = mAssignmentConversionTable[TypePair(leftType, right->getType())];
+
+    if (combineType == ast::Type::Types::Undefined) {
+        std::cout << "!!!  Error in assignment!\n";
+    }
 }
 
 void TypeCheckVisitor::visit(ast::Call* c) {
@@ -356,6 +371,7 @@ void TypeCheckVisitor::visit(ast::Expression* e) {
         auto rightType = right->getType();
 
         auto myType = getCombinedType(leftType, rightType, e->getOperation());
+        e->setType(myType);
 
         if (myType == ast::Type::Types::Undefined) {
             std::cout << "!!!  Type error!\n";
@@ -453,6 +469,10 @@ void TypeCheckVisitor::visit(ast::Statement* s) {
 
 void TypeCheckVisitor::visit(ast::Variable* v) {
     std::cout << "visited a variable node.\n";
+}
+
+void TypeCheckVisitor::visit(ast::ArrayAccess* aa) {
+    std::cout << "visited an array access node.\n";
 }
 
 void TypeCheckVisitor::visit(ast::While* w) {

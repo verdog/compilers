@@ -84,6 +84,8 @@ class TypeCheckVisitor : public Visitor {
 
         using tTypeCompatibilityTable = std::map<std::pair<ast::Type::Types, ast::Type::Types>, ast::Type::Types>;
 
+        tTypeCompatibilityTable mAssignmentConversionTable;
+        
         std::map<ast::Expression::Operation, tTypeCompatibilityTable> mOpToTableMap;
 
         void writeSymbol(std::string key, SymbolInfo value);

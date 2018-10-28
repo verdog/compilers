@@ -11,6 +11,7 @@ namespace ast {
             Assignment(Variable* v, Expression* e);
 
             virtual void accept(Visitor &v);
+            Variable* getVariable();
     };
 
 } // ast
