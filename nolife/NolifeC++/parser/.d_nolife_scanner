@@ -1,1 +1,8 @@
-libparser-g.a(nolife_scanner.o): nolife_scanner.cpp nolife_parser.hpp
+libparser-g.a(nolife_scanner.o): nolife_scanner.cpp nolife_parser.hpp \
+ astsymnode.hpp astnode.hpp asttypenode.hpp astdeclnode.hpp \
+ astprocnode.hpp astprognode.hpp astcompoundstmtnode.hpp aststmtnode.hpp \
+ astparamnode.hpp astbinarynode.hpp astassignnode.hpp astvariablenode.hpp \
+ astexpressionnode.hpp astcallnode.hpp astconstantnode.hpp \
+ astarrayaccessnode.hpp astreturnnode.hpp astifnode.hpp astwhilenode.hpp \
+ astreadnode.hpp astwritenode.hpp astcaselabelsnode.hpp astclausenode.hpp \
+ astcasenode.hpp
