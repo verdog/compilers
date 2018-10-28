@@ -824,26 +824,26 @@ identifier: O_IDENTIFER {
 
 intnum: O_INT { 
     std::cout << "intnum\n";
-    $$ = new ast::Constant(yytext);
+    $$ = new ast::Constant(yytext, ast::Type::Types::Integer);
 };
 
 char_const: O_CHAR { 
     std::cout << "char_const" << yytext << "\n";
-    $$ = new ast::Constant(yytext);
+    $$ = new ast::Constant(yytext, ast::Type::Types::Character);
 };
 
 string_constant: O_STRING { 
     std::cout << "string_constant" << yytext << "\n";
-    $$ = new ast::Constant(yytext);
+    $$ = new ast::Constant(yytext, ast::Type::Types::StringConstant);
 };
 
 constant: O_FLOATCON     { 
     std::cout << "constant" << yytext << "\n";
-    $$ = new ast::Constant(yytext);
+    $$ = new ast::Constant(yytext, ast::Type::Types::Float);
 }
 | O_INT { 
     std::cout << "constant" << yytext << "\n";
-    $$ = new ast::Constant(yytext);
+    $$ = new ast::Constant(yytext, ast::Type::Types::Integer);
 };
 
 id_s: identifier semicln { 

@@ -27,6 +27,64 @@
 #include "astwhilenode.hpp"
 #include "astwritenode.hpp"
 
+TypeCheckVisitor::TypeCheckVisitor() {
+    using TypePair = std::pair<ast::Type::Types, ast::Type::Types>;
+
+    constexpr ast::Type::Types INT = ast::Type::Types::Integer;
+    constexpr ast::Type::Types FLOAT = ast::Type::Types::Float;
+    constexpr ast::Type::Types CHAR = ast::Type::Types::Character;
+    constexpr ast::Type::Types ERROR = ast::Type::Types::Undefined;
+
+    // define the type lookup tables.
+
+    tTypeCompatibilityTable arithTable;
+    arithTable[TypePair(INT,     INT)] = INT;
+    arithTable[TypePair(INT,   FLOAT)] = FLOAT;
+    arithTable[TypePair(FLOAT,   INT)] = FLOAT;
+    arithTable[TypePair(FLOAT, FLOAT)] = FLOAT;
+
+    tTypeCompatibilityTable logTable;
+    logTable[TypePair(CHAR, CHAR)] = CHAR;
+    logTable[TypePair(CHAR, INT)] = ERROR;
+    logTable[TypePair(CHAR, FLOAT)] = ERROR;
+    logTable[TypePair(INT, CHAR)] = ERROR;
+    logTable[TypePair(INT, INT)] = INT;
+    logTable[TypePair(INT, FLOAT)] = INT;
+    logTable[TypePair(FLOAT, CHAR)] = ERROR;
+    logTable[TypePair(FLOAT, INT)] = INT;
+    logTable[TypePair(FLOAT, FLOAT)] = FLOAT;
+
+    tTypeCompatibilityTable relTable;
+    relTable[TypePair(CHAR, CHAR)] = INT;
+    relTable[TypePair(CHAR, INT)] = ERROR;
+    relTable[TypePair(CHAR, FLOAT)] = ERROR;
+    relTable[TypePair(INT, CHAR)] = ERROR;
+    relTable[TypePair(INT, INT)] = INT;
+    relTable[TypePair(INT, FLOAT)] = INT;
+    relTable[TypePair(FLOAT, CHAR)] = ERROR;
+    relTable[TypePair(FLOAT, INT)] = INT;
+    relTable[TypePair(FLOAT, FLOAT)] = INT;
+
+    tTypeCompatibilityTable modTable;
+    modTable[TypePair(INT, INT)] = INT;
+
+    mOpToTableMap[ast::Expression::Operation::Plus] = arithTable;
+    mOpToTableMap[ast::Expression::Operation::Minus] = arithTable;
+    mOpToTableMap[ast::Expression::Operation::Multiply] = arithTable;
+    
+    mOpToTableMap[ast::Expression::Operation::Or] = logTable;
+    mOpToTableMap[ast::Expression::Operation::And] = logTable;
+
+    mOpToTableMap[ast::Expression::Operation::LessThan] = relTable;
+    mOpToTableMap[ast::Expression::Operation::LessThanOrEqual] = relTable;
+    mOpToTableMap[ast::Expression::Operation::GreaterThan] = relTable;
+    mOpToTableMap[ast::Expression::Operation::GreaterThanOrEqual] = relTable;
+    mOpToTableMap[ast::Expression::Operation::Equals] = relTable;
+    mOpToTableMap[ast::Expression::Operation::NotEqual] = relTable;
+
+    mOpToTableMap[ast::Expression::Operation::Modulo] = modTable;
+}
+
 void TypeCheckVisitor::pushNewSymbolTable() {
     mSymbolTableStack.push_back(tSymbolTable());
     std::cout << "Created a new symbol table. (number of tables remaining: " << mSymbolTableStack.size() << ")\n";
@@ -66,6 +124,34 @@ SymbolInfo& TypeCheckVisitor::lookupSymbol(std::string key) {
         }
     }
 }
+
+ast::Type::Types TypeCheckVisitor::getCombinedType(ast::Type::Types t1, ast::Type::Types t2, ast::Expression::Operation op) {
+    using TypePair = std::pair<ast::Type::Types, ast::Type::Types>;
+
+    if (op == ast::Expression::Operation::Not) {
+        std::cout << "Since NOT is a unary operation, check it before calling the function.\n";
+        return ast::Type::Types::Undefined;
+    } else if (t1 == ast::Type::Types::Undefined && t2 == ast::Type::Types::Undefined) {
+        // any + any = any
+        return ast::Type::Types::Undefined;
+    } else if (t1 == ast::Type::Types::Undefined) {
+        // any + something = something
+        return t2;
+    } else if (t2 == ast::Type::Types::Undefined) {
+        // something + any = something
+        return t1;
+    } else {
+        if (mOpToTableMap.count(op)) {
+            auto& table = mOpToTableMap[op];
+            return table[TypePair(t1, t2)];
+        } else {
+            std::cout << "No known table for operation " << op << "!\n";
+            return ast::Type::Types::Undefined;
+        }
+    }
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 void TypeCheckVisitor::visit(ast::Base* b) {
     std::cout << "Visited a base node.\n";
@@ -125,6 +211,15 @@ void TypeCheckVisitor::visit(ast::Declaration* d) {
 
 void TypeCheckVisitor::visit(ast::CompoundStatement* cs) {
     std::cout << "Visited a compound statement node.\n";
+
+    auto children = cs->getChildren();
+
+    for (auto node : children) {
+        if (node != nullptr) {
+            // visit each statement
+            node->accept(*this);
+        }
+    }
 }
 
 void TypeCheckVisitor::visit(ast::Parameters* p) {
@@ -210,9 +305,22 @@ void TypeCheckVisitor::visit(ast::ArrayAccess* aa) {
 }
 
 void TypeCheckVisitor::visit(ast::Assignment* a) {
+    std::cout << "visited assignment node.\n";
+
+    // visit children to deterimine their type
+    auto children = a->getChildren();
+    auto left = children[0];
+    auto right = children[1];
+
+    left->accept(*this);
+    right->accept(*this);
+
+    
+
 }
 
 void TypeCheckVisitor::visit(ast::Call* c) {
+    std::cout << "visited call node\n";
 }
 
 void TypeCheckVisitor::visit(ast::CaseLabels* cl) {
@@ -225,9 +333,74 @@ void TypeCheckVisitor::visit(ast::Clause* c) {
 }
 
 void TypeCheckVisitor::visit(ast::Constant* c) {
+    std::cout << "visited constant \"" << c->getImage() << "\" (" << ast::typeToString(c->getType()) << ").\n";
 }
 
 void TypeCheckVisitor::visit(ast::Expression* e) {
+    std::cout << "Visited expression node.\n";
+
+    auto children = e->getChildren();
+
+    if (e->getOperation() == ast::Expression::Operation::Not) {
+        // special behavior for not
+    } else if (e->getOperation() != ast::Expression::Operation::Noop) {
+        // the expression node is some kind of binary expression.
+        
+        auto left = dynamic_cast<ast::Expression*>(e->getChildren()[0]);
+        auto right = dynamic_cast<ast::Expression*>(e->getChildren()[1]);
+
+        left->accept(*this);
+        right->accept(*this);
+
+        auto leftType = left->getType();
+        auto rightType = right->getType();
+
+        auto myType = getCombinedType(leftType, rightType, e->getOperation());
+
+        if (myType == ast::Type::Types::Undefined) {
+            std::cout << "!!!  Type error!\n";
+        }
+
+    } else {
+        // the expression has a single child which will determine its type.
+
+        if (auto constant = dynamic_cast<ast::Constant*>(e->getChildren()[0])) {
+            std::cout << "  Constant detected.\n";
+            e->setType(constant->getType());
+        } else if (auto var = dynamic_cast<ast::Variable*>(e->getChildren()[0])) {
+            std::cout << "  Variable detected.\n";
+            std::string symImg = var->getSymbol()->getImage();
+
+            if (symbolExists(symImg)) {
+                ast::Type::Types t;
+                t = lookupSymbol(symImg).type;
+                e->setType(t);
+            } else {
+                // variable not declared error
+            }
+
+        } else if (auto call = dynamic_cast<ast::Call*>(e->getChildren()[0])) {
+            std::cout << "  Call detected.\n";
+            std::string callImg = call->getSymbol()->getImage();
+
+            if (symbolExists(callImg)) {
+                ast::Type::Types t;
+                t = lookupSymbol(callImg).type;
+
+                if (t == ast::Type::Types::Void) {
+                    // procedure call in an expression error
+                } else {
+                    e->setType(t);
+                }
+
+            } else {
+                // function not declared error
+            }
+        }
+
+        // visit the child
+        e->getChildren()[0]->accept(*this);
+    }
 }
 
 void TypeCheckVisitor::visit(ast::If* i) {
@@ -275,9 +448,11 @@ void TypeCheckVisitor::visit(ast::Return* r) {
 }
 
 void TypeCheckVisitor::visit(ast::Statement* s) {
+    std::cout << "visted a statement node.\n";
 }
 
 void TypeCheckVisitor::visit(ast::Variable* v) {
+    std::cout << "visited a variable node.\n";
 }
 
 void TypeCheckVisitor::visit(ast::While* w) {
@@ -285,6 +460,8 @@ void TypeCheckVisitor::visit(ast::While* w) {
 
 void TypeCheckVisitor::visit(ast::Write* w) {
 }
+
+////////////////////////////////////////////////////////////////////////////////
 
 void TypeCheckVisitor::dumpTable() {
     std::cout << "Symbol table dump (topmost table writen first):\n";
@@ -298,7 +475,7 @@ void TypeCheckVisitor::dumpTable() {
     }
 }
 
-////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
 void SymbolInfo::dumpInfo() {
     std::cout 

@@ -2495,7 +2495,7 @@ yyreduce:
 #line 825 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "intnum\n";
-    (yyval.symbol) = new ast::Constant(yytext);
+    (yyval.symbol) = new ast::Constant(yytext, ast::Type::Types::Integer);
 }
 #line 2501 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
@@ -2504,7 +2504,7 @@ yyreduce:
 #line 830 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "char_const" << yytext << "\n";
-    (yyval.constant) = new ast::Constant(yytext);
+    (yyval.constant) = new ast::Constant(yytext, ast::Type::Types::Character);
 }
 #line 2510 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
@@ -2513,7 +2513,7 @@ yyreduce:
 #line 835 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "string_constant" << yytext << "\n";
-    (yyval.constant) = new ast::Constant(yytext);
+    (yyval.constant) = new ast::Constant(yytext, ast::Type::Types::StringConstant);
 }
 #line 2519 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
@@ -2522,7 +2522,7 @@ yyreduce:
 #line 840 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "constant" << yytext << "\n";
-    (yyval.constant) = new ast::Constant(yytext);
+    (yyval.constant) = new ast::Constant(yytext, ast::Type::Types::Float);
 }
 #line 2528 "nolife_parser.cpp" /* yacc.c:1646  */
     break;
@@ -2531,7 +2531,7 @@ yyreduce:
 #line 844 "nolife_parser.y" /* yacc.c:1646  */
     { 
     std::cout << "constant" << yytext << "\n";
-    (yyval.constant) = new ast::Constant(yytext);
+    (yyval.constant) = new ast::Constant(yytext, ast::Type::Types::Integer);
 }
 #line 2537 "nolife_parser.cpp" /* yacc.c:1646  */
     break;

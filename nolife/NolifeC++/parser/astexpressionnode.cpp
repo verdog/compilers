@@ -7,12 +7,14 @@ namespace ast {
     
     Expression::Expression(Expression::Operation op) {
         mKind = "expression";
+        mType = Type::Types::Undefined;
 
         mOperation = op;
     }
 
     Expression::Expression(Variable *var) 
     : mOperation { Operation::Noop }
+    , mType { Type::Types::Undefined }
     {
         mKind = "expression";
         
@@ -21,6 +23,7 @@ namespace ast {
 
     Expression::Expression(Symbol *sym) 
     : mOperation { Operation::Noop }
+    , mType { Type::Types::Undefined }
     {
         mKind = "expression";
         
@@ -29,6 +32,7 @@ namespace ast {
 
     Expression::Expression(Call *call) 
     : mOperation { Operation::Noop }
+    , mType { Type::Types::Undefined }
     {
         mKind = "expression";
         
@@ -37,6 +41,7 @@ namespace ast {
 
     Expression::Expression(Constant *constant) 
     : mOperation { Operation::Noop }
+    , mType { Type::Types::Undefined }
     {
         mKind = "expression";
         
@@ -45,6 +50,14 @@ namespace ast {
 
     Expression::Operation Expression::getOperation() {
         return mOperation;
+    }
+
+    void Expression::setType(Type::Types t) {
+        mType = t;
+    }
+
+    Type::Types Expression::getType() {
+        return mType;
     }
 
     void Expression::accept(Visitor &v) {

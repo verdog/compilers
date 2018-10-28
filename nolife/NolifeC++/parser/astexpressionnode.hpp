@@ -4,6 +4,7 @@
 #include "astcallnode.hpp"
 #include "astvariablenode.hpp"
 #include "astconstantnode.hpp"
+#include "asttypenode.hpp"
 
 namespace ast {
     
@@ -39,10 +40,14 @@ namespace ast {
             Expression(Constant *constant);
 
             Operation getOperation();
+            void setType(Type::Types t);
+            Type::Types getType();
 
             virtual void accept(Visitor &v);
         private:
             Operation mOperation;
+
+            Type::Types mType;
     };
 
 } // ast

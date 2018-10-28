@@ -1,11 +1,12 @@
 PROGRAM func;
 
 VAR 
-a, c, d :INTEGER;
+i :INTEGER;
 f :FLOAT;
-l: ARRAY ['a'..'z'] OF CHARACTER;
-
-FUNCTION b(x: INTEGER): INTEGER;
+c :CHARACTER;
+l: ARRAY [1 .. 8] OF INTEGER;
+{*
+FUNCTION b (x: INTEGER): INTEGER;
   BEGIN
     RETURN 4 * x
   END;
@@ -14,8 +15,15 @@ PROCEDURE p;
   BEGIN
     WRITE('hey.')
   END;
-
+*}
 BEGIN
-  c := b(4);
+  {*
+  i := 6 + b(4);
+  f := 4.5;
+  c := 'j';
+  *}
+  
+  f := 2.0 + ('e' + 'c');
+
   p()
 END

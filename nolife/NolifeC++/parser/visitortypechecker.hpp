@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "asttypenode.hpp"
+#include "astexpressionnode.hpp"
 
 #include "visitor.hpp"
 
@@ -40,6 +41,8 @@ class SymbolInfo {
 
 class TypeCheckVisitor : public Visitor {
     public:
+        TypeCheckVisitor();
+
         void visit(ast::Base* b);
         void visit(ast::Program* p);
         void visit(ast::Declaration* d);
@@ -73,9 +76,15 @@ class TypeCheckVisitor : public Visitor {
         void pushNewSymbolTable();
         void popSymbolTable();
         void dumpTable();
+        
+        ast::Type::Types getCombinedType(ast::Type::Types t1, ast::Type::Types t2, ast::Expression::Operation op);
     private:
         using tSymbolTable = std::map<std::string, SymbolInfo>;
         std::vector<tSymbolTable> mSymbolTableStack;
+
+        using tTypeCompatibilityTable = std::map<std::pair<ast::Type::Types, ast::Type::Types>, ast::Type::Types>;
+
+        std::map<ast::Expression::Operation, tTypeCompatibilityTable> mOpToTableMap;
 
         void writeSymbol(std::string key, SymbolInfo value);
         SymbolInfo& lookupSymbol(std::string key);

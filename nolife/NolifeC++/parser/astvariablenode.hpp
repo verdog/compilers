@@ -10,6 +10,7 @@ namespace ast {
             Variable(Symbol *sym);
 
             virtual void accept(Visitor &v);
+            Symbol* getSymbol();
         private:
     };
 

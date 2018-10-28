@@ -10,12 +10,15 @@ namespace ast {
 
     class Type : public Base {
         public:
-            enum Types {
-                Undefined,
+            enum class Types {
+                Undefined,  // "Undefined" must be listed first.
+                            // There is some reliance on the default value of 
+                            // Types being undefined.
+                Float,
                 Void,
                 Integer,
-                Float,
-                Character
+                Character,
+                StringConstant,
             };
 
             Type();
