@@ -12,6 +12,14 @@ namespace ast {
         mKind = "type";
     }
 
+    ast::Base* Type::getChild() {
+        if (mChildren.size() > 0) {
+            return mChildren[0];
+        } else {
+            return nullptr;
+        }
+    }
+
     void Type::setSymbol(Symbol* s) {
         // if there is a child, it is an array.
         // set the symbol on the array child.
@@ -158,6 +166,35 @@ namespace ast {
 
     void Void::accept(Visitor &v) {
         v.visit(this);
+    }
+
+    /////////////////////////////////////////////////////////////////////
+
+    std::string typeToString(ast::Type::Types t) {
+        switch (t) {
+            case Type::Types::Integer:
+                return "Integer";
+                break;
+        
+            case Type::Types::Float:
+                return "Float";
+                break;
+
+            case Type::Types::Character:
+                return "Character";
+                break;
+
+            case Type::Types::Void:
+                return "Void";
+                break;
+
+            case Type::Types::Undefined:
+                return "Undefined";
+                break;
+            
+            default:
+                break;
+        }
     }
 
 } // ast

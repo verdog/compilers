@@ -45,10 +45,30 @@ namespace ast {
     void Array::setSymbol(Symbol* s) {
         mChildren[0] = s;
     }
+    
+    Symbol* Array::getSymbol() {
+        if (mChildren.size() > 0) {
+            return dynamic_cast<Symbol*>(mChildren[0]);
+        } else {
+            return nullptr;
+        }
+    }
 
     void Array::setBounds(Symbol* min, Symbol* max) {
         mChildren[1] = min;
         mChildren[2] = max;
+    }
+
+    Symbol* Array::getLowBound() {
+        if (mChildren.size() >= 2) {
+            return dynamic_cast<Symbol*>(mChildren[1]);
+        }
+    }
+
+    Symbol* Array::getHighBound() {
+        if (mChildren.size() >= 2) {
+            return dynamic_cast<Symbol*>(mChildren[2]);
+        }
     }
 
     void Array::accept(Visitor &v) {

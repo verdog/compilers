@@ -24,6 +24,7 @@ namespace ast {
             void setSymbol(Symbol* s);
             void setFunc(Procedure* p);
             void setArray(Array* a);
+            Base* getChild();
 
             virtual void accept(Visitor &v);
         protected:
@@ -64,5 +65,7 @@ namespace ast {
 
             virtual void accept(Visitor &v);
     };
+
+    std::string typeToString(Type::Types t);
 
 } // ast

@@ -35,6 +35,18 @@ namespace ast {
         mChildren[2] = stmtNode;
     }
 
+    Symbol* Program::getSymbol() {
+        return dynamic_cast<Symbol*>(mChildren[0]);
+    }
+
+    Declaration* Program::getDecl() {
+        return dynamic_cast<Declaration*>(mChildren[1]);
+    }
+
+    CompoundStatement* Program::getCompoundStatement() {
+        return dynamic_cast<CompoundStatement*>(mChildren[2]);
+    }
+
     void Program::accept(Visitor &v) {
         v.visit(this);
     }

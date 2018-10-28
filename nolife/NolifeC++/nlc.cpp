@@ -18,4 +18,6 @@ int main(int argc, char *argv[]) {
 
     gASTRoot->accept(p);
     gASTRoot->accept(t);
+
+    t.dumpTable();
 }

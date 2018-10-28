@@ -30,7 +30,7 @@
 
 PrintVisitor::PrintVisitor() 
 : mIndentString {""}
-, mIndentUnit {".  "}
+, mIndentUnit {". "}
 {}
 
 void PrintVisitor::visit_universal(ast::Base* b) {
