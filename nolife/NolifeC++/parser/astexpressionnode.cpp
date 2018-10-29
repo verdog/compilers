@@ -60,6 +60,14 @@ namespace ast {
         return mType;
     }
 
+    Variable* Expression::childAsVariable() {
+        if (mChildren.size() == 1) {
+            return dynamic_cast<Variable*>(mChildren[0]);
+        } else {
+            return nullptr;
+        }
+    }
+
     void Expression::accept(Visitor &v) {
         v.visit(this);
     }

@@ -29,6 +29,7 @@ namespace ast {
             void setArray(Array* a);
             Base* getChild();
             Procedure* childAsProcedure();
+            Symbol* childAsSymbol();
 
             virtual void accept(Visitor &v);
         protected:

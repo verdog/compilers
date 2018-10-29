@@ -43,6 +43,8 @@ namespace ast {
             void setType(Type::Types t);
             Type::Types getType();
 
+            Variable* childAsVariable();
+
             virtual void accept(Visitor &v);
         private:
             Operation mOperation;

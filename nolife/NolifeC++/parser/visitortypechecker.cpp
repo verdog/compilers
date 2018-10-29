@@ -297,6 +297,15 @@ void TypeCheckVisitor::visit(ast::Parameters* p) {
 
 void TypeCheckVisitor::visit(ast::Symbol* s) {
     std::cout << "Visited symbol node \"" << s->getImage() << "\".\n";
+
+    // if this node is visited, it means the symbol was access without subscripting.
+    // if this symbol is an array, this is an error
+
+    if (symbolExists(s->getImage())) {
+        // nothing needed
+    } else {
+        std::cout << "!!!  Error: Symbol \"" << s->getImage() << "\" used but never declared.\n";
+    }
 }
 
 void TypeCheckVisitor::visit(ast::Type* t) {
@@ -389,7 +398,7 @@ void TypeCheckVisitor::visit(ast::Assignment* a) {
             std::cout << "!!!  Error: Invalid types used in an assignment.\n";
         }
     } else {
-        // left is undelcared
+        // left is undeclared
         // caught when the node is visited
     }
 }
@@ -418,19 +427,42 @@ void TypeCheckVisitor::visit(ast::Call* c) {
                     std::cout << "!!!  Incorrect number of arguments when calling " << funcName << "!\n";
                 } else {
                     // number of arguments is correct. check their type.
-                    bool correctTypes = true;
-                    for (int i = 0; i < params->getChildren().size(); i++) {
-                        auto properType = dynamic_cast<ast::Type*>(params->getChildren()[i])->getType();
-                        auto compareType = dynamic_cast<ast::Expression*>(c->getChildren()[i+1])->getType();
+                    bool typeError = false;
+                    bool arrayError = false;
+                    ast::Type::Types properType;
+                    ast::Type::Types compareType; 
+                    ast::Type* paramNode;
+                    ast::Variable* compareVariable;
+                    int i;
+
+                    for (i = 0; i < params->getChildren().size(); i++) {
+                        paramNode = dynamic_cast<ast::Type*>(params->getChildren()[i]);
+                        bool paramIsArray = (dynamic_cast<ast::Array*>(paramNode->getChildren()[0]));
+                        properType = paramNode->getType();
+                        compareType = dynamic_cast<ast::Expression*>(c->getChildren()[i+1])->getType();
+                        compareVariable = dynamic_cast<ast::Expression*>(c->getChildren()[i+1])->childAsVariable();
 
                         if (properType != compareType) {
-                            correctTypes = false;
+                            typeError = true;
                             break;
+                        } else if (compareVariable != nullptr) {
+                            // the argument is simply a symbol.
+                            if (symbolExists(compareVariable->getSymbol()->getImage())) {
+                                if (lookupSymbol(compareVariable->getSymbol()->getImage()).isArray != paramIsArray) {
+                                    arrayError = true;
+                                }
+                            } else {
+                                // symbol does not exist. this will be caught when it is visited.
+                            }
                         }
                     }
 
-                    if (!correctTypes) {
-                        std::cout << "!!!  Incorrect type of arguments when calling " << funcName << "!\n";
+                    if (typeError) {
+                        std::cout << "!!!  Incorrect type of arguments when calling " << funcName 
+                            << " (" << ast::typeToString(properType) << " != " << ast::typeToString(compareType) 
+                            << ", argument " << i+1 << ")!\n";
+                    } else if (arrayError) {
+                        std::cout << "!!!  Error: invalid use of an array\n";
                     }
                 }
             } else {
@@ -589,14 +621,6 @@ void TypeCheckVisitor::visit(ast::Statement* s) {
 void TypeCheckVisitor::visit(ast::Variable* v) {
     std::cout << "visited a variable node.\n";
 
-    auto symbolStr = v->getSymbol()->getImage();
-
-    if (symbolExists(symbolStr)) {
-        // nothing else to check for
-    } else {
-        std::cout << "!!!  Error: Symbol \"" << symbolStr << "\" used but never declared.\n";
-    }
-
     for (auto node : v->getChildren()) {
         node->accept(*this);
     }
@@ -620,7 +644,7 @@ void TypeCheckVisitor::visit(ast::ArrayAccess* aa) {
                 try {
                     // check if bounds is a string or a number
                     int low = std::stoi(info.arrayLowBound);
-                    int high = std::stoi(info.arrayLowBound);
+                    int high = std::stoi(info.arrayHighBound);
                     int iidx = std::stoi(constant->getImage());
 
                     if (iidx < low || iidx > high) {
@@ -636,9 +660,8 @@ void TypeCheckVisitor::visit(ast::ArrayAccess* aa) {
         } else {
             std::cout << "!!!  Error: Symbol \"" << symbolStr << "\" is not subscriptable.\n";
         }
-
     } else {
-        std::cout << "!!!  Error: Symbol \"" << symbolStr << "\" used but never declared.\n";
+        // symbol does not exist, this is caught when we visit the symbol node
     }
 
     for (auto node : aa->getChildren()) {

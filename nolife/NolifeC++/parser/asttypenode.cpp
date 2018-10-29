@@ -56,6 +56,10 @@ namespace ast {
         return dynamic_cast<Procedure*>(mChildren[0]);
     }
 
+    Symbol* Type::childAsSymbol() {
+        return dynamic_cast<Symbol*>(mChildren[0]);
+    }
+
     Integer::Integer() 
     : Type()
     {
