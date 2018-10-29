@@ -11,7 +11,13 @@
 extern ast::Base* gASTRoot;
 
 int main(int argc, char *argv[]) {
+
+    // hack to disable cout temporarily
+    std::cout.setstate(std::ios_base::failbit);
+
     yyparse(); // sets gASTRoot to the root of the ast.
+
+    std::cout.clear();
 
     PrintVisitor p;
     TypeCheckVisitor t;

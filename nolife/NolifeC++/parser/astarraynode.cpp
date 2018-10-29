@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "astarraynode.hpp"
+#include "astconstantnode.hpp"
 #include "astsymnode.hpp"
 #include "visitor.hpp"
 
@@ -11,7 +12,7 @@ namespace ast {
     {
         mKind = "array";
 
-        std::cout << "  Array created.\n";
+        // std::cout << "  Array created.\n";
 
         mChildren.resize(3);
     }
@@ -20,8 +21,8 @@ namespace ast {
         auto clone = new Array();
 
         auto symbol = dynamic_cast<Symbol*>(mChildren[0]);
-        auto min = dynamic_cast<Symbol*>(mChildren[1]);
-        auto max = dynamic_cast<Symbol*>(mChildren[2]);
+        auto min = dynamic_cast<Constant*>(mChildren[1]);
+        auto max = dynamic_cast<Constant*>(mChildren[2]);
 
         if (symbol == nullptr) {
             // clone.setChild(nullptr)
@@ -32,7 +33,7 @@ namespace ast {
         if (min == nullptr || max == nullptr) {
             std::cout << "Something is afoot in Array::clone()!\n";
         } else {
-            clone->setBounds(new Symbol(*min), new Symbol(*max));
+            clone->setBounds(new Constant(*min), new Constant(*max));
         }
 
         return clone;
@@ -54,7 +55,7 @@ namespace ast {
         }
     }
 
-    void Array::setBounds(Symbol* min, Symbol* max) {
+    void Array::setBounds(Constant* min, Constant* max) {
         mChildren[1] = min;
         mChildren[2] = max;
     }

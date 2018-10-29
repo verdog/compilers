@@ -200,7 +200,12 @@ namespace ast {
                 return "Undefined";
                 break;
             
+            case Type::Types::StringConstant:
+                return "String Constant";
+                break;
+
             default:
+                return "Unknown type";
                 break;
         }
     }

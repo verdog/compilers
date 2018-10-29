@@ -87,6 +87,7 @@ extern int yylex();
     std::vector<ast::Statement*>* stmtList;
     std::vector<ast::Expression*>* exprList;
     std::vector<ast::Clause*>* clauseList;
+    std::vector<ast::Constant*>* constList;
 }
 
 %start program
@@ -154,8 +155,6 @@ extern int yylex();
 %type <type> type
 %type <type> standard_type
 %type <type> array_type
-%type <symbol> intnum
-%type <symbList> dim
 
 %type <symbList> identifier_list
 %type <symbol> identifier
@@ -194,6 +193,8 @@ extern int yylex();
 %type <constant> constant
 %type <constant> char_const
 %type <constant> string_constant
+%type <constant> intnum
+%type <constList> dim
 
 %type <_return> return_stmt;
 
@@ -333,14 +334,14 @@ array_type: O_ARRAY O_LBRACKET dim O_RBRACKET O_OF standard_type {
 
 dim: intnum O_DOTDOT intnum { 
     std::cout << "dim\n";
-    auto list = new std::vector<ast::Symbol*>;
+    auto list = new std::vector<ast::Constant*>;
     list->push_back($1);
     list->push_back($3);
     $$ = list;
 }
 | char_const O_DOTDOT char_const  { 
     std::cout << "dim\n";
-    auto list = new std::vector<ast::Symbol*>;
+    auto list = new std::vector<ast::Constant*>;
     list->push_back($1);
     list->push_back($3);
     $$ = list;
@@ -868,6 +869,7 @@ colon           : O_COLON
 
 int yyerror(const char *s)
 {
+  std::cout.clear();
   std::cout << "Parse error: " << s << "\n";
   std::exit(-1);
 }

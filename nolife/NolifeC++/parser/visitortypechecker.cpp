@@ -97,7 +97,7 @@ TypeCheckVisitor::TypeCheckVisitor() {
 
 void TypeCheckVisitor::pushNewSymbolTable() {
     mSymbolTableStack.push_back(tSymbolTable());
-    std::cout << "Created a new symbol table. (number of tables remaining: " << mSymbolTableStack.size() << ")\n";
+    // std::cout << "Created a new symbol table. (number of tables remaining: " << mSymbolTableStack.size() << ")\n";
 }
 
 void TypeCheckVisitor::popSymbolTable() {
@@ -112,13 +112,13 @@ void TypeCheckVisitor::popSymbolTable() {
     }
 
     mSymbolTableStack.pop_back();
-    std::cout << "Destroyed top symbol table. (number of tables remaining: " << mSymbolTableStack.size() << ")\n";
+    // std::cout << "Destroyed top symbol table. (number of tables remaining: " << mSymbolTableStack.size() << ")\n";
 }
 
 void TypeCheckVisitor::writeSymbol(std::string key, SymbolInfo value) {
     auto& topTable = mSymbolTableStack.back();
     topTable[key] = value;
-    std::cout << "  - inserted \"" << key << "\" into topmost table.\n";
+    // std::cout << "  - inserted \"" << key << "\" into topmost table.\n";
 }
 
 bool TypeCheckVisitor::symbolExists(std::string key) {
@@ -149,7 +149,7 @@ ast::Type::Types TypeCheckVisitor::getCombinedType(ast::Type::Types t1, ast::Typ
     using TypePair = std::pair<ast::Type::Types, ast::Type::Types>;
 
     if (op == ast::Expression::Operation::Not) {
-        std::cout << "Since NOT is a unary operation, check it before calling the function.\n";
+        std::cout << "Since NOT is a unary operation, check it before calling getCombinedType.\n";
         return ast::Type::Types::Undefined;
     } else if (t1 == ast::Type::Types::Undefined && t2 == ast::Type::Types::Undefined) {
         // any + any = any
@@ -174,11 +174,11 @@ ast::Type::Types TypeCheckVisitor::getCombinedType(ast::Type::Types t1, ast::Typ
 ////////////////////////////////////////////////////////////////////////////////
 
 void TypeCheckVisitor::visit(ast::Base* b) {
-    std::cout << "Visited a base node.\n";
+    // std::cout << "Visited a base node.\n";
 }
 
 void TypeCheckVisitor::visit(ast::Program* p) {
-    std::cout << "Visited a program node.\n";
+    // std::cout << "Visited a program node.\n";
 
     // create new symbol table
     pushNewSymbolTable();
@@ -198,26 +198,26 @@ void TypeCheckVisitor::visit(ast::Program* p) {
     if (p->getDecl()) { // exists
         p->getDecl()->accept(*this);
     } else {
-        std::cout << programName << " has no decls.\n";
+        // std::cout << programName << " has no decls.\n";
     }
 
     // process compound statement
     if (p->getCompoundStatement()) { // exists
         p->getCompoundStatement()->accept(*this);
     } else {
-        std::cout << programName << " has no compound statement.\n";
+        // std::cout << programName << " has no compound statement.\n";
     }
 
     // dump tables
-    std::cout << "Tables after processing the entire program:\n";
-    dumpTable();
+    // std::cout << "Tables after processing the entire program:\n";
+    // dumpTable();
 
     // remove symbol table
     popSymbolTable();
 }
 
 void TypeCheckVisitor::visit(ast::Declaration* d) {
-    std::cout << "visited a decl node.\n";
+    // std::cout << "visited a decl node.\n";
 
     registerProcedures(d);
 
@@ -237,7 +237,7 @@ void TypeCheckVisitor::registerProcedures(ast::Declaration* d) {
         if (type != nullptr) {
             if (auto proc = type->childAsProcedure()) {
                 // register procedure
-                std::cout << "  Detected procedure \"" << proc->getSymbol()->getImage() << "\".\n";
+                // std::cout << "  Detected procedure \"" << proc->getSymbol()->getImage() << "\".\n";
 
                 if (mSymbolTableStack.back().count(proc->getSymbol()->getImage()) == 0) {
                     auto symInfo = SymbolInfo(proc->getSymbol()->getImage());
@@ -256,7 +256,7 @@ void TypeCheckVisitor::registerProcedures(ast::Declaration* d) {
 }
 
 void TypeCheckVisitor::visit(ast::CompoundStatement* cs) {
-    std::cout << "Visited a compound statement node.\n";
+    // std::cout << "Visited a compound statement node.\n";
 
     auto children = cs->getChildren();
 
@@ -283,7 +283,7 @@ void TypeCheckVisitor::visit(ast::CompoundStatement* cs) {
 }
 
 void TypeCheckVisitor::visit(ast::Parameters* p) {
-    std::cout << "visited a parameters node.\n";
+    // std::cout << "visited a parameters node.\n";
 
     auto children = p->getChildren();
 
@@ -296,7 +296,7 @@ void TypeCheckVisitor::visit(ast::Parameters* p) {
 }
 
 void TypeCheckVisitor::visit(ast::Symbol* s) {
-    std::cout << "Visited symbol node \"" << s->getImage() << "\".\n";
+    // std::cout << "Visited symbol node \"" << s->getImage() << "\".\n";
 
     // if this node is visited, it means the symbol was access without subscripting.
     // if this symbol is an array, this is an error
@@ -309,12 +309,12 @@ void TypeCheckVisitor::visit(ast::Symbol* s) {
 }
 
 void TypeCheckVisitor::visit(ast::Type* t) {
-    std::cout << "Visited a type node. This probably shouldn't happen.\n";
+    // std::cout << "Visited a type node. This probably shouldn't happen.\n";
 }
 
 void TypeCheckVisitor::visit_type(ast::Type* t) {
     if (auto sym = dynamic_cast<ast::Symbol*>(t->getChild())) {
-        std::cout << "  Detected a symbol.\n";
+        // std::cout << "  Detected a symbol.\n";
 
         if (mSymbolTableStack.back().count(sym->getImage()) == 0) {
             auto symInfo = SymbolInfo(sym->getImage());
@@ -327,7 +327,7 @@ void TypeCheckVisitor::visit_type(ast::Type* t) {
         }
 
     } else if (auto arr = dynamic_cast<ast::Array*>(t->getChild())) {
-        std::cout << "  Detected an array.\n";
+        // std::cout << "  Detected an array.\n";
 
         if (mSymbolTableStack.back().count(arr->getSymbol()->getImage()) == 0) {
             auto symInfo = SymbolInfo(arr->getSymbol()->getImage());
@@ -350,33 +350,36 @@ void TypeCheckVisitor::visit_type(ast::Type* t) {
 }
 
 void TypeCheckVisitor::visit(ast::Integer* i) {
-    std::cout << "Visited an integer node.\n";
+    // std::cout << "Visited an integer node.\n";
     visit_type(i);
 }
 
 void TypeCheckVisitor::visit(ast::Float* f) {
-    std::cout << "Visited a float node.\n";
+    // std::cout << "Visited a float node.\n";
     visit_type(f);
 }
 
 void TypeCheckVisitor::visit(ast::Character* c) {
-    std::cout << "Visited a character node.\n";
+    // std::cout << "Visited a character node.\n";
     visit_type(c);
 }
 
 void TypeCheckVisitor::visit(ast::Void* v) {
-    std::cout << "Visited a void node.\n";
+    // std::cout << "Visited a void node.\n";
     visit_type(v);
 }
 
 void TypeCheckVisitor::visit(ast::Array* a) {
-    std::cout << "Visited an array node.\n";
+    // std::cout << "Visited an array node.\n";
+    for (auto node : a->getChildren()) {
+        node->accept(*this);
+    }
 }
 
 void TypeCheckVisitor::visit(ast::Assignment* a) {
     using TypePair = std::pair<ast::Type::Types, ast::Type::Types>;
 
-    std::cout << "visited assignment node.\n";
+    // std::cout << "visited assignment node.\n";
 
     // visit children to deterimine their type
     auto children = a->getChildren();
@@ -404,7 +407,7 @@ void TypeCheckVisitor::visit(ast::Assignment* a) {
 }
 
 void TypeCheckVisitor::visit(ast::Call* c) {
-    std::cout << "visited call node\n";
+    // std::cout << "visited call node\n";
 
     auto funcName = c->getSymbol()->getImage();
     int paramsNumber = c->getChildren().size() - 1; // subtract the symbol node
@@ -424,7 +427,7 @@ void TypeCheckVisitor::visit(ast::Call* c) {
 
             if (params != nullptr) {
                 if (params->getChildren().size() != paramsNumber) {
-                    std::cout << "!!!  Incorrect number of arguments when calling " << funcName << "!\n";
+                    std::cout << "!!!  Error: Incorrect number of arguments when calling " << funcName << ".\n";
                 } else {
                     // number of arguments is correct. check their type.
                     bool typeError = false;
@@ -459,9 +462,9 @@ void TypeCheckVisitor::visit(ast::Call* c) {
                     }
 
                     if (typeError) {
-                        std::cout << "!!!  Incorrect type of arguments when calling " << funcName 
+                        std::cout << "!!!  Error: Incorrect type of arguments when calling " << funcName 
                             << " (" << ast::typeToString(properType) << " != " << ast::typeToString(compareType) 
-                            << ", argument " << i+1 << ")!\n";
+                            << ", argument " << i+1 << ").\n";
                     } else if (arrayError) {
                         if (paramIsArray) {
                             std::cout << "!!!  Error: invalid use of an array: Parameter number " << i 
@@ -477,44 +480,44 @@ void TypeCheckVisitor::visit(ast::Call* c) {
             } else {
                 // params = nullptr. this means the procedure accepts no arguments.
                 if (paramsNumber != 0) {
-                    std::cout << "!!!  Incorrect type of arguments when calling " << funcName << "!\n";
+                    std::cout << "!!!  Error: Incorrect type of arguments when calling " << funcName << "!\n";
                 }
             }
         } else {
-            std::cout << "!!!  Symbol \"" << funcName << "\" is not callable!\n";
+            std::cout << "!!!  Error: Symbol \"" << funcName << "\" is not callable!\n";
         }
     } else {
-        std::cout << "!!!  Tried to call a function/procedure named \"" << funcName << "\", which was never declared.\n";
+        std::cout << "!!!  Error: Tried to call a function/procedure named \"" << funcName << "\", which was never declared.\n";
     }    
 }
 
 void TypeCheckVisitor::visit(ast::CaseLabels* cl) {
+    // std::cout << "visited case labels node.\n";
     for (auto node : cl->getChildren()) {
-        std::cout << "visited case labels node.\n";
         node->accept(*this);
     }
 }
 
 void TypeCheckVisitor::visit(ast::Case* c) {
-    std::cout << "visited a case node.\n";
+    // std::cout << "visited a case node.\n";
     for (auto node : c->getChildren()) {
         node->accept(*this);
     }
 }
 
 void TypeCheckVisitor::visit(ast::Clause* c) {
-    std::cout << "visited a clause node.\n";
+    // std::cout << "visited a clause node.\n";
     for (auto node : c->getChildren()) {
         node->accept(*this);
     }
 }
 
 void TypeCheckVisitor::visit(ast::Constant* c) {
-    std::cout << "visited constant \"" << c->getImage() << "\" (" << ast::typeToString(c->getType()) << ").\n";
+    // std::cout << "visited constant \"" << c->getImage() << "\" (" << ast::typeToString(c->getType()) << ").\n";
 }
 
 void TypeCheckVisitor::visit(ast::Expression* e) {
-    std::cout << "Visited expression node.\n";
+    // std::cout << "Visited expression node.\n";
 
     auto children = e->getChildren();
 
@@ -543,11 +546,11 @@ void TypeCheckVisitor::visit(ast::Expression* e) {
         // the expression has a single child which will determine its type.
 
         if (auto constant = dynamic_cast<ast::Constant*>(e->getChildren()[0])) {
-            std::cout << "  Constant detected.\n";
+            // std::cout << "  Constant detected.\n";
             e->setType(constant->getType());
-            std::cout << "  Set type as: " << ast::typeToString(e->getType()) << "\n";
+            // std::cout << "  Set type as: " << ast::typeToString(e->getType()) << "\n";
         } else if (auto var = dynamic_cast<ast::Variable*>(e->getChildren()[0])) {
-            std::cout << "  Variable detected.\n";
+            // std::cout << "  Variable detected.\n";
             std::string symImg = var->getSymbol()->getImage();
 
             if (symbolExists(symImg)) {
@@ -562,7 +565,7 @@ void TypeCheckVisitor::visit(ast::Expression* e) {
             }
 
         } else if (auto call = dynamic_cast<ast::Call*>(e->getChildren()[0])) {
-            std::cout << "  Call detected.\n";
+            // std::cout << "  Call detected.\n";
             std::string callImg = call->getSymbol()->getImage();
 
             if (symbolExists(callImg)) {
@@ -589,14 +592,14 @@ void TypeCheckVisitor::visit(ast::Expression* e) {
 }
 
 void TypeCheckVisitor::visit(ast::If* i) {
-    std::cout << "visited an if node.\n";
+    // std::cout << "visited an if node.\n";
     for (auto node : i->getChildren()) {
         node->accept(*this);
     }
 }
 
 void TypeCheckVisitor::visit(ast::Procedure* p) {
-    std::cout << "Visited a procedure node.\n";
+    // std::cout << "Visited a procedure node.\n";
 
     // create new symbol table
     pushNewSymbolTable();
@@ -608,43 +611,43 @@ void TypeCheckVisitor::visit(ast::Procedure* p) {
     if (p->getParameters()) { // exists
         p->getParameters()->accept(*this);
     } else {
-        std::cout << "procedure \"" << p->getSymbol()->getImage() << "\" has no parameters.\n";
+        // std::cout << "procedure \"" << p->getSymbol()->getImage() << "\" has no parameters.\n";
     }
 
     // process declarations
     if (p->getDecl()) { // exists
         p->getDecl()->accept(*this);
     } else {
-        std::cout << "procedure \"" << p->getSymbol()->getImage() << "\" has no decls.\n";
+        // std::cout << "procedure \"" << p->getSymbol()->getImage() << "\" has no decls.\n";
     }
 
     // process compound statement
     if (p->getCompoundStatement()) { // exists
         p->getCompoundStatement()->accept(*this);
     } else {
-        std::cout << "procedure \"" << p->getSymbol()->getImage() << "\" has no compound statement.\n";
+        // std::cout << "procedure \"" << p->getSymbol()->getImage() << "\" has no compound statement.\n";
     }
 
     // dump tables
-    std::cout << "Tables after processing procedure " << p->getSymbol()->getImage() << ":\n";
-    dumpTable();
+    // std::cout << "Tables after processing procedure " << p->getSymbol()->getImage() << ":\n";
+    // dumpTable();
 
     // remove symbol table
     popSymbolTable();
 }
 
 void TypeCheckVisitor::visit(ast::Return* r) {
-    std::cout << "vistied return node.\n";
+    // std::cout << "vistied return node.\n";
 
     r->getChildren()[0]->accept(*this);
 }
 
 void TypeCheckVisitor::visit(ast::Statement* s) {
-    std::cout << "visted a statement node.\n";
+    // std::cout << "visted a statement node.\n";
 }
 
 void TypeCheckVisitor::visit(ast::Variable* v) {
-    std::cout << "visited a variable node.\n";
+    // std::cout << "visited a variable node.\n";
 
     for (auto node : v->getChildren()) {
         node->accept(*this);
@@ -652,7 +655,7 @@ void TypeCheckVisitor::visit(ast::Variable* v) {
 }
 
 void TypeCheckVisitor::visit(ast::ArrayAccess* aa) {
-    std::cout << "visited an array access node.\n";
+    // std::cout << "visited an array access node.\n";
 
     auto symbolStr = aa->getSymbol()->getImage();
 
@@ -695,14 +698,14 @@ void TypeCheckVisitor::visit(ast::ArrayAccess* aa) {
 }
 
 void TypeCheckVisitor::visit(ast::While* w) {
-    std::cout << "visited a while node.\n";
+    // std::cout << "visited a while node.\n";
     for (auto node : w->getChildren()) {
         node->accept(*this);
     }
 }
 
 void TypeCheckVisitor::visit(ast::Write* w) {
-    std::cout << "visited a write node.\n";
+    // std::cout << "visited a write node.\n";
     for (auto node : w->getChildren()) {
         node->accept(*this);
     }

@@ -161,8 +161,9 @@ union YYSTYPE
     std::vector<ast::Statement*>* stmtList;
     std::vector<ast::Expression*>* exprList;
     std::vector<ast::Clause*>* clauseList;
+    std::vector<ast::Constant*>* constList;
 
-#line 166 "nolife_parser.hpp" /* yacc.c:1909  */
+#line 167 "nolife_parser.hpp" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

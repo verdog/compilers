@@ -1,6 +1,7 @@
 PROGRAM func;
 
 VAR 
+1 :INTEGER;
 i :INTEGER;
 f :FLOAT;
 c :CHARACTER;

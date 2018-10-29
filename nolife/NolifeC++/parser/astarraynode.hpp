@@ -4,6 +4,8 @@
 
 namespace ast {
 
+    class Constant;
+
     class Array : public Type {
         public:
             Array();
@@ -11,7 +13,7 @@ namespace ast {
             Type::Types getType();
             void setSymbol(Symbol* s);
             Symbol* getSymbol();
-            void setBounds(Symbol* min, Symbol* max);
+            void setBounds(Constant* min, Constant* max);
             Symbol* getLowBound();
             Symbol* getHighBound();
             void addChild(Base* b) = delete;
