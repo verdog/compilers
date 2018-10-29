@@ -489,12 +489,24 @@ void TypeCheckVisitor::visit(ast::Call* c) {
 }
 
 void TypeCheckVisitor::visit(ast::CaseLabels* cl) {
+    for (auto node : cl->getChildren()) {
+        std::cout << "visited case labels node.\n";
+        node->accept(*this);
+    }
 }
 
 void TypeCheckVisitor::visit(ast::Case* c) {
+    std::cout << "visited a case node.\n";
+    for (auto node : c->getChildren()) {
+        node->accept(*this);
+    }
 }
 
 void TypeCheckVisitor::visit(ast::Clause* c) {
+    std::cout << "visited a clause node.\n";
+    for (auto node : c->getChildren()) {
+        node->accept(*this);
+    }
 }
 
 void TypeCheckVisitor::visit(ast::Constant* c) {
@@ -577,6 +589,10 @@ void TypeCheckVisitor::visit(ast::Expression* e) {
 }
 
 void TypeCheckVisitor::visit(ast::If* i) {
+    std::cout << "visited an if node.\n";
+    for (auto node : i->getChildren()) {
+        node->accept(*this);
+    }
 }
 
 void TypeCheckVisitor::visit(ast::Procedure* p) {
@@ -679,9 +695,17 @@ void TypeCheckVisitor::visit(ast::ArrayAccess* aa) {
 }
 
 void TypeCheckVisitor::visit(ast::While* w) {
+    std::cout << "visited a while node.\n";
+    for (auto node : w->getChildren()) {
+        node->accept(*this);
+    }
 }
 
 void TypeCheckVisitor::visit(ast::Write* w) {
+    std::cout << "visited a write node.\n";
+    for (auto node : w->getChildren()) {
+        node->accept(*this);
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
