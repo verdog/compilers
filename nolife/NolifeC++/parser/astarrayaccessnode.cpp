@@ -14,4 +14,11 @@ namespace ast {
         v.visit(this);
     }
 
+    Expression* ArrayAccess::getExpression() {
+        if (mChildren.size() >= 2) {
+            return dynamic_cast<Expression*>(mChildren[1]);
+        } else {
+            return nullptr;
+        }
+    }
 } // ast

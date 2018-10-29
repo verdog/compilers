@@ -9,6 +9,7 @@ namespace ast {
         public:
             ArrayAccess(Symbol* sym, Expression* e);
             virtual void accept(Visitor &v);
+            Expression* getExpression();
         private:
     };
 

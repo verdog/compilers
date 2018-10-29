@@ -101,6 +101,16 @@ void TypeCheckVisitor::pushNewSymbolTable() {
 }
 
 void TypeCheckVisitor::popSymbolTable() {
+    auto table = mSymbolTableStack.back();
+
+    for (auto pair : table) {
+        auto info = pair.second;
+
+        if (!info.isProcedure && info.referenceCount < 1) {
+            std::cout << "!!!  Error: symbol \"" << info.name << "\" declared but never referenced.\n";
+        }
+    }
+
     mSymbolTableStack.pop_back();
     std::cout << "Destroyed top symbol table. (number of tables remaining: " << mSymbolTableStack.size() << ")\n";
 }
@@ -354,12 +364,19 @@ void TypeCheckVisitor::visit(ast::Assignment* a) {
     right->accept(*this);
 
     std::string leftImage = a->getVariable()->getSymbol()->getImage();
-    auto leftType = lookupSymbol(leftImage).type;
 
-    auto combineType = mAssignmentConversionTable[TypePair(leftType, right->getType())];
+    if (symbolExists(leftImage)) {
+        auto leftType = lookupSymbol(leftImage).type;
+        lookupSymbol(leftImage).referenceCount++;
 
-    if (combineType == ast::Type::Types::Undefined) {
-        std::cout << "!!!  Error in assignment!\n";
+        auto combineType = mAssignmentConversionTable[TypePair(leftType, right->getType())];
+
+        if (combineType == ast::Type::Types::Undefined) {
+            std::cout << "!!!  Error: Invalid types used in an assignment.\n";
+        }
+    } else {
+        // left is undelcared
+        // caught when the node is visited
     }
 }
 
@@ -452,7 +469,7 @@ void TypeCheckVisitor::visit(ast::Expression* e) {
         e->setType(myType);
 
         if (myType == ast::Type::Types::Undefined) {
-            std::cout << "!!!  Error: Incompatable types in assignment.\n";
+            std::cout << "!!!  Error: Incompatable types in expression.\n";
         }
 
     } else {
@@ -468,10 +485,12 @@ void TypeCheckVisitor::visit(ast::Expression* e) {
 
             if (symbolExists(symImg)) {
                 ast::Type::Types t;
+                lookupSymbol(symImg).referenceCount++;
                 t = lookupSymbol(symImg).type;
                 e->setType(t);
             } else {
-                std::cout << "!!!  Error: symbol \"" << symImg << "\" was never declared.\n";
+                // variable never declared error
+                // will be caught when the variable node gets visited
                 e->setType(ast::Type::Types::Undefined);
             }
 
@@ -492,7 +511,8 @@ void TypeCheckVisitor::visit(ast::Expression* e) {
 
             } else {
                 // function not declared error
-                // will be caught when we visit the call node
+                // will be caught when the call node gets visited
+                e->setType(ast::Type::Types::Undefined);
             }
         }
 
@@ -551,10 +571,62 @@ void TypeCheckVisitor::visit(ast::Statement* s) {
 
 void TypeCheckVisitor::visit(ast::Variable* v) {
     std::cout << "visited a variable node.\n";
+
+    auto symbolStr = v->getSymbol()->getImage();
+
+    if (symbolExists(symbolStr)) {
+        // nothing else to check for
+    } else {
+        std::cout << "!!!  Error: Symbol \"" << symbolStr << "\" used but never declared.\n";
+    }
+
+    for (auto node : v->getChildren()) {
+        node->accept(*this);
+    }
 }
 
 void TypeCheckVisitor::visit(ast::ArrayAccess* aa) {
     std::cout << "visited an array access node.\n";
+
+    auto symbolStr = aa->getSymbol()->getImage();
+
+    if (symbolExists(symbolStr)) {
+        auto info = lookupSymbol(symbolStr);
+
+        // check if symbol is subscriptable in the first place
+        if (info.isArray == true) {
+            // check if index is within declared bounds, if we can
+            auto expr = aa->getExpression();
+            if (auto constant = dynamic_cast<ast::Constant*>(expr->getChildren()[0])) {
+                auto idx = constant->getImage();
+
+                try {
+                    // check if bounds is a string or a number
+                    int low = std::stoi(info.arrayLowBound);
+                    int high = std::stoi(info.arrayLowBound);
+                    int iidx = std::stoi(constant->getImage());
+
+                    if (iidx < low || iidx > high) {
+                        std::cout << "!!!  Error: Array index \"" << idx << "\" is out of range of array \"" << symbolStr << "\".\n";
+                    }
+                } catch (std::invalid_argument) {
+                    // it's characters
+                    if (idx < info.arrayLowBound || idx > info.arrayHighBound) {
+                        std::cout << "!!!  Error: Array index \"" << idx << "\" is out of range of array \"" << symbolStr << "\".\n";
+                    }
+                }
+            }
+        } else {
+            std::cout << "!!!  Error: Symbol \"" << symbolStr << "\" is not subscriptable.\n";
+        }
+
+    } else {
+        std::cout << "!!!  Error: Symbol \"" << symbolStr << "\" used but never declared.\n";
+    }
+
+    for (auto node : aa->getChildren()) {
+        node->accept(*this);
+    }
 }
 
 void TypeCheckVisitor::visit(ast::While* w) {
@@ -607,4 +679,6 @@ void SymbolInfo::dumpInfo() {
     if (isArray) {
         std::cout << "  Array: " << arrayLowBound << " .. " << arrayHighBound << std::endl;
     }
+    
+    std::cout << "  Referenced " << referenceCount << " times.\n";
 }

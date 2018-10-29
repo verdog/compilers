@@ -19,6 +19,7 @@ class SymbolInfo {
             arrayLowBound = "";
             arrayHighBound = "";
             parameters = nullptr;
+            referenceCount = 0;
         }
 
         SymbolInfo(std::string id) 
@@ -37,6 +38,7 @@ class SymbolInfo {
         std::string arrayHighBound;
         bool isReal;
         ast::Parameters* parameters;
+        int referenceCount;
 };
 
 class TypeCheckVisitor : public Visitor {
