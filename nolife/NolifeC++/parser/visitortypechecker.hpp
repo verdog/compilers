@@ -78,6 +78,8 @@ class TypeCheckVisitor : public Visitor {
         void pushNewSymbolTable();
         void popSymbolTable();
         void dumpTable();
+
+        void registerProcedures(ast::Declaration* d);
         
         ast::Type::Types getCombinedType(ast::Type::Types t1, ast::Type::Types t2, ast::Expression::Operation op);
     private:

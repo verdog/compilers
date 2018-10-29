@@ -52,6 +52,10 @@ namespace ast {
         v.visit(this);
     }
 
+    Procedure* Type::childAsProcedure() {
+        return dynamic_cast<Procedure*>(mChildren[0]);
+    }
+
     Integer::Integer() 
     : Type()
     {

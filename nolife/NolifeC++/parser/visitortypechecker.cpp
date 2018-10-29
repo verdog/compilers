@@ -219,12 +219,38 @@ void TypeCheckVisitor::visit(ast::Program* p) {
 void TypeCheckVisitor::visit(ast::Declaration* d) {
     std::cout << "visited a decl node.\n";
 
+    registerProcedures(d);
+
     auto children = d->getChildren();
 
     for (auto node : children) {
         if (node != nullptr) {
             // delegate the bookkeeping to the type nodes.
             node->accept(*this);
+        }
+    }
+}
+
+void TypeCheckVisitor::registerProcedures(ast::Declaration* d) {
+    for (auto child : d->getChildren()) {
+        auto type = dynamic_cast<ast::Type*>(child);
+        if (type != nullptr) {
+            if (auto proc = type->childAsProcedure()) {
+                // register procedure
+                std::cout << "  Detected procedure \"" << proc->getSymbol()->getImage() << "\".\n";
+
+                if (mSymbolTableStack.back().count(proc->getSymbol()->getImage()) == 0) {
+                    auto symInfo = SymbolInfo(proc->getSymbol()->getImage());
+                    symInfo.type = type->getType();
+                    symInfo.isProcedure = true;
+                    symInfo.parameters = proc->getParameters();
+
+                    writeSymbol(proc->getSymbol()->getImage(), symInfo);
+                } else {
+                    // variable already declared in this scope
+                    std::cout << "!!!  Error: symbol \"" << proc->getSymbol()->getImage() << "\" was already declared in this scope.\n";
+                }
+            }
         }
     }
 }
@@ -308,19 +334,7 @@ void TypeCheckVisitor::visit_type(ast::Type* t) {
         }
 
     } else if (auto proc = dynamic_cast<ast::Procedure*>(t->getChild())) {
-        std::cout << "  Detected a procedure.\n";
-
-        if (mSymbolTableStack.back().count(proc->getSymbol()->getImage()) == 0) {
-            auto symInfo = SymbolInfo(proc->getSymbol()->getImage());
-            symInfo.type = t->getType();
-            symInfo.isProcedure = true;
-            symInfo.parameters = proc->getParameters();
-
-            writeSymbol(proc->getSymbol()->getImage(), symInfo);
-        } else {
-            // variable already declared in this scope
-            std::cout << "!!!  Error: symbol \"" << sym->getImage() << "\" was already declared in this scope.\n";
-        }
+        // procedures should have already been visited
     }
 
     t->getChild()->accept(*this);

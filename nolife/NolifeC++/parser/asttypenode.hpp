@@ -28,6 +28,7 @@ namespace ast {
             void setFunc(Procedure* p);
             void setArray(Array* a);
             Base* getChild();
+            Procedure* childAsProcedure();
 
             virtual void accept(Visitor &v);
         protected:
