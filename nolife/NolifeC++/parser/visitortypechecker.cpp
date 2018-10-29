@@ -563,6 +563,9 @@ void TypeCheckVisitor::visit(ast::Procedure* p) {
 }
 
 void TypeCheckVisitor::visit(ast::Return* r) {
+    std::cout << "vistied return node.\n";
+
+    r->getChildren()[0]->accept(*this);
 }
 
 void TypeCheckVisitor::visit(ast::Statement* s) {

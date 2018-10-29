@@ -1,7 +1,7 @@
 libparser-g.a(visitorprinter.o): visitorprinter.cpp visitorprinter.hpp \
  visitor.hpp astnode.hpp astarrayaccessnode.hpp astvariablenode.hpp \
  astsymnode.hpp astexpressionnode.hpp astcallnode.hpp aststmtnode.hpp \
- astconstantnode.hpp astarraynode.hpp asttypenode.hpp astassignnode.hpp \
+ astconstantnode.hpp asttypenode.hpp astarraynode.hpp astassignnode.hpp \
  astbinarynode.hpp astcaselabelsnode.hpp astcasenode.hpp \
  astclausenode.hpp astcompoundstmtnode.hpp astdeclnode.hpp astifnode.hpp \
  astparamnode.hpp astprocnode.hpp astprognode.hpp astreadnode.hpp \
