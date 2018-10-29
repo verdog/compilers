@@ -869,6 +869,7 @@ colon           : O_COLON
 int yyerror(const char *s)
 {
   std::cout << "Parse error: " << s << "\n";
+  std::exit(-1);
 }
 
 /******************END OF C ROUTINES**********************/

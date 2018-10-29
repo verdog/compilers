@@ -226,6 +226,20 @@ void TypeCheckVisitor::visit(ast::CompoundStatement* cs) {
 
     for (auto node : children) {
         if (node != nullptr) {
+            // check for a function call used as a statement
+            if (auto func = dynamic_cast<ast::Call*>(node)) {
+                if (symbolExists(func->getSymbol()->getImage())) {
+                    auto info = lookupSymbol(func->getSymbol()->getImage());
+                    if (info.type != ast::Type::Types::Void) {
+                        // since it returns something, it's a function.
+                        std::cout << "!!!  Error: symbol \"" << func->getSymbol()->getImage() << "\" is a function, but was used as a procedure.\n";
+                    }
+                } else {
+                    // symbol does not exist.
+                    // this gets caught lower in the tree.
+                }
+            }
+
             // visit each statement
             node->accept(*this);
         }
@@ -257,31 +271,46 @@ void TypeCheckVisitor::visit_type(ast::Type* t) {
     if (auto sym = dynamic_cast<ast::Symbol*>(t->getChild())) {
         std::cout << "  Detected a symbol.\n";
 
-        auto symInfo = SymbolInfo(sym->getImage());
-        symInfo.type = t->getType();
+        if (mSymbolTableStack.back().count(sym->getImage()) == 0) {
+            auto symInfo = SymbolInfo(sym->getImage());
+            symInfo.type = t->getType();
 
-        writeSymbol(sym->getImage(), symInfo);
+            writeSymbol(sym->getImage(), symInfo);
+        } else {
+            // variable already declared in this scope
+            std::cout << "!!!  Error: symbol \"" << sym->getImage() << "\" was already declared in this scope.\n";
+        }
 
     } else if (auto arr = dynamic_cast<ast::Array*>(t->getChild())) {
         std::cout << "  Detected an array.\n";
 
-        auto symInfo = SymbolInfo(arr->getSymbol()->getImage());
-        symInfo.type = t->getType();
-        symInfo.isArray = true;
-        symInfo.arrayLowBound = arr->getLowBound()->getImage();
-        symInfo.arrayHighBound = arr->getHighBound()->getImage();
+        if (mSymbolTableStack.back().count(arr->getSymbol()->getImage()) == 0) {
+            auto symInfo = SymbolInfo(arr->getSymbol()->getImage());
+            symInfo.type = t->getType();
+            symInfo.isArray = true;
+            symInfo.arrayLowBound = arr->getLowBound()->getImage();
+            symInfo.arrayHighBound = arr->getHighBound()->getImage();
 
-        writeSymbol(arr->getSymbol()->getImage(), symInfo);
+            writeSymbol(arr->getSymbol()->getImage(), symInfo);
+        } else {
+            // variable already declared in this scope
+            std::cout << "!!!  Error: symbol \"" << sym->getImage() << "\" was already declared in this scope.\n";
+        }
 
     } else if (auto proc = dynamic_cast<ast::Procedure*>(t->getChild())) {
         std::cout << "  Detected a procedure.\n";
 
-        auto symInfo = SymbolInfo(proc->getSymbol()->getImage());
-        symInfo.type = t->getType();
-        symInfo.isProcedure = true;
+        if (mSymbolTableStack.back().count(proc->getSymbol()->getImage()) == 0) {
+            auto symInfo = SymbolInfo(proc->getSymbol()->getImage());
+            symInfo.type = t->getType();
+            symInfo.isProcedure = true;
+            symInfo.parameters = proc->getParameters();
 
-        writeSymbol(proc->getSymbol()->getImage(), symInfo);
-
+            writeSymbol(proc->getSymbol()->getImage(), symInfo);
+        } else {
+            // variable already declared in this scope
+            std::cout << "!!!  Error: symbol \"" << sym->getImage() << "\" was already declared in this scope.\n";
+        }
     }
 
     t->getChild()->accept(*this);
@@ -336,6 +365,55 @@ void TypeCheckVisitor::visit(ast::Assignment* a) {
 
 void TypeCheckVisitor::visit(ast::Call* c) {
     std::cout << "visited call node\n";
+
+    auto funcName = c->getSymbol()->getImage();
+    int paramsNumber = c->getChildren().size() - 1; // subtract the symbol node
+
+    // visit children to derive types
+
+    for (auto node : c->getChildren()) {
+        node->accept(*this);
+    }
+
+    if (symbolExists(funcName)) {
+        auto info = lookupSymbol(funcName);
+
+        if (info.isProcedure) {
+            // check if number of arguments/types are correct
+            auto params = info.parameters;
+
+            if (params != nullptr) {
+                if (params->getChildren().size() != paramsNumber) {
+                    std::cout << "!!!  Incorrect number of arguments when calling " << funcName << "!\n";
+                } else {
+                    // number of arguments is correct. check their type.
+                    bool correctTypes = true;
+                    for (int i = 0; i < params->getChildren().size(); i++) {
+                        auto properType = dynamic_cast<ast::Type*>(params->getChildren()[i])->getType();
+                        auto compareType = dynamic_cast<ast::Expression*>(c->getChildren()[i+1])->getType();
+
+                        if (properType != compareType) {
+                            correctTypes = false;
+                            break;
+                        }
+                    }
+
+                    if (!correctTypes) {
+                        std::cout << "!!!  Incorrect type of arguments when calling " << funcName << "!\n";
+                    }
+                }
+            } else {
+                // params = nullptr. this means the procedure accepts no arguments.
+                if (paramsNumber != 0) {
+                    std::cout << "!!!  Incorrect type of arguments when calling " << funcName << "!\n";
+                }
+            }
+        } else {
+            std::cout << "!!!  Symbol \"" << funcName << "\" is not callable!\n";
+        }
+    } else {
+        std::cout << "!!!  Tried to call a function/procedure named \"" << funcName << "\", which was never declared.\n";
+    }    
 }
 
 void TypeCheckVisitor::visit(ast::CaseLabels* cl) {
@@ -374,7 +452,7 @@ void TypeCheckVisitor::visit(ast::Expression* e) {
         e->setType(myType);
 
         if (myType == ast::Type::Types::Undefined) {
-            std::cout << "!!!  Type error!\n";
+            std::cout << "!!!  Error: Incompatable types in assignment.\n";
         }
 
     } else {
@@ -383,6 +461,7 @@ void TypeCheckVisitor::visit(ast::Expression* e) {
         if (auto constant = dynamic_cast<ast::Constant*>(e->getChildren()[0])) {
             std::cout << "  Constant detected.\n";
             e->setType(constant->getType());
+            std::cout << "  Set type as: " << ast::typeToString(e->getType()) << "\n";
         } else if (auto var = dynamic_cast<ast::Variable*>(e->getChildren()[0])) {
             std::cout << "  Variable detected.\n";
             std::string symImg = var->getSymbol()->getImage();
@@ -392,7 +471,8 @@ void TypeCheckVisitor::visit(ast::Expression* e) {
                 t = lookupSymbol(symImg).type;
                 e->setType(t);
             } else {
-                // variable not declared error
+                std::cout << "!!!  Error: symbol \"" << symImg << "\" was never declared.\n";
+                e->setType(ast::Type::Types::Undefined);
             }
 
         } else if (auto call = dynamic_cast<ast::Call*>(e->getChildren()[0])) {
@@ -404,13 +484,15 @@ void TypeCheckVisitor::visit(ast::Expression* e) {
                 t = lookupSymbol(callImg).type;
 
                 if (t == ast::Type::Types::Void) {
-                    // procedure call in an expression error
+                    std::cout << "!!!  Error: symbol \"" << call->getSymbol()->getImage() << "\" is a proceedure, but was used as a function.\n";
+                    e->setType(ast::Type::Types::Undefined);
                 } else {
                     e->setType(t);
                 }
 
             } else {
                 // function not declared error
+                // will be caught when we visit the call node
             }
         }
 
@@ -504,7 +586,22 @@ void SymbolInfo::dumpInfo() {
     ;
 
     if (isProcedure) {
-        std::cout << "  Procedure" << std::endl;
+        std::string paramString = "(";
+
+        if (parameters != nullptr) {
+            for (int i = 0; i < parameters->getChildren().size(); i++) {
+                auto type = dynamic_cast<ast::Type*>(parameters->getChildren()[i]);
+                if (i == 0) {
+                    paramString += ast::typeToString(type->getType());
+                } else {
+                    paramString += ", " + ast::typeToString(type->getType());
+                }
+            }
+        }
+
+        paramString += ")";
+
+        std::cout << "  Procedure " << paramString << std::endl;
     }
 
     if (isArray) {

@@ -6,8 +6,12 @@ f :FLOAT;
 c :CHARACTER;
 l: ARRAY [1 .. 8] OF INTEGER;
 
-FUNCTION b (x: INTEGER): INTEGER;
+FUNCTION b (x, y: INTEGER; f: FLOAT): INTEGER;
+  VAR
+  f: CHARACTER;
+
   BEGIN
+    f := '2';
     RETURN 4 * x
   END;
 
@@ -17,15 +21,6 @@ PROCEDURE p;
   END;
 
 BEGIN
-  {*
-  i := 6 + b(4);
-  f := 4.5;
-  c := 'j';
-  *}
-  
-  c := 2.0 + ('e' + 'c');
-
-  c := b(2);
-
-  p()
+  f := '2';
+  f := 2
 END

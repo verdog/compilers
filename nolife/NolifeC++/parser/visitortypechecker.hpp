@@ -18,14 +18,13 @@ class SymbolInfo {
             isProcedure = false;
             arrayLowBound = "";
             arrayHighBound = "";
-            isReal = false;
+            parameters = nullptr;
         }
 
         SymbolInfo(std::string id) 
         : SymbolInfo()
         {
             name = id;
-            isReal = true;
         }
 
         void dumpInfo();
@@ -37,6 +36,7 @@ class SymbolInfo {
         std::string arrayLowBound;
         std::string arrayHighBound;
         bool isReal;
+        ast::Parameters* parameters;
 };
 
 class TypeCheckVisitor : public Visitor {
