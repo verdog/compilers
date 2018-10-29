@@ -10,11 +10,18 @@ cl: ARRAY['a' .. 'c'] OF INTEGER;
 PROCEDURE b (f: ARRAY[1..10] OF INTEGER);
 
   BEGIN
-    WRITE (f[2])
+    WRITE('an array.')
+  END;
+
+PROCEDURE c (g: INTEGER);
+
+  BEGIN
+    WRITE('not an array.')
   END;
 
 BEGIN
-  cl['b'] := 2;
-  cl['d'] := 2;
-  cl['*'] := 2
+  b(l); {ok}
+  c(l); {not ok}
+  b(i); {not ok}
+  c(i)  {ok}
 END

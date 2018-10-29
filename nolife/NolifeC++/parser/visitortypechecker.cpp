@@ -429,6 +429,7 @@ void TypeCheckVisitor::visit(ast::Call* c) {
                     // number of arguments is correct. check their type.
                     bool typeError = false;
                     bool arrayError = false;
+                    bool paramIsArray;
                     ast::Type::Types properType;
                     ast::Type::Types compareType; 
                     ast::Type* paramNode;
@@ -437,7 +438,7 @@ void TypeCheckVisitor::visit(ast::Call* c) {
 
                     for (i = 0; i < params->getChildren().size(); i++) {
                         paramNode = dynamic_cast<ast::Type*>(params->getChildren()[i]);
-                        bool paramIsArray = (dynamic_cast<ast::Array*>(paramNode->getChildren()[0]));
+                        paramIsArray = (dynamic_cast<ast::Array*>(paramNode->getChildren()[0]));
                         properType = paramNode->getType();
                         compareType = dynamic_cast<ast::Expression*>(c->getChildren()[i+1])->getType();
                         compareVariable = dynamic_cast<ast::Expression*>(c->getChildren()[i+1])->childAsVariable();
@@ -462,7 +463,15 @@ void TypeCheckVisitor::visit(ast::Call* c) {
                             << " (" << ast::typeToString(properType) << " != " << ast::typeToString(compareType) 
                             << ", argument " << i+1 << ")!\n";
                     } else if (arrayError) {
-                        std::cout << "!!!  Error: invalid use of an array\n";
+                        if (paramIsArray) {
+                            std::cout << "!!!  Error: invalid use of an array: Parameter number " << i 
+                                << " in function/procedure " << c->getSymbol()->getImage() 
+                                << " is an array, but was passed a non-array type.\n";
+                        } else {
+                            std::cout << "!!!  Error: invalid use of an array: Parameter number " << i 
+                                << " in function/procedure " << c->getSymbol()->getImage() 
+                                << " is not an array, but was passed an array type.\n";
+                        }
                     }
                 }
             } else {
