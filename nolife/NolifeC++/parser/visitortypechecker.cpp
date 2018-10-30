@@ -28,6 +28,9 @@
 #include "astwritenode.hpp"
 
 TypeCheckVisitor::TypeCheckVisitor() {
+    // special use case variables
+    mCastType = ast::Type::Types::Undefined;
+
     // flags
     mFlagCanUseArrayUnsubscripted = false;
 
@@ -460,7 +463,8 @@ void TypeCheckVisitor::visit(ast::Call* c) {
                         compareType = dynamic_cast<ast::Expression*>(c->getChildren()[i+1])->getType();
                         compareVariable = dynamic_cast<ast::Expression*>(c->getChildren()[i+1])->childAsVariable();
 
-                        if (properType != compareType) {
+                        using TypePair = std::pair<ast::Type::Types, ast::Type::Types>;
+                        if (mAssignmentConversionTable[TypePair(properType, compareType)] == ast::Type::Types::Undefined) {
                             typeError = true;
                             break;
                         } else if (compareVariable != nullptr) {
@@ -509,14 +513,29 @@ void TypeCheckVisitor::visit(ast::CaseLabels* cl) {
     // std::cout << "visited case labels node.\n";
     for (auto node : cl->getChildren()) {
         node->accept(*this);
+
+        auto constant = dynamic_cast<ast::Constant*>(node);
+        if (constant->getType() != mCastType) {
+            std::cout << "!!!  Error: Constant \"" << constant->getImage() 
+            << "\" is incorrect type in regards to what is being evaluated by the case statement.\n";
+        }
     }
 }
 
 void TypeCheckVisitor::visit(ast::Case* c) {
     // std::cout << "visited a case node.\n";
-    for (auto node : c->getChildren()) {
+
+    auto expr = dynamic_cast<ast::Expression*>(c->getChildren()[0]);
+    // visit to derive type
+    expr->accept(*this);
+    mCastType = expr->getType();
+
+    for (int i = 1; i < c->getChildren().size(); i++) {
+        auto node = c->getChildren()[i];
         node->accept(*this);
     }
+
+    mCastType = ast::Type::Types::Undefined;
 }
 
 void TypeCheckVisitor::visit(ast::Clause* c) {
@@ -543,9 +562,10 @@ void TypeCheckVisitor::visit(ast::Expression* e) {
         // visit to determine type
         childExp->accept(*this);
 
-        if (childExp->getType() == ast::Type::Types::Integer
-         || childExp->getType() == ast::Type::Types::Undefined) {
+        if (childExp->getType() == ast::Type::Types::Integer) {
             e->setType(ast::Type::Types::Integer);
+        } else if (childExp->getType() == ast::Type::Types::Undefined) {
+            e->setType(ast::Type::Types::Undefined);
         } else {
             e->setType(ast::Type::Types::Undefined);
             std::cout << "!!!  Error: NOT operation only allowed in integers.\n";

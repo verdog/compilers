@@ -96,6 +96,9 @@ class TypeCheckVisitor : public Visitor {
         SymbolInfo& lookupSymbol(std::string key);
         bool symbolExists(std::string key);
 
+        // special usage cases
+        ast::Type::Types mCastType;
+
         // flags
         bool mFlagCanUseArrayUnsubscripted;
 };
