@@ -537,6 +537,20 @@ void TypeCheckVisitor::visit(ast::Expression* e) {
 
     if (e->getOperation() == ast::Expression::Operation::Not) {
         // special behavior for not
+        // not is only valid on integers and produces an integer
+        auto childExp = dynamic_cast<ast::Expression*>(e->getChildren()[0]);
+
+        // visit to determine type
+        childExp->accept(*this);
+
+        if (childExp->getType() == ast::Type::Types::Integer
+         || childExp->getType() == ast::Type::Types::Undefined) {
+            e->setType(ast::Type::Types::Integer);
+        } else {
+            e->setType(ast::Type::Types::Undefined);
+            std::cout << "!!!  Error: NOT operation only allowed in integers.\n";
+        }
+
     } else if (e->getOperation() != ast::Expression::Operation::Noop) {
         // the expression node is some kind of binary expression.
         
