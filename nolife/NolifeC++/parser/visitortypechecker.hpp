@@ -95,4 +95,7 @@ class TypeCheckVisitor : public Visitor {
         void writeSymbol(std::string key, SymbolInfo value);
         SymbolInfo& lookupSymbol(std::string key);
         bool symbolExists(std::string key);
+
+        // flags
+        bool mFlagCanUseArrayUnsubscripted;
 };

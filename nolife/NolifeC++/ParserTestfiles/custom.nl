@@ -1,7 +1,7 @@
 PROGRAM func;
 
 VAR 
-1 :INTEGER;
+j :INTEGER;
 i :INTEGER;
 f :FLOAT;
 c :CHARACTER;
@@ -24,5 +24,7 @@ BEGIN
   b(l); {ok}
   c(l); {not ok}
   b(i); {not ok}
-  c(i)  {ok}
+  c(i); {ok}
+
+  i := l
 END

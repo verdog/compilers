@@ -28,6 +28,9 @@
 #include "astwritenode.hpp"
 
 TypeCheckVisitor::TypeCheckVisitor() {
+    // flags
+    mFlagCanUseArrayUnsubscripted = false;
+
     using TypePair = std::pair<ast::Type::Types, ast::Type::Types>;
 
     constexpr ast::Type::Types INT = ast::Type::Types::Integer;
@@ -287,12 +290,14 @@ void TypeCheckVisitor::visit(ast::Parameters* p) {
 
     auto children = p->getChildren();
 
+    mFlagCanUseArrayUnsubscripted = true;
     for (auto node : children) {
         if (node != nullptr) {
             // delegate the bookkeeping to the type nodes.
             node->accept(*this);
         }
     }
+    mFlagCanUseArrayUnsubscripted = false;
 }
 
 void TypeCheckVisitor::visit(ast::Symbol* s) {
@@ -302,7 +307,11 @@ void TypeCheckVisitor::visit(ast::Symbol* s) {
     // if this symbol is an array, this is an error
 
     if (symbolExists(s->getImage())) {
-        // nothing needed
+        auto info = lookupSymbol(s->getImage());
+
+        if (info.isArray && !mFlagCanUseArrayUnsubscripted) {
+            std::cout << "!!!  Error: Illegal use of unsubscripted array type " << s->getImage() << ".\n";
+        }
     } else {
         std::cout << "!!!  Error: Symbol \"" << s->getImage() << "\" used but never declared.\n";
     }
@@ -337,6 +346,8 @@ void TypeCheckVisitor::visit_type(ast::Type* t) {
             symInfo.arrayHighBound = arr->getHighBound()->getImage();
 
             writeSymbol(arr->getSymbol()->getImage(), symInfo);
+
+            mFlagCanUseArrayUnsubscripted = true;
         } else {
             // variable already declared in this scope
             std::cout << "!!!  Error: symbol \"" << sym->getImage() << "\" was already declared in this scope.\n";
@@ -347,6 +358,7 @@ void TypeCheckVisitor::visit_type(ast::Type* t) {
     }
 
     t->getChild()->accept(*this);
+    mFlagCanUseArrayUnsubscripted = false;
 }
 
 void TypeCheckVisitor::visit(ast::Integer* i) {
@@ -414,9 +426,11 @@ void TypeCheckVisitor::visit(ast::Call* c) {
 
     // visit children to derive types
 
+    mFlagCanUseArrayUnsubscripted = true;
     for (auto node : c->getChildren()) {
         node->accept(*this);
     }
+    mFlagCanUseArrayUnsubscripted = false;
 
     if (symbolExists(funcName)) {
         auto info = lookupSymbol(funcName);
@@ -692,9 +706,14 @@ void TypeCheckVisitor::visit(ast::ArrayAccess* aa) {
         // symbol does not exist, this is caught when we visit the symbol node
     }
 
+    // set array access flag
+    mFlagCanUseArrayUnsubscripted = true;
+
     for (auto node : aa->getChildren()) {
         node->accept(*this);
     }
+
+    mFlagCanUseArrayUnsubscripted = false;
 }
 
 void TypeCheckVisitor::visit(ast::While* w) {
