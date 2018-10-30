@@ -101,4 +101,5 @@ class TypeCheckVisitor : public Visitor {
 
         // flags
         bool mFlagCanUseArrayUnsubscripted;
+        bool mFlagFoundReturnStatement;
 };

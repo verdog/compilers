@@ -33,6 +33,7 @@ TypeCheckVisitor::TypeCheckVisitor() {
 
     // flags
     mFlagCanUseArrayUnsubscripted = false;
+    mFlagFoundReturnStatement = false;
 
     using TypePair = std::pair<ast::Type::Types, ast::Type::Types>;
 
@@ -254,7 +255,7 @@ void TypeCheckVisitor::registerProcedures(ast::Declaration* d) {
                     writeSymbol(proc->getSymbol()->getImage(), symInfo);
                 } else {
                     // variable already declared in this scope
-                    std::cout << "!!!  Error: symbol \"" << proc->getSymbol()->getImage() << "\" was already declared in this scope.\n";
+                    std::cout << "!!!  Error: Redeclaration of symbol \"" << proc->getSymbol()->getImage() << "\".\n";
                 }
             }
         }
@@ -335,7 +336,7 @@ void TypeCheckVisitor::visit_type(ast::Type* t) {
             writeSymbol(sym->getImage(), symInfo);
         } else {
             // variable already declared in this scope
-            std::cout << "!!!  Error: symbol \"" << sym->getImage() << "\" was already declared in this scope.\n";
+            std::cout << "!!!  Error: Redeclaration of symbol \"" << sym->getImage() << "\".\n";
         }
 
     } else if (auto arr = dynamic_cast<ast::Array*>(t->getChild())) {
@@ -353,7 +354,7 @@ void TypeCheckVisitor::visit_type(ast::Type* t) {
             mFlagCanUseArrayUnsubscripted = true;
         } else {
             // variable already declared in this scope
-            std::cout << "!!!  Error: symbol \"" << sym->getImage() << "\" was already declared in this scope.\n";
+            std::cout << "!!!  Error: Redeclaration of symbol \"" << arr->getSymbol()->getImage() << "\".\n";
         }
 
     } else if (auto proc = dynamic_cast<ast::Procedure*>(t->getChild())) {
@@ -413,7 +414,7 @@ void TypeCheckVisitor::visit(ast::Assignment* a) {
         auto combineType = mAssignmentConversionTable[TypePair(leftType, right->getType())];
 
         if (combineType == ast::Type::Types::Undefined) {
-            std::cout << "!!!  Error: Invalid types used in an assignment.\n";
+            std::cout << "!!!  Error: Invalid types used in an assignment " << leftImage << " := " << "(...)\n";
         }
     } else {
         // left is undeclared
@@ -642,7 +643,9 @@ void TypeCheckVisitor::visit(ast::Expression* e) {
 void TypeCheckVisitor::visit(ast::If* i) {
     // std::cout << "visited an if node.\n";
     for (auto node : i->getChildren()) {
-        node->accept(*this);
+        if (node != nullptr) {
+            node->accept(*this);
+        }
     }
 }
 
@@ -669,12 +672,22 @@ void TypeCheckVisitor::visit(ast::Procedure* p) {
         // std::cout << "procedure \"" << p->getSymbol()->getImage() << "\" has no decls.\n";
     }
 
+    mFlagFoundReturnStatement = false;
     // process compound statement
     if (p->getCompoundStatement()) { // exists
         p->getCompoundStatement()->accept(*this);
     } else {
         // std::cout << "procedure \"" << p->getSymbol()->getImage() << "\" has no compound statement.\n";
     }
+
+    auto funcInfo = lookupSymbol(p->getSymbol()->getImage());
+    if (funcInfo.type == ast::Type::Types::Void && mFlagFoundReturnStatement == true) {
+        std::cout << "!!!  Error: return statement in procedure " << funcInfo.name << ".\n";
+    } else if (funcInfo.type != ast::Type::Types::Void && mFlagFoundReturnStatement == false) {
+        std::cout << "!!!  Error: no return statement in function " << funcInfo.name << ".\n";
+    }
+
+    mFlagFoundReturnStatement = false;
 
     // dump tables
     // std::cout << "Tables after processing procedure " << p->getSymbol()->getImage() << ":\n";
@@ -687,6 +700,7 @@ void TypeCheckVisitor::visit(ast::Procedure* p) {
 void TypeCheckVisitor::visit(ast::Return* r) {
     // std::cout << "vistied return node.\n";
 
+    mFlagFoundReturnStatement = true;
     r->getChildren()[0]->accept(*this);
 }
 
