@@ -99,6 +99,7 @@ class TypeCheckVisitor : public Visitor {
 
         // special usage cases
         ast::Type::Types mCastType;
+        ast::Type::Types mReturnedType;
 
         // flags
         bool mFlagCanUseArrayUnsubscripted;

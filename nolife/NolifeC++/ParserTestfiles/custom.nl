@@ -20,11 +20,18 @@ PROCEDURE c (g: INTEGER);
     WRITE('not an array.')
   END;
 
+FUNCTION ff: INTEGER;
+BEGIN
+  RETURN 1.1
+END;
+
 BEGIN
   b(l); {ok}
   c(l); {not ok}
   b(i); {not ok}
   c(i); {ok}
 
-  i := l
+  i := l;
+
+  RETURN 1
 END

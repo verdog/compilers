@@ -30,6 +30,7 @@
 TypeCheckVisitor::TypeCheckVisitor() {
     // special use case variables
     mCastType = ast::Type::Types::Undefined;
+    mReturnedType = ast::Type::Types::Undefined;
 
     // flags
     mFlagCanUseArrayUnsubscripted = false;
@@ -208,12 +209,20 @@ void TypeCheckVisitor::visit(ast::Program* p) {
         // std::cout << programName << " has no decls.\n";
     }
 
+    mFlagFoundReturnStatement = false;
+
     // process compound statement
     if (p->getCompoundStatement()) { // exists
         p->getCompoundStatement()->accept(*this);
     } else {
         // std::cout << programName << " has no compound statement.\n";
     }
+
+    if (mFlagFoundReturnStatement == true) {
+        std::cout << "!!!  Error: return statement in main program.\n";
+    }
+
+    mFlagFoundReturnStatement = false;
 
     // dump tables
     // std::cout << "Tables after processing the entire program:\n";
@@ -464,8 +473,7 @@ void TypeCheckVisitor::visit(ast::Call* c) {
                         compareType = dynamic_cast<ast::Expression*>(c->getChildren()[i+1])->getType();
                         compareVariable = dynamic_cast<ast::Expression*>(c->getChildren()[i+1])->childAsVariable();
 
-                        using TypePair = std::pair<ast::Type::Types, ast::Type::Types>;
-                        if (mAssignmentConversionTable[TypePair(properType, compareType)] == ast::Type::Types::Undefined) {
+                        if (properType != compareType) {
                             typeError = true;
                             break;
                         } else if (compareVariable != nullptr) {
@@ -673,6 +681,7 @@ void TypeCheckVisitor::visit(ast::Procedure* p) {
     }
 
     mFlagFoundReturnStatement = false;
+    mReturnedType = ast::Type::Types::Void;
     // process compound statement
     if (p->getCompoundStatement()) { // exists
         p->getCompoundStatement()->accept(*this);
@@ -687,7 +696,12 @@ void TypeCheckVisitor::visit(ast::Procedure* p) {
         std::cout << "!!!  Error: no return statement in function " << funcInfo.name << ".\n";
     }
 
+    if (funcInfo.type != mReturnedType) {
+        std::cout << "!!!  Error: function " << funcInfo.name << " returns incorrect type.\n";
+    }
+
     mFlagFoundReturnStatement = false;
+    mReturnedType = ast::Type::Types::Void;
 
     // dump tables
     // std::cout << "Tables after processing procedure " << p->getSymbol()->getImage() << ":\n";
@@ -702,6 +716,9 @@ void TypeCheckVisitor::visit(ast::Return* r) {
 
     mFlagFoundReturnStatement = true;
     r->getChildren()[0]->accept(*this);
+
+    auto expChild = dynamic_cast<ast::Expression*>(r->getChildren()[0]);
+    mReturnedType = expChild->getType();
 }
 
 void TypeCheckVisitor::visit(ast::Statement* s) {
