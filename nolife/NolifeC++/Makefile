@@ -32,7 +32,7 @@ clean:
 		echo "Cleaning directory $$dir"; \
 		$(MAKE) -C $$dir clean; \
 	done
-	$(RM) $(TARGET) $(TARGET).o
+	$(RM) $(TARGET) $(TARGET).o .d_*
 cpp.o:
 	echo "Compiling" $<
 	$(CXX) -c $(CXXFLAGS) $<

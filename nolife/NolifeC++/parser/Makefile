@@ -40,7 +40,7 @@ $(ARCHIVE): $(ARCHIVE_OBJS)
 .PHONY: clean
 
 clean:
-	$(RM) $(ARCHIVE)
+	$(RM) $(ARCHIVE) .d_*
 
 .cpp.o:
 	echo "Compiling" $<
