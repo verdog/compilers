@@ -1,4 +1,0 @@
-libparser-g.a(astexpressionnode.o): astexpressionnode.cpp \
- astexpressionnode.hpp astnode.hpp astcallnode.hpp aststmtnode.hpp \
- astsymnode.hpp astvariablenode.hpp astconstantnode.hpp asttypenode.hpp \
- visitor.hpp

@@ -1,3 +1,0 @@
-libparser-g.a(astarraynode.o): astarraynode.cpp astarraynode.hpp \
- asttypenode.hpp astnode.hpp astconstantnode.hpp astsymnode.hpp \
- visitor.hpp
