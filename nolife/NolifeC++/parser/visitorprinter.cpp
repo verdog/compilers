@@ -155,3 +155,7 @@ void PrintVisitor::visit(ast::While* w) {
 void PrintVisitor::visit(ast::Write* w) {
     visit_universal(w);
 }
+
+void PrintVisitor::visit(ast::Read* r) {
+    visit_universal(r);
+}

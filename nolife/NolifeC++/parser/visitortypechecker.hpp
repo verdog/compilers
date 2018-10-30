@@ -71,6 +71,7 @@ class TypeCheckVisitor : public Visitor {
         void visit(ast::Statement* s);
         void visit(ast::Variable* v);
         void visit(ast::While* w);
+        void visit(ast::Read* r);
         void visit(ast::Write* w);
 
         void visit_type(ast::Type* t);

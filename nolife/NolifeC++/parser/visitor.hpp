@@ -32,6 +32,7 @@ namespace ast {
     class Variable;
     class While;
     class Write;
+    class Read;
 }
 
 class Visitor {
@@ -63,5 +64,6 @@ class Visitor {
         virtual void visit(ast::Variable* v) {std::cout << "this is in the visitor base class.\n"; };
         virtual void visit(ast::While* w) {std::cout << "this is in the visitor base class.\n"; };
         virtual void visit(ast::Write* w) {std::cout << "this is in the visitor base class.\n"; };
+        virtual void visit(ast::Read* r) {std::cout << "this is in the visitor base class.\n"; };
     private: 
 };

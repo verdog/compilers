@@ -1,6 +1,6 @@
 
 
-PROGRAM foo;
+PROGRAM fo0o;
   VAR a:INTEGER;
 
 PROCEDURE decls(a:INTEGER);

@@ -622,7 +622,7 @@ void TypeCheckVisitor::visit(ast::Expression* e) {
                 t = lookupSymbol(callImg).type;
 
                 if (t == ast::Type::Types::Void) {
-                    std::cout << "!!!  Error: symbol \"" << call->getSymbol()->getImage() << "\" is a proceedure, but was used as a function.\n";
+                    std::cout << "!!!  Error: symbol \"" << call->getSymbol()->getImage() << "\" is a procedure, but was used as a function.\n";
                     e->setType(ast::Type::Types::Undefined);
                 } else {
                     e->setType(t);
@@ -722,7 +722,7 @@ void TypeCheckVisitor::visit(ast::ArrayAccess* aa) {
     auto symbolStr = aa->getSymbol()->getImage();
 
     if (symbolExists(symbolStr)) {
-        auto info = lookupSymbol(symbolStr);
+        auto& info = lookupSymbol(symbolStr);
 
         // check if symbol is subscriptable in the first place
         if (info.isArray == true) {
@@ -746,6 +746,9 @@ void TypeCheckVisitor::visit(ast::ArrayAccess* aa) {
                         std::cout << "!!!  Error: Array index \"" << idx << "\" is out of range of array \"" << symbolStr << "\".\n";
                     }
                 }
+
+                // no errors. increase ref count
+                info.referenceCount++;
             }
         } else {
             std::cout << "!!!  Error: Symbol \"" << symbolStr << "\" is not subscriptable.\n";
@@ -767,6 +770,12 @@ void TypeCheckVisitor::visit(ast::ArrayAccess* aa) {
 void TypeCheckVisitor::visit(ast::While* w) {
     // std::cout << "visited a while node.\n";
     for (auto node : w->getChildren()) {
+        node->accept(*this);
+    }
+}
+
+void TypeCheckVisitor::visit(ast::Read* r) {
+    for (auto node : r->getChildren()) {
         node->accept(*this);
     }
 }

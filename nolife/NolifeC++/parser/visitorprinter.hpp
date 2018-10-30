@@ -35,6 +35,7 @@ class PrintVisitor : public Visitor {
         void visit(ast::Variable* v);
         void visit(ast::While* w);
         void visit(ast::Write* w);
+        void visit(ast::Read* r);
     private:
         void visit_universal(ast::Base* b);
 
