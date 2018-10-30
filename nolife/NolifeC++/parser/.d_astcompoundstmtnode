@@ -1,0 +1,2 @@
+libparser-g.a(astcompoundstmtnode.o): astcompoundstmtnode.cpp \
+ astcompoundstmtnode.hpp aststmtnode.hpp astnode.hpp visitor.hpp

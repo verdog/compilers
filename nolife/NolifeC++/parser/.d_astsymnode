@@ -1,0 +1,2 @@
+libparser-g.a(astsymnode.o): astsymnode.cpp astsymnode.hpp astnode.hpp \
+ visitor.hpp

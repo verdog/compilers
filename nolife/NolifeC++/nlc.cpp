@@ -8,9 +8,24 @@
 #include "parser/visitorprinter.hpp"
 #include "parser/visitortypechecker.hpp"
 
+extern FILE* yyin;
+
 extern ast::Base* gASTRoot;
 
 int main(int argc, char *argv[]) {
+
+    if (argc < 2) {
+        std::cout << "Usage: ./nlc <.nl file>\n";
+        return -1;
+    }
+
+    FILE* file = fopen(argv[1], "r");
+
+    if (file) {
+        yyin = file;
+    } else {
+        std::cout << "Error opening file " << argv[1] << "!\n";
+    }
 
     // hack to disable cout temporarily
     std::cout.setstate(std::ios_base::failbit);
