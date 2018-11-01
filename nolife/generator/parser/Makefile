@@ -10,7 +10,8 @@ ENV = -g
 ARCHIVE = libparser$(ENV).a
 
 INCLUDES= -I. \
-	  -I..
+	  -I.. \
+	  -I../visitors
 
 CXXFLAGS = $(INCLUDES) -DYYERROR_VERBOSE $(ENV) 
 LEX	= flex

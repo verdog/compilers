@@ -1,12 +1,12 @@
 #include <iostream>
 #include <string>
 
-#include <parser/nolife_parser.hpp>
-#include <parser/astnode.hpp>
+#include "parser/nolife_parser.hpp"
+#include "parser/astnode.hpp"
 
-#include "parser/visitor.hpp"
-#include "parser/visitorprinter.hpp"
-#include "parser/visitortypechecker.hpp"
+#include "visitors/visitor.hpp"
+#include "visitors/visitorprinter.hpp"
+#include "visitors/visitortypechecker.hpp"
 
 extern FILE* yyin;
 

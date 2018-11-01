@@ -5,11 +5,11 @@ DEPENDS = $(addprefix .d_, $(basename $(SRCS)))
 ENV = -g
 CXX = g++
 INCLUDES= -I. \
-	  -I..
+	  -I.. \
 
 TARGET	= nlc
-DIRS = parser 
-LIBS = parser/libparser-g.a 
+DIRS = parser visitors
+LIBS = parser/libparser-g.a visitors/libvisitors-g.a
 
 RM = /bin/rm -f
 

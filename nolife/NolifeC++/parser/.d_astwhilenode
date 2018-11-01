@@ -1,0 +1,4 @@
+libparser-g.a(astwhilenode.o): astwhilenode.cpp astwhilenode.hpp \
+ aststmtnode.hpp astnode.hpp astexpressionnode.hpp astcallnode.hpp \
+ astsymnode.hpp astvariablenode.hpp astconstantnode.hpp asttypenode.hpp \
+ visitor.hpp
