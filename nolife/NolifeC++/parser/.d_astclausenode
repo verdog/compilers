@@ -1,2 +1,0 @@
-libparser-g.a(astclausenode.o): astclausenode.cpp astclausenode.hpp \
- astnode.hpp astcaselabelsnode.hpp aststmtnode.hpp visitor.hpp
