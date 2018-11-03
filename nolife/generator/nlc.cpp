@@ -7,6 +7,7 @@
 #include "visitors/visitor.hpp"
 #include "visitors/visitorprinter.hpp"
 #include "visitors/visitortypechecker.hpp"
+#include "visitors/visitormemmap.hpp"
 
 extern FILE* yyin;
 
@@ -36,7 +37,9 @@ int main(int argc, char *argv[]) {
 
     PrintVisitor p;
     TypeCheckVisitor t;
+    MemoryMapVisitor mm(std::cout, std::cout);
 
     gASTRoot->accept(p);
     gASTRoot->accept(t);
+    gASTRoot->accept(mm);
 }

@@ -5,13 +5,19 @@ This testcase performs simple test on flow of control.
 *********************************************************}
 
 PROGRAM Flow;
- VAR a,b:INTEGER;
+VAR a,b:INTEGER;
+
+FUNCTION f: INTEGER;
+VAR a: INTEGER;
+BEGIN
+	a := 5;
+	RETURN a
+END;
 
 BEGIN
 
-     
-        a := 0;
-	b := a -1;
+    a := 0;
+	b := a - 1;
 	IF a THEN
 		WRITE(1)
 	ELSE

@@ -9,7 +9,6 @@ ARCHIVE = libvisitors$(ENV).a
 
 INCLUDES= -I. \
 	  -I.. \
-	  -I../visitors
 
 CXXFLAGS = $(INCLUDES) $(ENV) 
 ARFLAGS = rU
