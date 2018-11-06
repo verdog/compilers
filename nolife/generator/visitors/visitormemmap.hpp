@@ -8,6 +8,7 @@
 class MemoryInfo {
     public:
         MemoryInfo();
+        int offset;
 };
 
 class MemoryMapVisitor : public Visitor {
@@ -45,14 +46,19 @@ class MemoryMapVisitor : public Visitor {
 
         void visitUniversal(ast::Base* b);
 
-        void dumpOutput(const std::ostream& out);
+        void dumpOutput(std::ostream& out);
     private:
-        using tSymbolToInfo = std::map<std::string, MemoryInfo>;
-        tSymbolToInfo mSymbolInfoMap;
-        std::map<std::string, tSymbolToInfo> mSymbolToStackFrameMap;
+        using tSymbolToInfoMap = std::map<std::string, MemoryInfo>;
+        std::map<std::string, tSymbolToInfoMap> mProcedureToSymbolsMap;
+
+        std::vector<std::string> mFrameStack;
+
+        void resetOffsets();
+        void incrementVariableOffset();
+        void incrementParameterOffset();
+        int mCurrentVariableOffset;
+        int mCurrentParameterOffset;
         
         std::ostream& mLogS;
         std::ostream& mOutputS;
-
-        std::vector<std::string> mFrameStack;
 };

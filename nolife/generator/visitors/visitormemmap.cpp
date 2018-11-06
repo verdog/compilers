@@ -28,11 +28,38 @@
 #include "../parser/astwhilenode.hpp"
 #include "../parser/astwritenode.hpp"
 
+/***************
+ * Memory info *
+ ***************/
+
+MemoryInfo::MemoryInfo() 
+: offset {0}
+{
+
+}
+
+/**********************
+ * Memory map visitor *
+ **********************/
+
 MemoryMapVisitor::MemoryMapVisitor(std::ostream& output, std::ostream& log)
 : mLogS {log}
 , mOutputS {output}
 {
 
+}
+
+void MemoryMapVisitor::resetOffsets() {
+    mCurrentVariableOffset = -4;
+    mCurrentParameterOffset = 4;
+}
+
+void MemoryMapVisitor::incrementVariableOffset() {
+    mCurrentVariableOffset -= 4;
+}
+
+void MemoryMapVisitor::incrementParameterOffset() {
+    mCurrentParameterOffset += 4;
 }
 
 void MemoryMapVisitor::visitUniversal(ast::Base *b) {
@@ -50,9 +77,11 @@ void MemoryMapVisitor::visit(ast::Base* b) {
 }
 
 void MemoryMapVisitor::visit(ast::Program* p) {
-    mLogS << "visited program node. (" << p->getSymbol()->getImage() << ")\n";
+    std::string programName = p->getSymbol()->getImage();
+    mLogS << "visited program node. (" << programName << ")\n";
 
-    mFrameStack.push_back(p->getSymbol()->getImage());
+    mFrameStack.push_back(programName);
+    resetOffsets();
 
     visitUniversal(p);
 
@@ -60,8 +89,19 @@ void MemoryMapVisitor::visit(ast::Program* p) {
 }
 
 void MemoryMapVisitor::visit(ast::Declaration* d) {
+    auto currentProcedure = mFrameStack.back();
+    mLogS << "visited declaration node of " << currentProcedure << ".\n";
 
+    for (auto node : d->getChildren()) {
+        auto typeNode = dynamic_cast<ast::Type*>(node);
 
+                                   /* procedures don't need any space allocated */
+        if (typeNode != nullptr && typeNode->childAsProcedure() == nullptr) {
+            std::string symbol = typeNode->childAsSymbol()->getImage();
+            mProcedureToSymbolsMap[currentProcedure][symbol].offset = mCurrentVariableOffset;
+            incrementVariableOffset();
+        }
+    }
 
     visitUniversal(d);
 }
@@ -73,11 +113,24 @@ void MemoryMapVisitor::visit(ast::CompoundStatement* cs) {
 }
 
 void MemoryMapVisitor::visit(ast::Parameters* p) {
+    auto currentProcedure = mFrameStack.back();
+    mLogS << "visited parameter node of " << currentProcedure << ".\n";
+
+    for (auto node : p->getChildren()) {
+        auto typeNode = dynamic_cast<ast::Type*>(node);
+
+        if (typeNode != nullptr) {
+            std::string symbol = typeNode->childAsSymbol()->getImage();
+            mProcedureToSymbolsMap[currentProcedure][symbol].offset = mCurrentParameterOffset;
+            incrementParameterOffset();
+        }
+    }
+
     visitUniversal(p);
 }
 
 void MemoryMapVisitor::visit(ast::Symbol* s) {
-    mLogS << "visited symbol node. (" << s->getImage() << ")\n";
+    // mLogS << "visited symbol node. (" << s->getImage() << ")\n";
     visitUniversal(s);
 }
 
@@ -130,7 +183,7 @@ void MemoryMapVisitor::visit(ast::Clause* c) {
 }
 
 void MemoryMapVisitor::visit(ast::Constant* c) {
-    mLogS << "visited constant node. (" << c->getImage() << ")\n";
+    // mLogS << "visited constant node. (" << c->getImage() << ")\n";
     visitUniversal(c);
 }
 
@@ -146,6 +199,7 @@ void MemoryMapVisitor::visit(ast::Procedure* p) {
     mLogS << "visited procedure node. (" << p->getSymbol()->getImage() << ")\n";
 
     mFrameStack.push_back(p->getSymbol()->getImage());
+    resetOffsets();
 
     visitUniversal(p);
 
@@ -176,6 +230,18 @@ void MemoryMapVisitor::visit(ast::Read* r) {
     visitUniversal(r);
 }
 
-void MemoryMapVisitor::dumpOutput(const std::ostream& out) {
+void MemoryMapVisitor::dumpOutput(std::ostream& out) {
+    out << "Memory map:\n";
 
+    for (auto mapPair : mProcedureToSymbolsMap) {
+        std::string procedureName = mapPair.first;
+        out << procedureName << ":" << std::endl;
+        for (auto symbolPair : mProcedureToSymbolsMap[procedureName]) {
+            std::string symbol = symbolPair.first;
+            auto data = symbolPair.second;
+
+            out << "  " << symbol << ":\n";
+            out << "    offset: " << data.offset << std::endl;
+        }
+    }
 }

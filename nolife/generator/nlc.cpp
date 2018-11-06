@@ -42,4 +42,6 @@ int main(int argc, char *argv[]) {
     gASTRoot->accept(p);
     gASTRoot->accept(t);
     gASTRoot->accept(mm);
+
+    mm.dumpOutput(std::cout);
 }
