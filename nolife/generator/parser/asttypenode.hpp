@@ -30,6 +30,7 @@ namespace ast {
             Base* getChild();
             Procedure* childAsProcedure();
             Symbol* childAsSymbol();
+            Array* childAsArray();
 
             virtual void accept(Visitor &v);
         protected:

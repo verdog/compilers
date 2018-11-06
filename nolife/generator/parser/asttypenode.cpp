@@ -60,6 +60,10 @@ namespace ast {
         return dynamic_cast<Symbol*>(mChildren[0]);
     }
 
+    Array* Type::childAsArray() {
+        return dynamic_cast<Array*>(mChildren[0]);
+    }
+
     Integer::Integer() 
     : Type()
     {

@@ -9,6 +9,9 @@ class MemoryInfo {
     public:
         MemoryInfo();
         int offset;
+        bool isArray;
+        int upperOffset;
+        int lowerOffset;
 };
 
 class MemoryMapVisitor : public Visitor {

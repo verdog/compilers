@@ -34,6 +34,8 @@
 
 MemoryInfo::MemoryInfo() 
 : offset {0}
+, upperOffset {0}
+, lowerOffset {0}
 {
 
 }
@@ -95,8 +97,17 @@ void MemoryMapVisitor::visit(ast::Declaration* d) {
     for (auto node : d->getChildren()) {
         auto typeNode = dynamic_cast<ast::Type*>(node);
 
+        if (auto arrayNode = typeNode->childAsArray()) {
+            std::string symbol = arrayNode->getSymbol()->getImage();
+            auto &data = mProcedureToSymbolsMap[currentProcedure][symbol];
+            data.isArray = true;
+            data.upperOffset = mCurrentVariableOffset;
+            data.lowerOffset = mCurrentVariableOffset - arrayNode->getLength() * 4;
+            mCurrentVariableOffset = data.lowerOffset;
+            incrementVariableOffset();
+        }
                                    /* procedures don't need any space allocated */
-        if (typeNode != nullptr && typeNode->childAsProcedure() == nullptr) {
+        else if (typeNode != nullptr && typeNode->childAsProcedure() == nullptr) {
             std::string symbol = typeNode->childAsSymbol()->getImage();
             mProcedureToSymbolsMap[currentProcedure][symbol].offset = mCurrentVariableOffset;
             incrementVariableOffset();
@@ -183,7 +194,7 @@ void MemoryMapVisitor::visit(ast::Clause* c) {
 }
 
 void MemoryMapVisitor::visit(ast::Constant* c) {
-    // mLogS << "visited constant node. (" << c->getImage() << ")\n";
+    mLogS << "visited constant node. (" << c->getImage() << ")\n";
     visitUniversal(c);
 }
 
@@ -240,8 +251,14 @@ void MemoryMapVisitor::dumpOutput(std::ostream& out) {
             std::string symbol = symbolPair.first;
             auto data = symbolPair.second;
 
-            out << "  " << symbol << ":\n";
-            out << "    offset: " << data.offset << std::endl;
+            if (!data.isArray) {
+                out << "  " << symbol << ":\n";
+                out << "    offset: " << data.offset << std::endl;
+            } else {
+                // array element
+                out << "  " << symbol << ":\n";
+                out << "    offset: " << data.lowerOffset << " to " << data.upperOffset << std::endl;
+            }
         }
     }
 }

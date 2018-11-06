@@ -76,4 +76,21 @@ namespace ast {
         v.visit(this);
     }
 
+    int Array::getLength() {
+        try {
+            // check if bounds is a string or a number
+            int low = std::stoi(getLowBound()->getImage());
+            int high = std::stoi(getHighBound()->getImage());
+
+            return high - low + 1; // + 1 since the ranges are inclusive
+
+        } catch (std::invalid_argument) {
+            // it's characters
+            
+            std::string low = getLowBound()->getImage();
+            std::string high = getHighBound()->getImage();
+
+            return (int) high[1] - low[1] + 1; // + 1 since the ranges are inclusive
+        }
+    }
 }

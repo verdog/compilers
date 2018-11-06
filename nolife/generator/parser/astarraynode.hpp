@@ -16,6 +16,7 @@ namespace ast {
             void setBounds(Constant* min, Constant* max);
             Symbol* getLowBound();
             Symbol* getHighBound();
+            int getLength();
             void addChild(Base* b) = delete;
 
             virtual void accept(Visitor &v);
