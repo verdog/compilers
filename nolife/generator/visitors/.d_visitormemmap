@@ -1,0 +1,14 @@
+libvisitors-g.a(visitormemmap.o): visitormemmap.cpp visitormemmap.hpp \
+ ../visitors/visitor.hpp ../visitors/../parser/astnode.hpp \
+ ../parser/astarrayaccessnode.hpp ../parser/astvariablenode.hpp \
+ ../parser/astsymnode.hpp ../parser/astexpressionnode.hpp \
+ ../parser/astcallnode.hpp ../parser/aststmtnode.hpp \
+ ../parser/astconstantnode.hpp ../parser/asttypenode.hpp \
+ ../parser/astarraynode.hpp ../parser/astassignnode.hpp \
+ ../parser/astbinarynode.hpp ../parser/astcaselabelsnode.hpp \
+ ../parser/astcasenode.hpp ../parser/astclausenode.hpp \
+ ../parser/astcompoundstmtnode.hpp ../parser/astdeclnode.hpp \
+ ../parser/astifnode.hpp ../parser/astparamnode.hpp \
+ ../parser/astprocnode.hpp ../parser/astprognode.hpp \
+ ../parser/astreadnode.hpp ../parser/astreturnnode.hpp \
+ ../parser/astwhilenode.hpp ../parser/astwritenode.hpp

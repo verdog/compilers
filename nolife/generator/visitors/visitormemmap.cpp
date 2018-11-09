@@ -101,8 +101,8 @@ void MemoryMapVisitor::visit(ast::Declaration* d) {
             std::string symbol = arrayNode->getSymbol()->getImage();
             auto &data = mProcedureToSymbolsMap[currentProcedure][symbol];
             data.isArray = true;
-            data.upperOffset = mCurrentVariableOffset;
-            data.lowerOffset = mCurrentVariableOffset - arrayNode->getLength() * 4;
+            data.upperOffset = mCurrentVariableOffset + 4;
+            data.lowerOffset = mCurrentVariableOffset + 4 - arrayNode->getLength() * 4;
             mCurrentVariableOffset = data.lowerOffset;
             incrementVariableOffset();
         }
