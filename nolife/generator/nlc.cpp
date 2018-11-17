@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 
 #include "parser/nolife_parser.hpp"
@@ -40,12 +41,18 @@ int main(int argc, char *argv[]) {
     PrintVisitor p;
     TypeCheckVisitor t;
     MemoryMapVisitor mm(std::cout, std::cout);
-    CodeGeneratorVisitor cg(std::cout, std::cout);
+
+    std::ofstream outputFile;
+
+    outputFile.open("asm.S");
+
+    CodeGeneratorVisitor cg(outputFile, std::cout, t, mm);
 
     gASTRoot->accept(p);
-    gASTRoot->accept(t);
-    gASTRoot->accept(mm);
+    // gASTRoot->accept(t);
+    // gASTRoot->accept(mm);
+    // mm.dumpOutput(std::cout);
+
     gASTRoot->accept(cg);
 
-    mm.dumpOutput(std::cout);
 }

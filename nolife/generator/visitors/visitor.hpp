@@ -37,6 +37,7 @@ namespace ast {
 
 class Visitor {
     public:
+        Visitor();
         virtual void visit(ast::Base* b) {std::cout << "this is in the visitor base class.\n"; };
         virtual void visit(ast::Program* p) {std::cout << "this is in the visitor base class.\n"; };
         virtual void visit(ast::Declaration* d) {std::cout << "this is in the visitor base class.\n"; };
@@ -65,5 +66,7 @@ class Visitor {
         virtual void visit(ast::While* w) {std::cout << "this is in the visitor base class.\n"; };
         virtual void visit(ast::Write* w) {std::cout << "this is in the visitor base class.\n"; };
         virtual void visit(ast::Read* r) {std::cout << "this is in the visitor base class.\n"; };
+        
+        bool mDone;
     private: 
 };

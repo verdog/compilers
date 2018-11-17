@@ -42,6 +42,7 @@ class SymbolInfo {
 };
 
 class TypeCheckVisitor : public Visitor {
+    friend class CodeGeneratorVisitor;
     public:
         TypeCheckVisitor();
 

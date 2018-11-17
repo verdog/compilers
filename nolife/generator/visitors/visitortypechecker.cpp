@@ -230,6 +230,8 @@ void TypeCheckVisitor::visit(ast::Program* p) {
 
     // remove symbol table
     popSymbolTable();
+
+    mDone = true;
 }
 
 void TypeCheckVisitor::visit(ast::Declaration* d) {

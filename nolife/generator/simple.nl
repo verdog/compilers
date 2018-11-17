@@ -2,8 +2,9 @@
 
 PROGRAM Simple;
 	BEGIN
-		WRITE('1.11');
-		WRITE(1);
-		WRITE(1.1);
-		WRITE('1')
+		WRITE('aaaa');
+		WRITE(1.0);
+		WRITE(2.0);
+		WRITE(3.0);
+		WRITE('bbbb')
 	END

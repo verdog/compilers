@@ -1,7 +1,10 @@
 #include <iostream>
 #include <string>
+#include <algorithm>
 
 #include "visitorcodegenerator.hpp"
+#include "visitortypechecker.hpp"
+#include "visitormemmap.hpp"
 
 #include "../parser/astnode.hpp"
 #include "../parser/astarrayaccessnode.hpp"
@@ -32,11 +35,85 @@
  * Code generator visitor *
  **************************/
 
-CodeGeneratorVisitor::CodeGeneratorVisitor(std::ostream& output, std::ostream& log)
+CodeGeneratorVisitor::CodeGeneratorVisitor(
+    std::ostream& output, 
+    std::ostream& log,
+    TypeCheckVisitor& typeCheckVisitor,
+    MemoryMapVisitor& memoryMapVisitor
+)
 : mLogS {log}
 , mOutputS {output}
+, mTypeCheckVisitor {typeCheckVisitor}
+, mMemoryMapVisitor {memoryMapVisitor}
+, mCurrentProcedure {""}
 {
+}
 
+void CodeGeneratorVisitor::initialize() {
+    mOutputS <<
+        "#-------------------------------#\n"
+        "# nolife compiler               #\n"
+        "# Josh Chandler                 #\n"
+        "#-------------------------------#\n"
+    ;
+
+    mOutputS <<
+        "   .intel_syntax\n"
+        "   .section .rodata\n"
+        ".io_format:\n"
+        "   .string \"%d\\12\\0\"\n"
+        "_constant:\n"
+    ;
+    
+    auto &constMap = mMemoryMapVisitor.mConstantMap;
+
+    // turn map into a list of pairs
+    using pairType = std::pair<std::string, MemoryInfo>;
+    std::vector<pairType> pairList;
+    for (auto mapPair : constMap) {
+        pairList.push_back(pairType(mapPair.first, mapPair.second));
+    }
+
+    // sort by offset
+    std::sort(pairList.begin(), pairList.end(), 
+        [](const pairType &a, const pairType &b) -> bool {
+            return a.second.offset < b.second.offset;
+        }
+    );
+
+    // output constants
+    for (auto constantPair : pairList) {
+        std::string image = constantPair.first;
+        MemoryInfo info = constantPair.second;
+
+        if (info.type == ast::Type::Types::Float) {
+            mOutputS << "   .float " << image << std::endl;
+        } else if (info.type == ast::Type::Types::Character
+                || info.type == ast::Type::Types::StringConstant
+        ) {
+            // change single quotes to double quotes
+            std::replace(image.begin(), image.end(), '\'', '\"');
+            mOutputS << "   .string " << image << std::endl;
+        }
+    }
+    
+    mOutputS <<
+        "   .text\n"
+        "   .globl main;\n"
+        "   .type main, @function\n"
+    ;
+}
+
+void CodeGeneratorVisitor::finalize() {
+    mOutputS <<
+        "main:\n"
+        "   push %ebp\n"
+        "   mov %ebp, %esp\n"
+        "   sub %esp, 4\n"
+        "   mov %eax, offset flat:_constant\n"
+        "   leave\n"
+        "   ret\n"
+    ;
 }
 
 void CodeGeneratorVisitor::visitUniversal(ast::Base *b) {
@@ -54,7 +131,25 @@ void CodeGeneratorVisitor::visit(ast::Base* b) {
 }
 
 void CodeGeneratorVisitor::visit(ast::Program* p) {
+    // make sure we have a type map and a memory map
+    if (!mTypeCheckVisitor.mDone) {
+        mLogS << "Detected missing symbol table. Creating now.\n";
+        p->accept(mTypeCheckVisitor);
+    }
+
+    if (!mMemoryMapVisitor.mDone) {
+        mLogS << "Detected missing memory map. Creating now.\n";
+        p->accept(mMemoryMapVisitor);
+        mMemoryMapVisitor.dumpOutput(mLogS);
+    }
+
+    initialize(); // output default header info
+
+    mCurrentProcedure = p->getSymbol()->getImage();
+
     visitUniversal(p);
+
+    finalize();
 }
 
 void CodeGeneratorVisitor::visit(ast::Declaration* d) {
@@ -154,6 +249,12 @@ void CodeGeneratorVisitor::visit(ast::While* w) {
 }
 
 void CodeGeneratorVisitor::visit(ast::Write* w) {
+    // To execute an output we will use the C function printf. To call printf, use the following sequence,
+    // where the variable to be printed has a 4-byte offset.
+    // push dword ptr [%ebp-4]
+    // push offset flat:.io_format
+    // call printf
+    // add %esp, 8
     visitUniversal(w);
 }
 

@@ -50,3 +50,9 @@ include $(DEPENDS)
 	 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
+remote-bin: $(TARGET)
+	scp ./asm.S ub32:~/Code/compilers/nolife
+	ssh ub32 'cd ~/Code/compilers/nolife && g++ asm.S -o bin'
+
+remote-test: remote-bin
+	ssh ub32 'cd ~/Code/compilers/nolife && ./bin'

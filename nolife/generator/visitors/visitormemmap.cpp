@@ -36,6 +36,7 @@ MemoryInfo::MemoryInfo()
 : offset {0}
 , upperOffset {0}
 , lowerOffset {0}
+, type {ast::Type::Types::Undefined}
 {
 
 }
@@ -92,6 +93,7 @@ void MemoryMapVisitor::visit(ast::Program* p) {
     visitUniversal(p);
 
     mFrameStack.pop_back();
+    mDone = true;
 }
 
 void MemoryMapVisitor::visit(ast::Declaration* d) {
@@ -210,23 +212,28 @@ void MemoryMapVisitor::visit(ast::Constant* c) {
         } else if (type == ast::Type::Types::Float) {
             MemoryInfo info;
             info.offset = mCurrentConstantOffset;
+            info.type = ast::Type::Types::Float;
             mConstantMap[image] = info;
             incrementConstantOffset(4);
 
         } else if (type == ast::Type::Types::Character) {
-            MemoryInfo info;
-            info.offset = mCurrentConstantOffset;
-            mConstantMap[image] = info;
-            incrementConstantOffset(4);
+            // MemoryInfo info;
+            // info.offset = mCurrentConstantOffset;
+            // info.type = ast::Type::Types::Character;
+            // mConstantMap[image] = info;
+            // incrementConstantOffset(4);
+            
+            // do nothing, char constants can be stored in operations.
 
         } else if (type == ast::Type::Types::StringConstant) {
             MemoryInfo info;
             info.offset = mCurrentConstantOffset;
+            info.type = ast::Type::Types::StringConstant;
             mConstantMap[image] = info;
 
             // get word length, round up to the nearest 4 bytes
             int length = c->getImage().size() - 2 + 1; // minus two single quotes, plus space for a null
-            incrementConstantOffset((length / 4 + 1) * 4);
+            incrementConstantOffset(length);
 
         } else {
             // Void or Undefined

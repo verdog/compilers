@@ -1,13 +1,22 @@
 #pragma once
 
 #include <iostream>
+#include <string>
 #include <map>
 
 #include "../visitors/visitor.hpp"
 
+class TypeCheckVisitor;
+class MemoryMapVisitor;
+
 class CodeGeneratorVisitor : public Visitor {
     public:
-        CodeGeneratorVisitor(std::ostream& output, std::ostream& log);
+        CodeGeneratorVisitor(
+            std::ostream& output, 
+            std::ostream& log,
+            TypeCheckVisitor& typeCheckVisitor,
+            MemoryMapVisitor& memoryMapVisitor
+        );
 
         void visit(ast::Base* b);
         void visit(ast::Program* p);
@@ -42,6 +51,14 @@ class CodeGeneratorVisitor : public Visitor {
 
     private:
         
+        void initialize();
+        void finalize();
+
         std::ostream& mLogS;
         std::ostream& mOutputS;
+
+        TypeCheckVisitor& mTypeCheckVisitor;
+        MemoryMapVisitor& mMemoryMapVisitor;
+
+        std::string mCurrentProcedure;
 };

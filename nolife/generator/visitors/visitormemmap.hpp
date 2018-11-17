@@ -4,6 +4,7 @@
 #include <map>
 
 #include "../visitors/visitor.hpp"
+#include "../parser/asttypenode.hpp"
 
 class MemoryInfo {
     public:
@@ -12,9 +13,11 @@ class MemoryInfo {
         bool isArray;
         int upperOffset;
         int lowerOffset;
+        ast::Type::Types type;
 };
 
 class MemoryMapVisitor : public Visitor {
+    friend class CodeGeneratorVisitor;
     public:
         MemoryMapVisitor(std::ostream& output, std::ostream& log);
 
