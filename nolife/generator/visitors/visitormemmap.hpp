@@ -53,14 +53,17 @@ class MemoryMapVisitor : public Visitor {
     private:
         using tSymbolToInfoMap = std::map<std::string, MemoryInfo>;
         std::map<std::string, tSymbolToInfoMap> mProcedureToSymbolsMap;
+        tSymbolToInfoMap mConstantMap;
 
         std::vector<std::string> mFrameStack;
 
         void resetOffsets();
         void incrementVariableOffset();
         void incrementParameterOffset();
+        void incrementConstantOffset(int amount);
         int mCurrentVariableOffset;
         int mCurrentParameterOffset;
+        int mCurrentConstantOffset;
         
         std::ostream& mLogS;
         std::ostream& mOutputS;

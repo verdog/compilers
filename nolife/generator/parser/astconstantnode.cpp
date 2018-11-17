@@ -6,6 +6,7 @@ namespace ast {
     Constant::Constant(std::string image, Type::Types t) 
     : Symbol(image)
     , mType {t}
+    , mConstantOffset {-1}
     {
         mKind = "constant";
     }
@@ -20,5 +21,9 @@ namespace ast {
 
     std::string Constant::getKind() {
         return Symbol::getKind();
+    }
+
+    void Constant::setOffset(int offset) {
+        mConstantOffset = offset;
     }
 } // ast

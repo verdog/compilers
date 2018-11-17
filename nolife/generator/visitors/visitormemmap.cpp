@@ -48,7 +48,7 @@ MemoryMapVisitor::MemoryMapVisitor(std::ostream& output, std::ostream& log)
 : mLogS {log}
 , mOutputS {output}
 {
-
+    mCurrentConstantOffset = 0;
 }
 
 void MemoryMapVisitor::resetOffsets() {
@@ -62,6 +62,10 @@ void MemoryMapVisitor::incrementVariableOffset() {
 
 void MemoryMapVisitor::incrementParameterOffset() {
     mCurrentParameterOffset += 4;
+}
+
+void MemoryMapVisitor::incrementConstantOffset(int amount) {
+    mCurrentConstantOffset += amount;
 }
 
 void MemoryMapVisitor::visitUniversal(ast::Base *b) {
@@ -195,6 +199,45 @@ void MemoryMapVisitor::visit(ast::Clause* c) {
 
 void MemoryMapVisitor::visit(ast::Constant* c) {
     mLogS << "visited constant node. (" << c->getImage() << ")\n";
+
+    auto image = c->getImage();
+    auto type = c->getType();
+    mLogS << "  type: " << ast::typeToString(type) << std::endl;
+
+    if (mConstantMap.count(image) < 1) {
+        if (type == ast::Type::Types::Integer) {
+            // do nothing, int constants can be stored in operations.
+        } else if (type == ast::Type::Types::Float) {
+            MemoryInfo info;
+            info.offset = mCurrentConstantOffset;
+            mConstantMap[image] = info;
+            incrementConstantOffset(4);
+
+        } else if (type == ast::Type::Types::Character) {
+            MemoryInfo info;
+            info.offset = mCurrentConstantOffset;
+            mConstantMap[image] = info;
+            incrementConstantOffset(4);
+
+        } else if (type == ast::Type::Types::StringConstant) {
+            MemoryInfo info;
+            info.offset = mCurrentConstantOffset;
+            mConstantMap[image] = info;
+
+            // get word length, round up to the nearest 4 bytes
+            int length = c->getImage().size() - 2 + 1; // minus two single quotes, plus space for a null
+            incrementConstantOffset((length / 4 + 1) * 4);
+
+        } else {
+            // Void or Undefined
+            // should never happen
+            mLogS << "ERROR: Constant \"" << c->getImage() << "\" appears to have type of " << ast::typeToString(type) << ".\n";
+        }
+    } else {
+        // we have already stored this constant somewhere. do nothing
+        mLogS << "detected repeated constant: " << image << std::endl;
+    }
+
     visitUniversal(c);
 }
 
@@ -243,6 +286,16 @@ void MemoryMapVisitor::visit(ast::Read* r) {
 
 void MemoryMapVisitor::dumpOutput(std::ostream& out) {
     out << "Memory map:\n";
+
+    out << "Constants:\n";
+
+    for (auto mapPair : mConstantMap) {
+        std::string label = mapPair.first;
+        int offset = mapPair.second.offset;
+        out << "  " << label << ": " << offset << std::endl;
+    }
+
+    out << "Procedure locals:\n";
 
     for (auto mapPair : mProcedureToSymbolsMap) {
         std::string procedureName = mapPair.first;
