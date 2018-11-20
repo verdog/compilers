@@ -1,1 +1,0 @@
-libvisitors-g.a(visitor.o): visitor.cpp visitor.hpp ../parser/astnode.hpp

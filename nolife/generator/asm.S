@@ -12,7 +12,6 @@
 _constant:
    .float 8.0
    .string "lmaoxd"
-   .float 30.0
 .text
    .globl main;
    .type main, @function
@@ -27,6 +26,11 @@ main:
 #  Printing string constant: 'lmaoxd'
    push [ offset flat:_constant + 4 ]
    push [ offset flat:.io_format + 12 ]
+   call printf
+   add %esp, 8
+#  Printing expression:
+   push 50
+   push offset offset flat:.io_format
    call printf
    add %esp, 8
    leave

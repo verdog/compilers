@@ -3,5 +3,6 @@
 PROGRAM Simple;
 	BEGIN
 		WRITE(8.0);
-		WRITE('lmaoxd')
+		WRITE('lmaoxd');
+		WRITE(50)
 	END
