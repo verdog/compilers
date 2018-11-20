@@ -1,0 +1,4 @@
+libparser-g.a(astifnode.o): astifnode.cpp astifnode.hpp aststmtnode.hpp \
+ astnode.hpp astexpressionnode.hpp astcallnode.hpp astsymnode.hpp \
+ astvariablenode.hpp astconstantnode.hpp asttypenode.hpp \
+ ../visitors/visitor.hpp

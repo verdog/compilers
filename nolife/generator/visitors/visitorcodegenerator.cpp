@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <sstream>
 
 #include "visitorcodegenerator.hpp"
 #include "visitortypechecker.hpp"
@@ -61,7 +62,10 @@ void CodeGeneratorVisitor::initialize() {
         "   .intel_syntax\n"
         "   .section .rodata\n"
         ".io_format:\n"
-        "   .string \"%d\\12\\0\"\n"
+        "   .string \"%d\\12\"\n"
+        "   .string \"%f\\12\"\n"
+        "   .string \"%c\\12\"\n"
+        "   .string \"%s\\12\"\n"
         "_constant:\n"
     ;
     
@@ -97,23 +101,16 @@ void CodeGeneratorVisitor::initialize() {
         }
     }
     
+    // might change this?
     mOutputS <<
-        "   .text\n"
+        ".text\n"
         "   .globl main;\n"
         "   .type main, @function\n"
     ;
 }
 
 void CodeGeneratorVisitor::finalize() {
-    mOutputS <<
-        "main:\n"
-        "   push %ebp\n"
-        "   mov %ebp, %esp\n"
-        "   sub %esp, 4\n"
-        "   mov %eax, offset flat:_constant\n"
-        "   leave\n"
-        "   ret\n"
-    ;
+    
 }
 
 void CodeGeneratorVisitor::visitUniversal(ast::Base *b) {
@@ -147,7 +144,18 @@ void CodeGeneratorVisitor::visit(ast::Program* p) {
 
     mCurrentProcedure = p->getSymbol()->getImage();
 
+    mOutputS <<
+        "main:\n"
+        "   push %ebp\n"
+        "   mov %ebp, %esp\n"
+    ;
+    
     visitUniversal(p);
+
+    mOutputS <<
+        "   leave\n"
+        "   ret\n"
+    ;
 
     finalize();
 }
@@ -222,6 +230,26 @@ void CodeGeneratorVisitor::visit(ast::Constant* c) {
 
 void CodeGeneratorVisitor::visit(ast::Expression* e) {
     visitUniversal(e);
+
+    if (auto constantNode = dynamic_cast<ast::Constant*>(e->getChildren()[0])) {
+        // child is a constant
+        // set location to constant location
+
+        std::string constImage = constantNode->getImage();
+        auto type = constantNode->getType();
+
+        if (type == ast::Type::Types::Integer) {
+            e->setCalculationLocation(constImage);
+        } else if (type == ast::Type::Types::Character) {
+            std::ostringstream ss;
+            ss << "0x" << std::hex << (unsigned int)constImage[1];
+            e->setCalculationLocation(ss.str());
+        } else { // float (string constants are handled elseware)
+            int offset = mMemoryMapVisitor.mConstantMap[constImage].offset;
+            std::string location = "[ offset flat:_constant + " + std::to_string(offset) + " ]";
+            e->setCalculationLocation(location);
+        }
+    }
 }
 
 void CodeGeneratorVisitor::visit(ast::If* i) {
@@ -249,13 +277,50 @@ void CodeGeneratorVisitor::visit(ast::While* w) {
 }
 
 void CodeGeneratorVisitor::visit(ast::Write* w) {
-    // To execute an output we will use the C function printf. To call printf, use the following sequence,
-    // where the variable to be printed has a 4-byte offset.
-    // push dword ptr [%ebp-4]
-    // push offset flat:.io_format
-    // call printf
-    // add %esp, 8
-    visitUniversal(w);
+    visitUniversal(w); // calculate offsets
+
+    if (auto constant = dynamic_cast<ast::Constant*>(w->getChildren()[0])) {
+        // child is a string constant
+
+        std::string image = constant->getImage();
+        int offset = mMemoryMapVisitor.mConstantMap[image].offset;
+        std::string constantLocation = "[ offset flat:_constant + " + std::to_string(offset) + " ]";
+        std::string formatLocation = "offset flat:.io_format";
+
+        if (constant->getType() == ast::Type::Types::StringConstant) {
+            formatLocation = "[ offset flat:.io_format + 12 ]";
+        }
+
+        mOutputS << "#  Printing string constant: " + image + "\n";
+
+        mOutputS <<
+            "   push " + constantLocation + "\n"
+            "   push " + formatLocation + "\n"
+            "   call printf\n"
+            "   add %esp, 8\n"
+        ;
+        
+    } else if (auto expression = dynamic_cast<ast::Expression*>(w->getChildren()[0])) {
+        // child is an expression
+
+        mOutputS << "#  Printing expression:\n";
+
+        std::string formatLocation = "offset flat:.io_format";
+
+        if (expression->getType() == ast::Type::Types::Character) {
+            formatLocation = "[ offset flat:.io_format + 8 ]";
+        } else if (expression->getType() == ast::Type::Types::Float) {
+            formatLocation = "[ offset flat:.io_format + 4 ]";
+        }
+
+        mOutputS <<
+            "   push " + expression->getCalclationLocation() + "\n"
+            "   push offset " + formatLocation + "\n"
+            "   call printf\n"
+            "   add %esp, 8\n"
+        ;
+    }
+
 }
 
 void CodeGeneratorVisitor::visit(ast::Read* r) {

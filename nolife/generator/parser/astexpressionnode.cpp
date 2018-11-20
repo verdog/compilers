@@ -72,4 +72,12 @@ namespace ast {
         v.visit(this);
     }
 
+    std::string Expression::getCalclationLocation() {
+        return mCalculationLocation;
+    }
+    
+    void Expression::setCalculationLocation(std::string location) {
+        mCalculationLocation = location;
+    }
+
 } // ast

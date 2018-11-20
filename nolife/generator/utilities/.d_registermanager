@@ -1,0 +1,2 @@
+libutilities-g.a(registermanager.o): registermanager.cpp \
+ registermanager.hpp

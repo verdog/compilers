@@ -5,6 +5,7 @@
 #include <map>
 
 #include "../visitors/visitor.hpp"
+#include "../utilities/registermanager.hpp"
 
 class TypeCheckVisitor;
 class MemoryMapVisitor;
@@ -61,4 +62,6 @@ class CodeGeneratorVisitor : public Visitor {
         MemoryMapVisitor& mMemoryMapVisitor;
 
         std::string mCurrentProcedure;
+
+        RegisterManager mRegisterManager;
 };

@@ -8,8 +8,8 @@ INCLUDES= -I. \
 	  -I.. \
 
 TARGET	= nlc
-DIRS = parser visitors
-LIBS = parser/libparser-g.a visitors/libvisitors-g.a
+DIRS = parser visitors utilities
+LIBS = parser/libparser-g.a visitors/libvisitors-g.a utilities/libutilities-g.a
 
 RM = /bin/rm -f
 

@@ -217,14 +217,7 @@ void MemoryMapVisitor::visit(ast::Constant* c) {
             incrementConstantOffset(4);
 
         } else if (type == ast::Type::Types::Character) {
-            // MemoryInfo info;
-            // info.offset = mCurrentConstantOffset;
-            // info.type = ast::Type::Types::Character;
-            // mConstantMap[image] = info;
-            // incrementConstantOffset(4);
-            
             // do nothing, char constants can be stored in operations.
-
         } else if (type == ast::Type::Types::StringConstant) {
             MemoryInfo info;
             info.offset = mCurrentConstantOffset;

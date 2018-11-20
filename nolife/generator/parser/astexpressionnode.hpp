@@ -42,12 +42,15 @@ namespace ast {
             Operation getOperation();
             void setType(Type::Types t);
             Type::Types getType();
+            void setCalculationLocation(std::string location);
+            std::string getCalclationLocation();
 
             Variable* childAsVariable();
 
             virtual void accept(Visitor &v);
         private:
             Operation mOperation;
+            std::string mCalculationLocation;
 
             Type::Types mType;
     };
