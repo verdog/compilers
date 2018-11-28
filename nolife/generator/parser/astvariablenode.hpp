@@ -11,7 +11,11 @@ namespace ast {
 
             virtual void accept(Visitor &v);
             Symbol* getSymbol();
+
+            std::string getCalculationLocation();
+            void setCalculationLocation(std::string loc);
         private:
+            std::string mCalculationLocation;
     };
 
 } // ast

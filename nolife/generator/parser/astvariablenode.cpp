@@ -20,4 +20,12 @@ namespace ast {
         v.visit(this);
     }
 
+    std::string Variable::getCalculationLocation() {
+        return mCalculationLocation;
+    }
+
+    void Variable::setCalculationLocation(std::string loc) {
+        mCalculationLocation = loc;
+    }
+
 } // ast

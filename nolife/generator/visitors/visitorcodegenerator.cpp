@@ -198,7 +198,7 @@ void CodeGeneratorVisitor::visit(ast::Declaration* d) {
     }
 
     mOutputS <<
-        "   sub %ebp, " + std::to_string(std::abs(farOffset)) + "\n"
+        "   sub %esp, " + std::to_string(std::abs(farOffset)) + "\n"
     ;
 
     visitUniversal(d);
@@ -238,6 +238,34 @@ void CodeGeneratorVisitor::visit(ast::Void* v) {
 
 void CodeGeneratorVisitor::visit(ast::ArrayAccess* aa) {
     visitUniversal(aa);
+
+    auto memMap = mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure];
+    auto info = memMap[aa->getSymbol()->getImage()];
+
+    std::string tempReg = mRegisterManager.get_free_register();
+
+    // check if bounds is a character or a number
+    int unitOffset = 0;
+    try {
+        // the bound is an integer
+        unitOffset = std::stoi(info.lowBoundString);
+    } catch (std::invalid_argument) {
+        // the bound is a character
+        unitOffset = (unsigned int)info.lowBoundString[1];
+    }
+
+    mOutputS <<
+        "#  Array access: " + aa->getSymbol()->getImage() + "\n"
+        "   mov %eax, " + aa->getExpression()->getCalculationLocation() + "\n"
+        "   sub %eax, " + std::to_string(unitOffset) + "\n"
+        "   mov %ebx, 4\n"
+        "   imul %ebx\n"
+        "   lea %ebx, dword ptr [ %ebp" + std::to_string(info.lowerOffset) + " ]\n"
+        "   add %ebx, %eax\n"
+        "   mov " + tempReg + ", %ebx\n"
+    ;
+
+    aa->setCalculationLocation("[" + tempReg + "]");
 }
 
 void CodeGeneratorVisitor::visit(ast::Array* a) {
@@ -245,7 +273,34 @@ void CodeGeneratorVisitor::visit(ast::Array* a) {
 }
 
 void CodeGeneratorVisitor::visit(ast::Assignment* a) {
-    visitUniversal(a);
+    visitUniversal(a); // derive locations
+
+    std::string tempReg = mRegisterManager.get_free_register();
+
+    // one of these will fail
+    auto varNode = dynamic_cast<ast::Variable*>(a->getChildren()[0]);
+    auto arrNode = dynamic_cast<ast::ArrayAccess*>(a->getChildren()[0]);
+
+    auto expNode = dynamic_cast<ast::Expression*>(a->getChildren()[1]);
+
+    std::string varLoc = "";
+
+    if (arrNode) {
+        varLoc = arrNode->getCalculationLocation();
+    } else if (varNode) {
+        varLoc = varNode->getCalculationLocation();
+    }
+
+    mOutputS <<
+        "#  Assignment: " + varNode->getSymbol()->getImage() + " := " + expNode->getCalculationLocation() + "\n"
+        "   mov " + tempReg + ", " + expNode->getCalculationLocation() + "\n"
+        "   mov " + varLoc + ", " + tempReg + "\n"
+    ;
+
+    mOutputS <<
+        "#  Cleared the register manager.\n"
+    ;
+    mRegisterManager.clear_all();
 }
 
 void CodeGeneratorVisitor::visit(ast::Call* c) {
@@ -289,6 +344,8 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
             std::string location = "[ offset flat:_constant + " + std::to_string(offset) + " ]";
             e->setCalculationLocation(location);
         }
+    } else if (auto arrayAccessNode = dynamic_cast<ast::ArrayAccess*>(e->getChildren()[0])) { 
+        e->setCalculationLocation(arrayAccessNode->getCalculationLocation());
     }
 }
 
@@ -310,6 +367,8 @@ void CodeGeneratorVisitor::visit(ast::Statement* s) {
 
 void CodeGeneratorVisitor::visit(ast::Variable* v) {
     visitUniversal(v);
+    auto memMap = mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure];
+    v->setCalculationLocation("dword ptr [ %ebp" + std::to_string(memMap[v->getSymbol()->getImage()].offset) + " ]");
 }
 
 void CodeGeneratorVisitor::visit(ast::While* w) {
@@ -359,7 +418,7 @@ void CodeGeneratorVisitor::visit(ast::Write* w) {
             mOutputS <<
                 "#  Printing float constant\n"
                 "   sub %esp, 8\n" // allocate space for double
-                "   mov " + tempLocation + ", " + expression->getCalclationLocation() + "\n"
+                "   mov " + tempLocation + ", " + expression->getCalculationLocation() + "\n"
                 "   fld dword ptr [" + tempLocation + "]\n"
                 "   fstp qword ptr [%esp]\n"
                 "   push " + formatLocation + "\n"
@@ -372,7 +431,7 @@ void CodeGeneratorVisitor::visit(ast::Write* w) {
         } else {
             // output on anything but a float
             mOutputS <<
-                "   push " + expression->getCalclationLocation() + "\n"
+                "   push " + expression->getCalculationLocation() + "\n"
                 "   push " + formatLocation + "\n"
                 "   call printf\n"
                 "   add %esp, 8\n"

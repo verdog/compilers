@@ -14,6 +14,7 @@ class MemoryInfo {
         int upperOffset;
         int lowerOffset;
         ast::Type::Types type;
+        std::string lowBoundString;
 };
 
 class MemoryMapVisitor : public Visitor {

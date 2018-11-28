@@ -43,7 +43,7 @@ namespace ast {
             void setType(Type::Types t);
             Type::Types getType();
             void setCalculationLocation(std::string location);
-            std::string getCalclationLocation();
+            std::string getCalculationLocation();
 
             Variable* childAsVariable();
 

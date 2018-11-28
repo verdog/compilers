@@ -10,7 +10,11 @@ namespace ast {
             ArrayAccess(Symbol* sym, Expression* e);
             virtual void accept(Visitor &v);
             Expression* getExpression();
+
+            std::string getCalculationLocation();
+            void setCalculationLocation(std::string loc);
         private:
+            std::string mCalculationLocation;
     };
 
 } // ast

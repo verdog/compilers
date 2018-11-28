@@ -33,6 +33,8 @@
         "utility": "cpp",
         "deque": "cpp",
         "memory": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "ctime": "cpp",
+        "iomanip": "cpp"
     }
 }

@@ -21,4 +21,12 @@ namespace ast {
             return nullptr;
         }
     }
+    
+    std::string ArrayAccess::getCalculationLocation() {
+        return mCalculationLocation;
+    }
+
+    void ArrayAccess::setCalculationLocation(std::string loc) {
+        mCalculationLocation = loc;
+    }
 } // ast
