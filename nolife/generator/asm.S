@@ -10,46 +10,33 @@
    .string "%c\12"
    .string "%s\12"
 _constant:
-   .float 2.0
 .text
    .globl main;
    .type main, @function
 main:
    push %ebp
    mov %ebp, %esp
-   sub %esp, 16
-#  Assignment: b := 2
-   mov %edi, 2
-   mov dword ptr [ %ebp-16 ], %edi
+   sub %esp, 4
+#  Assignment: a := 7
+   mov %edi, 7
+   mov dword ptr [ %ebp-4 ], %edi
 #  Cleared the register manager.
-#  Array access: a[dword ptr [ %ebp-16 ]]
-   mov %eax, dword ptr [ %ebp-16 ]
-   sub %eax, 1
-   mov %ebx, 4
-   imul %ebx
-   lea %ebx, dword ptr [ %ebp-12 ]
-   add %ebx, %eax
-   mov %edi, %ebx
-#  Assignment: a := [ offset flat:_constant + 0 ]
-   mov %esi, [ offset flat:_constant + 0 ]
-   mov [%edi], %esi
+   # dword ptr [ %ebp-4 ] % 4
+   xor %edx, %edx
+   mov %eax, dword ptr [ %ebp-4 ]
+   mov %edi, 4
+   idiv %edi
+   mov %edi, %edx
+#  Assignment: a := %edi
+   mov %esi, %edi
+   mov dword ptr [ %ebp-4 ], %esi
 #  Cleared the register manager.
-#  Array access: a[2]
-   mov %eax, 2
-   sub %eax, 1
-   mov %ebx, 4
-   imul %ebx
-   lea %ebx, dword ptr [ %ebp-12 ]
-   add %ebx, %eax
-   mov %edi, %ebx
 #  Printing expression:
-#  Printing float constant
-   sub %esp, 8
-   mov %esi, [%edi]
-   fld dword ptr [%esi]
-   fstp qword ptr [%esp]
-   push [ offset flat:.io_format + 4 ]
+   push dword ptr [ %ebp-4 ]
+   push offset flat:.io_format
    call printf
-   add %esp, 12
+   add %esp, 8
+   # Return 0
+   mov %eax, 0
    leave
    ret

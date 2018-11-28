@@ -4,8 +4,8 @@
 
 RegisterManager::RegisterManager() {
     // all registers are free
+    mRegisterMap["%ebx"] = true;
     mRegisterMap["%ecx"] = true;
-    mRegisterMap["%edx"] = true;
     mRegisterMap["%esi"] = true;
     mRegisterMap["%edi"] = true;
 

@@ -153,6 +153,8 @@ void CodeGeneratorVisitor::visit(ast::Program* p) {
     visitUniversal(p);
 
     mOutputS <<
+        "   # Return 0\n"
+        "   mov %eax, 0\n"
         "   leave\n"
         "   ret\n"
     ;
@@ -258,11 +260,11 @@ void CodeGeneratorVisitor::visit(ast::ArrayAccess* aa) {
         "#  Array access: " + aa->getSymbol()->getImage() + "[" + aa->getExpression()->getCalculationLocation() + "]" + "\n"
         "   mov %eax, " + aa->getExpression()->getCalculationLocation() + "\n"
         "   sub %eax, " + std::to_string(unitOffset) + "\n"
-        "   mov %ebx, 4\n"
-        "   imul %ebx\n"
-        "   lea %ebx, dword ptr [ %ebp" + std::to_string(info.lowerOffset) + " ]\n"
-        "   add %ebx, %eax\n"
-        "   mov " + tempReg + ", %ebx\n"
+        "   mov %edx, 4\n"
+        "   imul %edx\n"
+        "   lea %edx, dword ptr [ %ebp" + std::to_string(info.lowerOffset) + " ]\n"
+        "   add %edx, %eax\n"
+        "   mov " + tempReg + ", %edx\n"
     ;
 
     aa->setCalculationLocation("[" + tempReg + "]");
@@ -351,6 +353,70 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
         } else if (auto varNode = dynamic_cast<ast::Variable*>(e->getChildren()[0])) {
             e->setCalculationLocation(varNode->getCalculationLocation());
         }
+    }
+
+    // binary expression
+    auto leftExp = dynamic_cast<ast::Expression*>(e->getChildren()[0]);
+    auto rightExp = dynamic_cast<ast::Expression*>(e->getChildren()[1]);
+    std::string tempReg;
+
+    using EX = ast::Expression;
+    switch (e->getOperation()) {
+        case EX::Plus:
+            // plus
+            tempReg = mRegisterManager.get_free_register();
+
+            mOutputS <<
+                "   # " + leftExp->getCalculationLocation() + " + " + rightExp->getCalculationLocation() + "\n"
+                "   mov " + tempReg + ", " + leftExp->getCalculationLocation() + "\n"
+                "   add " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
+            ;
+
+            mRegisterManager.clear_single(leftExp->getCalculationLocation());
+
+            e->setCalculationLocation(tempReg);
+        break;
+        case EX::Minus:
+            // minus
+            tempReg = mRegisterManager.get_free_register();
+
+            mOutputS <<
+                "   # " + leftExp->getCalculationLocation() + " - " + rightExp->getCalculationLocation() + "\n"
+                "   mov " + tempReg + ", " + leftExp->getCalculationLocation() + "\n"
+                "   add " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
+            ;
+
+            mRegisterManager.clear_single(leftExp->getCalculationLocation());
+
+            e->setCalculationLocation(tempReg);
+        break;
+        case EX::Multiply:
+            // multiply
+            tempReg = mRegisterManager.get_free_register();
+
+            mOutputS <<
+                "   # " + leftExp->getCalculationLocation() + " * " + rightExp->getCalculationLocation() + "\n"
+                "   mov " + tempReg + ", " + leftExp->getCalculationLocation() + "\n"
+                "   imul " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
+            ;
+
+            e->setCalculationLocation(tempReg);
+        break;
+        case EX::Modulo:
+            // modulo
+            tempReg = mRegisterManager.get_free_register();
+
+            mOutputS <<
+                "   # " + leftExp->getCalculationLocation() + " % " + rightExp->getCalculationLocation() + "\n"
+                "   xor %edx, %edx\n"
+                "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
+                "   mov " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
+                "   idiv " + tempReg + "\n"
+                "   mov " + tempReg + ", %edx\n"
+            ;
+
+            e->setCalculationLocation(tempReg);
+        break;
     }
 }
 
