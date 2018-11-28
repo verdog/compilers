@@ -255,7 +255,7 @@ void CodeGeneratorVisitor::visit(ast::ArrayAccess* aa) {
     }
 
     mOutputS <<
-        "#  Array access: " + aa->getSymbol()->getImage() + "\n"
+        "#  Array access: " + aa->getSymbol()->getImage() + "[" + aa->getExpression()->getCalculationLocation() + "]" + "\n"
         "   mov %eax, " + aa->getExpression()->getCalculationLocation() + "\n"
         "   sub %eax, " + std::to_string(unitOffset) + "\n"
         "   mov %ebx, 4\n"
@@ -346,6 +346,8 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
         }
     } else if (auto arrayAccessNode = dynamic_cast<ast::ArrayAccess*>(e->getChildren()[0])) { 
         e->setCalculationLocation(arrayAccessNode->getCalculationLocation());
+    } else if (auto varNode = dynamic_cast<ast::Variable*>(e->getChildren()[0])) {
+        e->setCalculationLocation(varNode->getCalculationLocation());
     }
 }
 

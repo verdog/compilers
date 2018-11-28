@@ -3,7 +3,9 @@
 PROGRAM Simple;
 	VAR
 	a: ARRAY [1..3] OF INTEGER;
+	b: INTEGER;
 	BEGIN
-		a[1] := 5;
-		WRITE(a[1])
+		b := 2;
+		a[b] := 2;
+		WRITE(a[2])
 	END
