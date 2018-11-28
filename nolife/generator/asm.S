@@ -19,18 +19,27 @@ main:
    push %ebp
    mov %ebp, %esp
 #  Printing expression:
-   push [ offset flat:_constant + 0 ]
-   push offset [ offset flat:.io_format + 4 ]
+#  Printing float constant
+   sub %esp, 8
+   mov %edi, [ offset flat:_constant + 0 ]
+   fld dword ptr [%edi]
+   fstp qword ptr [%esp]
+   push [ offset flat:.io_format + 4 ]
    call printf
-   add %esp, 8
+   add %esp, 12
 #  Printing string constant: 'lmaoxd'
    push [ offset flat:_constant + 4 ]
    push [ offset flat:.io_format + 12 ]
    call printf
    add %esp, 8
 #  Printing expression:
+   push 0x68
+   push [ offset flat:.io_format + 8 ]
+   call printf
+   add %esp, 8
+#  Printing expression:
    push 50
-   push offset offset flat:.io_format
+   push offset flat:.io_format
    call printf
    add %esp, 8
    leave

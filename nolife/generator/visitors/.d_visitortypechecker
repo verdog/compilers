@@ -1,0 +1,14 @@
+libvisitors-g.a(visitortypechecker.o): visitortypechecker.cpp \
+ visitortypechecker.hpp ../parser/asttypenode.hpp ../parser/astnode.hpp \
+ ../parser/astexpressionnode.hpp ../parser/astcallnode.hpp \
+ ../parser/aststmtnode.hpp ../parser/astsymnode.hpp \
+ ../parser/astvariablenode.hpp ../parser/astconstantnode.hpp visitor.hpp \
+ ../parser/astarrayaccessnode.hpp ../parser/astarraynode.hpp \
+ ../parser/astassignnode.hpp ../parser/astbinarynode.hpp \
+ ../parser/astcaselabelsnode.hpp ../parser/astcasenode.hpp \
+ ../parser/astclausenode.hpp ../parser/astcompoundstmtnode.hpp \
+ ../parser/astdeclnode.hpp ../parser/astifnode.hpp \
+ ../parser/astparamnode.hpp ../parser/astprocnode.hpp \
+ ../parser/astprognode.hpp ../parser/astreadnode.hpp \
+ ../parser/astreturnnode.hpp ../parser/astwhilenode.hpp \
+ ../parser/astwritenode.hpp

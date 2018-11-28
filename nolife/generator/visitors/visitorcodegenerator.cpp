@@ -309,18 +309,36 @@ void CodeGeneratorVisitor::visit(ast::Write* w) {
 
         if (expression->getType() == ast::Type::Types::Character) {
             formatLocation = "[ offset flat:.io_format + 8 ]";
-        } else if (expression->getType() == ast::Type::Types::Float) {
+        } 
+        
+        if (expression->getType() == ast::Type::Types::Float) {
             formatLocation = "[ offset flat:.io_format + 4 ]";
+            std::string tempLocation = mRegisterManager.get_free_register();
+
+            // convert float to double with floating point stack
+            mOutputS <<
+                "#  Printing float constant\n"
+                "   sub %esp, 8\n" // allocate space for double
+                "   mov " + tempLocation + ", " + expression->getCalclationLocation() + "\n"
+                "   fld dword ptr [" + tempLocation + "]\n"
+                "   fstp qword ptr [%esp]\n"
+                "   push " + formatLocation + "\n"
+                "   call printf\n"
+                "   add %esp, 12\n" // printf args
+            ;
+
+            // clear used register
+            mRegisterManager.clear_all();
+        } else {
+            // output on anything but a float
+            mOutputS <<
+                "   push " + expression->getCalclationLocation() + "\n"
+                "   push " + formatLocation + "\n"
+                "   call printf\n"
+                "   add %esp, 8\n"
+            ;
         }
-
-        mOutputS <<
-            "   push " + expression->getCalclationLocation() + "\n"
-            "   push offset " + formatLocation + "\n"
-            "   call printf\n"
-            "   add %esp, 8\n"
-        ;
     }
-
 }
 
 void CodeGeneratorVisitor::visit(ast::Read* r) {
