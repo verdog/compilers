@@ -37,6 +37,7 @@ MemoryInfo::MemoryInfo()
 , upperOffset {0}
 , lowerOffset {0}
 , type {ast::Type::Types::Undefined}
+, isArray {false}
 {
 
 }

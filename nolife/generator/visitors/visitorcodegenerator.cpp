@@ -161,6 +161,46 @@ void CodeGeneratorVisitor::visit(ast::Program* p) {
 }
 
 void CodeGeneratorVisitor::visit(ast::Declaration* d) {
+    mLogS << "Visiting a decl node. Current procedure is " << mCurrentProcedure << std::endl;
+    auto children = d->getChildren();
+    auto memMap = mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure];
+
+    int farOffset = 0;
+
+    for (auto node : children) {
+        if (auto typeNode = dynamic_cast<ast::Type*>(node)) {
+            ast::Symbol* symbolNode;
+            
+            // obtain correct symbol
+            if (symbolNode = typeNode->childAsSymbol()) {
+            } else if (symbolNode = typeNode->childAsArray()->childAsSymbol()) {
+            } 
+            
+            // update biggest offset
+            if (symbolNode) {
+                auto info = memMap[symbolNode->getImage()];
+                if (!info.isArray) {
+                    // variable
+                    if (info.offset < farOffset) {
+                        farOffset = info.offset;
+                    }
+                } else {
+                    // array
+                    if (info.lowerOffset < farOffset) {
+                        farOffset = info.lowerOffset;
+                    }
+                }
+
+            } else {
+                mLogS << "Detected a procedure in a decl node.\n";
+            }
+        }
+    }
+
+    mOutputS <<
+        "   sub %ebp, " + std::to_string(std::abs(farOffset)) + "\n"
+    ;
+
     visitUniversal(d);
 }
 

@@ -1,9 +1,10 @@
 { Extremely simple Oard program }
 
 PROGRAM Simple;
+	VAR
+	a: INTEGER;
 	BEGIN
-		WRITE(8.0);
-		WRITE('lmaoxd');
-		WRITE('h');
-		WRITE(50)
+		a := 4;
+
+		WRITE(a)
 	END
