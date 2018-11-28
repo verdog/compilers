@@ -326,28 +326,31 @@ void CodeGeneratorVisitor::visit(ast::Constant* c) {
 void CodeGeneratorVisitor::visit(ast::Expression* e) {
     visitUniversal(e);
 
-    if (auto constantNode = dynamic_cast<ast::Constant*>(e->getChildren()[0])) {
-        // child is a constant
-        // set location to constant location
+    if (e->getChildren().size() == 1) {
+        // single child expression
+        if (auto constantNode = dynamic_cast<ast::Constant*>(e->getChildren()[0])) {
+            // child is a constant
+            // set location to constant location
 
-        std::string constImage = constantNode->getImage();
-        auto type = constantNode->getType();
+            std::string constImage = constantNode->getImage();
+            auto type = constantNode->getType();
 
-        if (type == ast::Type::Types::Integer) {
-            e->setCalculationLocation(constImage);
-        } else if (type == ast::Type::Types::Character) {
-            std::ostringstream ss;
-            ss << "0x" << std::hex << (unsigned int)constImage[1];
-            e->setCalculationLocation(ss.str());
-        } else { // float (string constants are handled elseware)
-            int offset = mMemoryMapVisitor.mConstantMap[constImage].offset;
-            std::string location = "[ offset flat:_constant + " + std::to_string(offset) + " ]";
-            e->setCalculationLocation(location);
+            if (type == ast::Type::Types::Integer) {
+                e->setCalculationLocation(constImage);
+            } else if (type == ast::Type::Types::Character) {
+                std::ostringstream ss;
+                ss << "0x" << std::hex << (unsigned int)constImage[1];
+                e->setCalculationLocation(ss.str());
+            } else { // float (string constants are handled elseware)
+                int offset = mMemoryMapVisitor.mConstantMap[constImage].offset;
+                std::string location = "[ offset flat:_constant + " + std::to_string(offset) + " ]";
+                e->setCalculationLocation(location);
+            }
+        } else if (auto arrayAccessNode = dynamic_cast<ast::ArrayAccess*>(e->getChildren()[0])) { 
+            e->setCalculationLocation(arrayAccessNode->getCalculationLocation());
+        } else if (auto varNode = dynamic_cast<ast::Variable*>(e->getChildren()[0])) {
+            e->setCalculationLocation(varNode->getCalculationLocation());
         }
-    } else if (auto arrayAccessNode = dynamic_cast<ast::ArrayAccess*>(e->getChildren()[0])) { 
-        e->setCalculationLocation(arrayAccessNode->getCalculationLocation());
-    } else if (auto varNode = dynamic_cast<ast::Variable*>(e->getChildren()[0])) {
-        e->setCalculationLocation(varNode->getCalculationLocation());
     }
 }
 

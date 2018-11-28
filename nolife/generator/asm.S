@@ -10,6 +10,7 @@
    .string "%c\12"
    .string "%s\12"
 _constant:
+   .float 2.0
 .text
    .globl main;
    .type main, @function
@@ -29,8 +30,8 @@ main:
    lea %ebx, dword ptr [ %ebp-12 ]
    add %ebx, %eax
    mov %edi, %ebx
-#  Assignment: a := 2
-   mov %esi, 2
+#  Assignment: a := [ offset flat:_constant + 0 ]
+   mov %esi, [ offset flat:_constant + 0 ]
    mov [%edi], %esi
 #  Cleared the register manager.
 #  Array access: a[2]
@@ -42,9 +43,13 @@ main:
    add %ebx, %eax
    mov %edi, %ebx
 #  Printing expression:
-   push [%edi]
-   push offset flat:.io_format
+#  Printing float constant
+   sub %esp, 8
+   mov %esi, [%edi]
+   fld dword ptr [%esi]
+   fstp qword ptr [%esp]
+   push [ offset flat:.io_format + 4 ]
    call printf
-   add %esp, 8
+   add %esp, 12
    leave
    ret
