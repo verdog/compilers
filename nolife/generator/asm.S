@@ -117,6 +117,24 @@ __L_DONE_5:
    push offset flat:.io_format
    call printf
    add %esp, 8
+   # dword ptr [ %ebp-4 ] AND 2
+   mov %eax, dword ptr [ %ebp-4 ]
+   and %eax, 2
+   mov %edi, %eax
+#  Printing expression:
+   push %edi
+   push offset flat:.io_format
+   call printf
+   add %esp, 8
+   # dword ptr [ %ebp-4 ] OR 2
+   mov %eax, dword ptr [ %ebp-4 ]
+   or %eax, 2
+   mov %edi, %eax
+#  Printing expression:
+   push %edi
+   push offset flat:.io_format
+   call printf
+   add %esp, 8
    # Return 0
    mov %eax, 0
    leave

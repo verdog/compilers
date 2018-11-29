@@ -544,6 +544,32 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
 
             e->setCalculationLocation(tempReg);
         break;
+        case EX::And:
+            // AND
+            tempReg = mRegisterManager.get_free_register();
+
+            mOutputS <<
+                "   # " + leftExp->getCalculationLocation() + " AND " + rightExp->getCalculationLocation() + "\n"
+                "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
+                "   and %eax, " + rightExp->getCalculationLocation() + "\n"
+                "   mov " + tempReg + ", %eax\n"
+            ;
+
+            e->setCalculationLocation(tempReg);
+        break;
+        case EX::Or:
+            // OR
+            tempReg = mRegisterManager.get_free_register();
+
+            mOutputS <<
+                "   # " + leftExp->getCalculationLocation() + " OR " + rightExp->getCalculationLocation() + "\n"
+                "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
+                "   or %eax, " + rightExp->getCalculationLocation() + "\n"
+                "   mov " + tempReg + ", %eax\n"
+            ;
+
+            e->setCalculationLocation(tempReg);
+        break;
     }
 }
 
