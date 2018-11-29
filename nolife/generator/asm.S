@@ -17,22 +17,103 @@ main:
    push %ebp
    mov %ebp, %esp
    sub %esp, 4
-#  Assignment: a := 7
-   mov %edi, 7
+#  Assignment: a := 1
+   mov %edi, 1
    mov dword ptr [ %ebp-4 ], %edi
 #  Cleared the register manager.
-   # dword ptr [ %ebp-4 ] % 4
-   xor %edx, %edx
+   # dword ptr [ %ebp-4 ] <= 1
    mov %eax, dword ptr [ %ebp-4 ]
-   mov %edi, 4
-   idiv %edi
-   mov %edi, %edx
-#  Assignment: a := %edi
-   mov %esi, %edi
-   mov dword ptr [ %ebp-4 ], %esi
-#  Cleared the register manager.
+   cmp %eax, 1
+   jle __L_TRUE_0
+__L_FALSE_0:
+   mov %edi, 0
+   jmp __L_DONE_0
+__L_TRUE_0:
+   mov %edi, 0xffffffff
+   jmp __L_DONE_0
+__L_DONE_0:
 #  Printing expression:
-   push dword ptr [ %ebp-4 ]
+   push %edi
+   push offset flat:.io_format
+   call printf
+   add %esp, 8
+   # dword ptr [ %ebp-4 ] < 1
+   mov %eax, dword ptr [ %ebp-4 ]
+   cmp %eax, 1
+   jl __L_TRUE_1
+__L_FALSE_1:
+   mov %edi, 0
+   jmp __L_DONE_1
+__L_TRUE_1:
+   mov %edi, 0xffffffff
+   jmp __L_DONE_1
+__L_DONE_1:
+#  Printing expression:
+   push %edi
+   push offset flat:.io_format
+   call printf
+   add %esp, 8
+   # dword ptr [ %ebp-4 ] >= 1
+   mov %eax, dword ptr [ %ebp-4 ]
+   cmp %eax, 1
+   jge __L_TRUE_2
+__L_FALSE_2:
+   mov %edi, 0
+   jmp __L_DONE_2
+__L_TRUE_2:
+   mov %edi, 0xffffffff
+   jmp __L_DONE_2
+__L_DONE_2:
+#  Printing expression:
+   push %edi
+   push offset flat:.io_format
+   call printf
+   add %esp, 8
+   # dword ptr [ %ebp-4 ] > 1
+   mov %eax, dword ptr [ %ebp-4 ]
+   cmp %eax, 1
+   jg __L_TRUE_3
+__L_FALSE_3:
+   mov %edi, 0
+   jmp __L_DONE_3
+__L_TRUE_3:
+   mov %edi, 0xffffffff
+   jmp __L_DONE_3
+__L_DONE_3:
+#  Printing expression:
+   push %edi
+   push offset flat:.io_format
+   call printf
+   add %esp, 8
+   # dword ptr [ %ebp-4 ] = 1
+   mov %eax, dword ptr [ %ebp-4 ]
+   cmp %eax, 1
+   je __L_TRUE_4
+__L_FALSE_4:
+   mov %edi, 0
+   jmp __L_DONE_4
+__L_TRUE_4:
+   mov %edi, 0xffffffff
+   jmp __L_DONE_4
+__L_DONE_4:
+#  Printing expression:
+   push %edi
+   push offset flat:.io_format
+   call printf
+   add %esp, 8
+   # dword ptr [ %ebp-4 ] <> 1
+   mov %eax, dword ptr [ %ebp-4 ]
+   cmp %eax, 1
+   jne __L_TRUE_5
+__L_FALSE_5:
+   mov %edi, 0
+   jmp __L_DONE_5
+__L_TRUE_5:
+   mov %edi, 0xffffffff
+   jmp __L_DONE_5
+__L_DONE_5:
+#  Printing expression:
+   push %edi
    push offset flat:.io_format
    call printf
    add %esp, 8

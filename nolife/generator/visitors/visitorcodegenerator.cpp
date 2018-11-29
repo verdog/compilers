@@ -359,6 +359,7 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
     auto leftExp = dynamic_cast<ast::Expression*>(e->getChildren()[0]);
     auto rightExp = dynamic_cast<ast::Expression*>(e->getChildren()[1]);
     std::string tempReg;
+    auto labels = ConditionalLabelManager::LabelTriple("", "", "");
 
     using EX = ast::Expression;
     switch (e->getOperation()) {
@@ -413,6 +414,132 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
                 "   mov " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
                 "   idiv " + tempReg + "\n"
                 "   mov " + tempReg + ", %edx\n"
+            ;
+
+            e->setCalculationLocation(tempReg);
+        break;
+        case EX::LessThanOrEqual:
+            // <=
+            tempReg = mRegisterManager.get_free_register();
+            labels = mConditionalLabelManager.generateLabelTriple();
+
+            mOutputS <<
+                "   # " + leftExp->getCalculationLocation() + " <= " + rightExp->getCalculationLocation() + "\n"
+                "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
+                "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
+                "   jle " + labels.labelTrue + "\n"
+                "" + labels.labelFalse + ":\n"
+                "   mov " + tempReg + ", 0\n"
+                "   jmp " + labels.labelEnd + "\n"
+                "" + labels.labelTrue + ":\n"
+                "   mov " + tempReg + ", 0xffffffff\n"
+                "   jmp " + labels.labelEnd + "\n"
+                "" + labels.labelEnd + ":\n"
+            ;
+
+            e->setCalculationLocation(tempReg);
+        break;
+        case EX::LessThan:
+            // <
+            tempReg = mRegisterManager.get_free_register();
+            labels = mConditionalLabelManager.generateLabelTriple();
+
+            mOutputS <<
+                "   # " + leftExp->getCalculationLocation() + " < " + rightExp->getCalculationLocation() + "\n"
+                "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
+                "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
+                "   jl " + labels.labelTrue + "\n"
+                "" + labels.labelFalse + ":\n"
+                "   mov " + tempReg + ", 0\n"
+                "   jmp " + labels.labelEnd + "\n"
+                "" + labels.labelTrue + ":\n"
+                "   mov " + tempReg + ", 0xffffffff\n"
+                "   jmp " + labels.labelEnd + "\n"
+                "" + labels.labelEnd + ":\n"
+            ;
+
+            e->setCalculationLocation(tempReg);
+        break;
+        case EX::GreaterThanOrEqual:
+            // >=
+            tempReg = mRegisterManager.get_free_register();
+            labels = mConditionalLabelManager.generateLabelTriple();
+
+            mOutputS <<
+                "   # " + leftExp->getCalculationLocation() + " >= " + rightExp->getCalculationLocation() + "\n"
+                "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
+                "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
+                "   jge " + labels.labelTrue + "\n"
+                "" + labels.labelFalse + ":\n"
+                "   mov " + tempReg + ", 0\n"
+                "   jmp " + labels.labelEnd + "\n"
+                "" + labels.labelTrue + ":\n"
+                "   mov " + tempReg + ", 0xffffffff\n"
+                "   jmp " + labels.labelEnd + "\n"
+                "" + labels.labelEnd + ":\n"
+            ;
+
+            e->setCalculationLocation(tempReg);
+        break;
+        case EX::GreaterThan:
+            // >
+            tempReg = mRegisterManager.get_free_register();
+            labels = mConditionalLabelManager.generateLabelTriple();
+
+            mOutputS <<
+                "   # " + leftExp->getCalculationLocation() + " > " + rightExp->getCalculationLocation() + "\n"
+                "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
+                "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
+                "   jg " + labels.labelTrue + "\n"
+                "" + labels.labelFalse + ":\n"
+                "   mov " + tempReg + ", 0\n"
+                "   jmp " + labels.labelEnd + "\n"
+                "" + labels.labelTrue + ":\n"
+                "   mov " + tempReg + ", 0xffffffff\n"
+                "   jmp " + labels.labelEnd + "\n"
+                "" + labels.labelEnd + ":\n"
+            ;
+
+            e->setCalculationLocation(tempReg);
+        break;
+        case EX::Equals:
+            // =
+            tempReg = mRegisterManager.get_free_register();
+            labels = mConditionalLabelManager.generateLabelTriple();
+
+            mOutputS <<
+                "   # " + leftExp->getCalculationLocation() + " = " + rightExp->getCalculationLocation() + "\n"
+                "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
+                "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
+                "   je " + labels.labelTrue + "\n"
+                "" + labels.labelFalse + ":\n"
+                "   mov " + tempReg + ", 0\n"
+                "   jmp " + labels.labelEnd + "\n"
+                "" + labels.labelTrue + ":\n"
+                "   mov " + tempReg + ", 0xffffffff\n"
+                "   jmp " + labels.labelEnd + "\n"
+                "" + labels.labelEnd + ":\n"
+            ;
+
+            e->setCalculationLocation(tempReg);
+        break;
+        case EX::NotEqual:
+            // <>
+            tempReg = mRegisterManager.get_free_register();
+            labels = mConditionalLabelManager.generateLabelTriple();
+
+            mOutputS <<
+                "   # " + leftExp->getCalculationLocation() + " <> " + rightExp->getCalculationLocation() + "\n"
+                "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
+                "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
+                "   jne " + labels.labelTrue + "\n"
+                "" + labels.labelFalse + ":\n"
+                "   mov " + tempReg + ", 0\n"
+                "   jmp " + labels.labelEnd + "\n"
+                "" + labels.labelTrue + ":\n"
+                "   mov " + tempReg + ", 0xffffffff\n"
+                "   jmp " + labels.labelEnd + "\n"
+                "" + labels.labelEnd + ":\n"
             ;
 
             e->setCalculationLocation(tempReg);
@@ -509,6 +636,8 @@ void CodeGeneratorVisitor::visit(ast::Write* w) {
             ;
         }
     }
+
+    mRegisterManager.clear_all();
 }
 
 void CodeGeneratorVisitor::visit(ast::Read* r) {

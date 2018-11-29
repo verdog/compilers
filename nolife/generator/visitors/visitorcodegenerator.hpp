@@ -6,6 +6,7 @@
 
 #include "../visitors/visitor.hpp"
 #include "../utilities/registermanager.hpp"
+#include "../utilities/conditionallabelmanager.hpp"
 
 class TypeCheckVisitor;
 class MemoryMapVisitor;
@@ -64,4 +65,5 @@ class CodeGeneratorVisitor : public Visitor {
         std::string mCurrentProcedure;
 
         RegisterManager mRegisterManager;
+        ConditionalLabelManager mConditionalLabelManager;
 };
