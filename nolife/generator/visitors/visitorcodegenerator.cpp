@@ -66,6 +66,10 @@ void CodeGeneratorVisitor::initialize() {
         "   .string \"%f\\12\"\n"
         "   .string \"%c\\12\"\n"
         "   .string \"%s\\12\"\n"
+        ".io_format_in:\n"
+        "   .string \"%d\"\n"
+        "   .string \"%f\"\n"
+        "   .string \"%c\"\n"
         "_constant:\n"
     ;
     
@@ -663,10 +667,11 @@ void CodeGeneratorVisitor::visit(ast::Write* w) {
             // convert float to double with floating point stack
             mOutputS <<
                 "#  Printing float constant\n"
-                "   sub %esp, 8\n" // allocate space for double
-                "   mov " + tempLocation + ", " + expression->getCalculationLocation() + "\n"
-                "   fld dword ptr [" + tempLocation + "]\n"
-                "   fstp qword ptr [%esp]\n"
+                // "   mov " + tempLocation + ", " + expression->getCalculationLocation() + "\n"
+                "   sub %esp, 4\n" // allocate space for double
+                "   push " + expression->getCalculationLocation() + "\n"
+                "   fld dword ptr [ %esp ]\n"
+                "   fstp qword ptr [ %esp ]\n"
                 "   push " + formatLocation + "\n"
                 "   call printf\n"
                 "   add %esp, 12\n" // printf args
@@ -690,4 +695,34 @@ void CodeGeneratorVisitor::visit(ast::Write* w) {
 
 void CodeGeneratorVisitor::visit(ast::Read* r) {
     visitUniversal(r);
+
+    if (auto varNode = dynamic_cast<ast::Variable*>(r->getChildren()[0])) {
+        std::string image = varNode->getSymbol()->getImage();
+        std::string location = varNode->getCalculationLocation();
+        auto type = mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure][image].type;
+        int offset = mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure][image].offset;
+
+        mOutputS <<
+            "   # READ ( " + location + " )\n"
+            "   mov %eax, %ebp\n"
+            "   sub %eax, " + std::to_string(std::abs(offset)) + "\n"
+            "   push %eax\n"
+        ;
+
+        // push correct format string
+        if (type == ast::Type::Types::Integer) {
+            mOutputS << "   push [ offset flat:.io_format_in + 0 ]\n";
+        } else if (type == ast::Type::Types::Float) {
+            mOutputS << "   push [ offset flat:.io_format_in + 3 ]\n";
+        } else if (type == ast::Type::Types::Character) {
+            mOutputS << "   push [ offset flat:.io_format_in + 6 ]\n";
+        }
+        
+        mOutputS <<
+            "   call scanf\n"
+            "   add %esp, 8\n"
+        ;
+    }
+
+    mRegisterManager.clear_all();
 }

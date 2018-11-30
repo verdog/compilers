@@ -119,6 +119,7 @@ void MemoryMapVisitor::visit(ast::Declaration* d) {
         else if (typeNode != nullptr && typeNode->childAsProcedure() == nullptr) {
             std::string symbol = typeNode->childAsSymbol()->getImage();
             mProcedureToSymbolsMap[currentProcedure][symbol].offset = mCurrentVariableOffset;
+            mProcedureToSymbolsMap[currentProcedure][symbol].type = typeNode->getType();
             incrementVariableOffset();
         }
     }
@@ -310,6 +311,7 @@ void MemoryMapVisitor::dumpOutput(std::ostream& out) {
             if (!data.isArray) {
                 out << "  " << symbol << ":\n";
                 out << "    offset: " << data.offset << std::endl;
+                out << "    type: " << ast::typeToString(data.type) << std::endl;
             } else {
                 // array element
                 out << "  " << symbol << ":\n";

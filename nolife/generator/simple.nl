@@ -3,15 +3,13 @@
 PROGRAM Simple;
 	VAR
 	a: INTEGER;
+	b: FLOAT;
+	c: CHARACTER;
 	BEGIN
-		a := 1;
-		WRITE(a <= 1);
-		WRITE(a < 1);
-		WRITE(a >= 1);
-		WRITE(a > 1);
-		WRITE(a = 1);
-		WRITE(a <> 1);
-		WRITE(a AND 2);
-		WRITE(a OR 2);
-		WRITE(NOT(0))
+		READ(a);
+		READ(b);
+		READ(c);
+		WRITE(a);
+		WRITE(b);
+		WRITE(c)
 	END

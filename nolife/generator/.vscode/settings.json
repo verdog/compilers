@@ -35,6 +35,7 @@
         "memory": "cpp",
         "algorithm": "cpp",
         "ctime": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "cinttypes": "cpp"
     }
 }
