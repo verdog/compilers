@@ -328,6 +328,9 @@ void CodeGeneratorVisitor::visit(ast::Constant* c) {
 void CodeGeneratorVisitor::visit(ast::Expression* e) {
     visitUniversal(e);
 
+    std::string tempReg;
+    auto labels = ConditionalLabelManager::LabelTriple("", "", "");
+
     if (e->getChildren().size() == 1) {
         // single child expression
         if (auto constantNode = dynamic_cast<ast::Constant*>(e->getChildren()[0])) {
@@ -352,14 +355,33 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
             e->setCalculationLocation(arrayAccessNode->getCalculationLocation());
         } else if (auto varNode = dynamic_cast<ast::Variable*>(e->getChildren()[0])) {
             e->setCalculationLocation(varNode->getCalculationLocation());
+        } else if (auto expNode = dynamic_cast<ast::Expression*>(e->getChildren()[0])) {
+            if (e->getOperation() == ast::Expression::Not) {
+                tempReg = mRegisterManager.get_free_register();
+                labels = mConditionalLabelManager.generateLabelTriple();
+
+                mOutputS <<
+                    "   # NOT " + expNode->getCalculationLocation() + "\n"
+                    "   mov %eax, " + expNode->getCalculationLocation() + "\n"
+                    "   cmp %eax, 0\n"
+                    "   je " + labels.labelTrue + "\n"
+                    "" + labels.labelFalse + ":\n"
+                    "   mov " + tempReg + ", 0\n"
+                    "   jmp " + labels.labelEnd + "\n"
+                    "" + labels.labelTrue + ":\n"
+                    "   mov " + tempReg + ", 0xffffffff\n"
+                    "   jmp " + labels.labelEnd + "\n"
+                    "" + labels.labelEnd + ":\n"
+                ;
+
+                e->setCalculationLocation(tempReg);
+            }
         }
     }
 
     // binary expression
     auto leftExp = dynamic_cast<ast::Expression*>(e->getChildren()[0]);
     auto rightExp = dynamic_cast<ast::Expression*>(e->getChildren()[1]);
-    std::string tempReg;
-    auto labels = ConditionalLabelManager::LabelTriple("", "", "");
 
     using EX = ast::Expression;
     switch (e->getOperation()) {

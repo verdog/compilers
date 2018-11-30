@@ -135,6 +135,22 @@ __L_DONE_5:
    push offset flat:.io_format
    call printf
    add %esp, 8
+   # NOT 0
+   mov %eax, 0
+   cmp %eax, 0
+   je __L_TRUE_6
+__L_FALSE_6:
+   mov %edi, 0
+   jmp __L_DONE_6
+__L_TRUE_6:
+   mov %edi, 0xffffffff
+   jmp __L_DONE_6
+__L_DONE_6:
+#  Printing expression:
+   push %edi
+   push offset flat:.io_format
+   call printf
+   add %esp, 8
    # Return 0
    mov %eax, 0
    leave

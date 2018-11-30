@@ -12,5 +12,6 @@ PROGRAM Simple;
 		WRITE(a = 1);
 		WRITE(a <> 1);
 		WRITE(a AND 2);
-		WRITE(a OR 2)
+		WRITE(a OR 2);
+		WRITE(NOT(0))
 	END
