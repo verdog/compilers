@@ -20,45 +20,34 @@ _constant:
 main:
    push %ebp
    mov %ebp, %esp
-   sub %esp, 12
-   # READ ( dword ptr [ %ebp-4 ] )
-   mov %eax, %ebp
-   sub %eax, 4
+   sub %esp, 52
+#  Array access: d[4]
+   mov %eax, 4
+   sub %eax, 1
+   mov %edx, 4
+   imul %edx
+   mov %edx, %ebp
+   sub %edx, 52
+   add %edx, %eax
+   mov %edi, %edx
+#  READ ( [ %edi ] ) ( ArrayAccess )
+   lea %eax, [ %edi ]
    push %eax
    push [ offset flat:.io_format_in + 0 ]
    call scanf
    add %esp, 8
-   # READ ( dword ptr [ %ebp-8 ] )
-   mov %eax, %ebp
-   sub %eax, 8
-   push %eax
-   push [ offset flat:.io_format_in + 3 ]
-   call scanf
-   add %esp, 8
-   # READ ( dword ptr [ %ebp-12 ] )
-   mov %eax, %ebp
-   sub %eax, 12
-   push %eax
-   push [ offset flat:.io_format_in + 6 ]
-   call scanf
-   add %esp, 8
+#  Array access: d[4]
+   mov %eax, 4
+   sub %eax, 1
+   mov %edx, 4
+   imul %edx
+   mov %edx, %ebp
+   sub %edx, 52
+   add %edx, %eax
+   mov %edi, %edx
 #  Printing expression:
-   push dword ptr [ %ebp-4 ]
+   push [ %edi ]
    push offset flat:.io_format
-   call printf
-   add %esp, 8
-#  Printing expression:
-#  Printing float constant
-   sub %esp, 4
-   push dword ptr [ %ebp-8 ]
-   fld dword ptr [ %esp ]
-   fstp qword ptr [ %esp ]
-   push [ offset flat:.io_format + 4 ]
-   call printf
-   add %esp, 12
-#  Printing expression:
-   push dword ptr [ %ebp-12 ]
-   push [ offset flat:.io_format + 8 ]
    call printf
    add %esp, 8
    # Return 0

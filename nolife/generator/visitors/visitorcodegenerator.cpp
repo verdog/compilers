@@ -266,12 +266,13 @@ void CodeGeneratorVisitor::visit(ast::ArrayAccess* aa) {
         "   sub %eax, " + std::to_string(unitOffset) + "\n"
         "   mov %edx, 4\n"
         "   imul %edx\n"
-        "   lea %edx, dword ptr [ %ebp" + std::to_string(info.lowerOffset) + " ]\n"
+        "   mov %edx, %ebp\n"
+        "   sub %edx, " + std::to_string(std::abs(info.lowerOffset)) + "\n"
         "   add %edx, %eax\n"
         "   mov " + tempReg + ", %edx\n"
     ;
 
-    aa->setCalculationLocation("[" + tempReg + "]");
+    aa->setCalculationLocation("[ " + tempReg + " ]");
 }
 
 void CodeGeneratorVisitor::visit(ast::Array* a) {
@@ -381,221 +382,221 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
                 e->setCalculationLocation(tempReg);
             }
         }
-    }
+    } else {
+        // binary expression
+        auto leftExp = dynamic_cast<ast::Expression*>(e->getChildren()[0]);
+        auto rightExp = dynamic_cast<ast::Expression*>(e->getChildren()[1]);
 
-    // binary expression
-    auto leftExp = dynamic_cast<ast::Expression*>(e->getChildren()[0]);
-    auto rightExp = dynamic_cast<ast::Expression*>(e->getChildren()[1]);
+        using EX = ast::Expression;
+        switch (e->getOperation()) {
+            case EX::Plus:
+                // plus
+                tempReg = mRegisterManager.get_free_register();
 
-    using EX = ast::Expression;
-    switch (e->getOperation()) {
-        case EX::Plus:
-            // plus
-            tempReg = mRegisterManager.get_free_register();
+                mOutputS <<
+                    "   # " + leftExp->getCalculationLocation() + " + " + rightExp->getCalculationLocation() + "\n"
+                    "   mov " + tempReg + ", " + leftExp->getCalculationLocation() + "\n"
+                    "   add " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
+                ;
 
-            mOutputS <<
-                "   # " + leftExp->getCalculationLocation() + " + " + rightExp->getCalculationLocation() + "\n"
-                "   mov " + tempReg + ", " + leftExp->getCalculationLocation() + "\n"
-                "   add " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
-            ;
+                mRegisterManager.clear_single(leftExp->getCalculationLocation());
 
-            mRegisterManager.clear_single(leftExp->getCalculationLocation());
+                e->setCalculationLocation(tempReg);
+            break;
+            case EX::Minus:
+                // minus
+                tempReg = mRegisterManager.get_free_register();
 
-            e->setCalculationLocation(tempReg);
-        break;
-        case EX::Minus:
-            // minus
-            tempReg = mRegisterManager.get_free_register();
+                mOutputS <<
+                    "   # " + leftExp->getCalculationLocation() + " - " + rightExp->getCalculationLocation() + "\n"
+                    "   mov " + tempReg + ", " + leftExp->getCalculationLocation() + "\n"
+                    "   add " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
+                ;
 
-            mOutputS <<
-                "   # " + leftExp->getCalculationLocation() + " - " + rightExp->getCalculationLocation() + "\n"
-                "   mov " + tempReg + ", " + leftExp->getCalculationLocation() + "\n"
-                "   add " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
-            ;
+                mRegisterManager.clear_single(leftExp->getCalculationLocation());
 
-            mRegisterManager.clear_single(leftExp->getCalculationLocation());
+                e->setCalculationLocation(tempReg);
+            break;
+            case EX::Multiply:
+                // multiply
+                tempReg = mRegisterManager.get_free_register();
 
-            e->setCalculationLocation(tempReg);
-        break;
-        case EX::Multiply:
-            // multiply
-            tempReg = mRegisterManager.get_free_register();
+                mOutputS <<
+                    "   # " + leftExp->getCalculationLocation() + " * " + rightExp->getCalculationLocation() + "\n"
+                    "   mov " + tempReg + ", " + leftExp->getCalculationLocation() + "\n"
+                    "   imul " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
+                ;
 
-            mOutputS <<
-                "   # " + leftExp->getCalculationLocation() + " * " + rightExp->getCalculationLocation() + "\n"
-                "   mov " + tempReg + ", " + leftExp->getCalculationLocation() + "\n"
-                "   imul " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
-            ;
+                e->setCalculationLocation(tempReg);
+            break;
+            case EX::Modulo:
+                // modulo
+                tempReg = mRegisterManager.get_free_register();
 
-            e->setCalculationLocation(tempReg);
-        break;
-        case EX::Modulo:
-            // modulo
-            tempReg = mRegisterManager.get_free_register();
+                mOutputS <<
+                    "   # " + leftExp->getCalculationLocation() + " % " + rightExp->getCalculationLocation() + "\n"
+                    "   xor %edx, %edx\n"
+                    "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
+                    "   mov " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
+                    "   idiv " + tempReg + "\n"
+                    "   mov " + tempReg + ", %edx\n"
+                ;
 
-            mOutputS <<
-                "   # " + leftExp->getCalculationLocation() + " % " + rightExp->getCalculationLocation() + "\n"
-                "   xor %edx, %edx\n"
-                "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
-                "   mov " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
-                "   idiv " + tempReg + "\n"
-                "   mov " + tempReg + ", %edx\n"
-            ;
+                e->setCalculationLocation(tempReg);
+            break;
+            case EX::LessThanOrEqual:
+                // <=
+                tempReg = mRegisterManager.get_free_register();
+                labels = mConditionalLabelManager.generateLabelTriple();
 
-            e->setCalculationLocation(tempReg);
-        break;
-        case EX::LessThanOrEqual:
-            // <=
-            tempReg = mRegisterManager.get_free_register();
-            labels = mConditionalLabelManager.generateLabelTriple();
+                mOutputS <<
+                    "   # " + leftExp->getCalculationLocation() + " <= " + rightExp->getCalculationLocation() + "\n"
+                    "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
+                    "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
+                    "   jle " + labels.labelTrue + "\n"
+                    "" + labels.labelFalse + ":\n"
+                    "   mov " + tempReg + ", 0\n"
+                    "   jmp " + labels.labelEnd + "\n"
+                    "" + labels.labelTrue + ":\n"
+                    "   mov " + tempReg + ", 0xffffffff\n"
+                    "   jmp " + labels.labelEnd + "\n"
+                    "" + labels.labelEnd + ":\n"
+                ;
 
-            mOutputS <<
-                "   # " + leftExp->getCalculationLocation() + " <= " + rightExp->getCalculationLocation() + "\n"
-                "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
-                "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
-                "   jle " + labels.labelTrue + "\n"
-                "" + labels.labelFalse + ":\n"
-                "   mov " + tempReg + ", 0\n"
-                "   jmp " + labels.labelEnd + "\n"
-                "" + labels.labelTrue + ":\n"
-                "   mov " + tempReg + ", 0xffffffff\n"
-                "   jmp " + labels.labelEnd + "\n"
-                "" + labels.labelEnd + ":\n"
-            ;
+                e->setCalculationLocation(tempReg);
+            break;
+            case EX::LessThan:
+                // <
+                tempReg = mRegisterManager.get_free_register();
+                labels = mConditionalLabelManager.generateLabelTriple();
 
-            e->setCalculationLocation(tempReg);
-        break;
-        case EX::LessThan:
-            // <
-            tempReg = mRegisterManager.get_free_register();
-            labels = mConditionalLabelManager.generateLabelTriple();
+                mOutputS <<
+                    "   # " + leftExp->getCalculationLocation() + " < " + rightExp->getCalculationLocation() + "\n"
+                    "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
+                    "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
+                    "   jl " + labels.labelTrue + "\n"
+                    "" + labels.labelFalse + ":\n"
+                    "   mov " + tempReg + ", 0\n"
+                    "   jmp " + labels.labelEnd + "\n"
+                    "" + labels.labelTrue + ":\n"
+                    "   mov " + tempReg + ", 0xffffffff\n"
+                    "   jmp " + labels.labelEnd + "\n"
+                    "" + labels.labelEnd + ":\n"
+                ;
 
-            mOutputS <<
-                "   # " + leftExp->getCalculationLocation() + " < " + rightExp->getCalculationLocation() + "\n"
-                "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
-                "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
-                "   jl " + labels.labelTrue + "\n"
-                "" + labels.labelFalse + ":\n"
-                "   mov " + tempReg + ", 0\n"
-                "   jmp " + labels.labelEnd + "\n"
-                "" + labels.labelTrue + ":\n"
-                "   mov " + tempReg + ", 0xffffffff\n"
-                "   jmp " + labels.labelEnd + "\n"
-                "" + labels.labelEnd + ":\n"
-            ;
+                e->setCalculationLocation(tempReg);
+            break;
+            case EX::GreaterThanOrEqual:
+                // >=
+                tempReg = mRegisterManager.get_free_register();
+                labels = mConditionalLabelManager.generateLabelTriple();
 
-            e->setCalculationLocation(tempReg);
-        break;
-        case EX::GreaterThanOrEqual:
-            // >=
-            tempReg = mRegisterManager.get_free_register();
-            labels = mConditionalLabelManager.generateLabelTriple();
+                mOutputS <<
+                    "   # " + leftExp->getCalculationLocation() + " >= " + rightExp->getCalculationLocation() + "\n"
+                    "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
+                    "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
+                    "   jge " + labels.labelTrue + "\n"
+                    "" + labels.labelFalse + ":\n"
+                    "   mov " + tempReg + ", 0\n"
+                    "   jmp " + labels.labelEnd + "\n"
+                    "" + labels.labelTrue + ":\n"
+                    "   mov " + tempReg + ", 0xffffffff\n"
+                    "   jmp " + labels.labelEnd + "\n"
+                    "" + labels.labelEnd + ":\n"
+                ;
 
-            mOutputS <<
-                "   # " + leftExp->getCalculationLocation() + " >= " + rightExp->getCalculationLocation() + "\n"
-                "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
-                "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
-                "   jge " + labels.labelTrue + "\n"
-                "" + labels.labelFalse + ":\n"
-                "   mov " + tempReg + ", 0\n"
-                "   jmp " + labels.labelEnd + "\n"
-                "" + labels.labelTrue + ":\n"
-                "   mov " + tempReg + ", 0xffffffff\n"
-                "   jmp " + labels.labelEnd + "\n"
-                "" + labels.labelEnd + ":\n"
-            ;
+                e->setCalculationLocation(tempReg);
+            break;
+            case EX::GreaterThan:
+                // >
+                tempReg = mRegisterManager.get_free_register();
+                labels = mConditionalLabelManager.generateLabelTriple();
 
-            e->setCalculationLocation(tempReg);
-        break;
-        case EX::GreaterThan:
-            // >
-            tempReg = mRegisterManager.get_free_register();
-            labels = mConditionalLabelManager.generateLabelTriple();
+                mOutputS <<
+                    "   # " + leftExp->getCalculationLocation() + " > " + rightExp->getCalculationLocation() + "\n"
+                    "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
+                    "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
+                    "   jg " + labels.labelTrue + "\n"
+                    "" + labels.labelFalse + ":\n"
+                    "   mov " + tempReg + ", 0\n"
+                    "   jmp " + labels.labelEnd + "\n"
+                    "" + labels.labelTrue + ":\n"
+                    "   mov " + tempReg + ", 0xffffffff\n"
+                    "   jmp " + labels.labelEnd + "\n"
+                    "" + labels.labelEnd + ":\n"
+                ;
 
-            mOutputS <<
-                "   # " + leftExp->getCalculationLocation() + " > " + rightExp->getCalculationLocation() + "\n"
-                "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
-                "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
-                "   jg " + labels.labelTrue + "\n"
-                "" + labels.labelFalse + ":\n"
-                "   mov " + tempReg + ", 0\n"
-                "   jmp " + labels.labelEnd + "\n"
-                "" + labels.labelTrue + ":\n"
-                "   mov " + tempReg + ", 0xffffffff\n"
-                "   jmp " + labels.labelEnd + "\n"
-                "" + labels.labelEnd + ":\n"
-            ;
+                e->setCalculationLocation(tempReg);
+            break;
+            case EX::Equals:
+                // =
+                tempReg = mRegisterManager.get_free_register();
+                labels = mConditionalLabelManager.generateLabelTriple();
 
-            e->setCalculationLocation(tempReg);
-        break;
-        case EX::Equals:
-            // =
-            tempReg = mRegisterManager.get_free_register();
-            labels = mConditionalLabelManager.generateLabelTriple();
+                mOutputS <<
+                    "   # " + leftExp->getCalculationLocation() + " = " + rightExp->getCalculationLocation() + "\n"
+                    "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
+                    "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
+                    "   je " + labels.labelTrue + "\n"
+                    "" + labels.labelFalse + ":\n"
+                    "   mov " + tempReg + ", 0\n"
+                    "   jmp " + labels.labelEnd + "\n"
+                    "" + labels.labelTrue + ":\n"
+                    "   mov " + tempReg + ", 0xffffffff\n"
+                    "   jmp " + labels.labelEnd + "\n"
+                    "" + labels.labelEnd + ":\n"
+                ;
 
-            mOutputS <<
-                "   # " + leftExp->getCalculationLocation() + " = " + rightExp->getCalculationLocation() + "\n"
-                "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
-                "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
-                "   je " + labels.labelTrue + "\n"
-                "" + labels.labelFalse + ":\n"
-                "   mov " + tempReg + ", 0\n"
-                "   jmp " + labels.labelEnd + "\n"
-                "" + labels.labelTrue + ":\n"
-                "   mov " + tempReg + ", 0xffffffff\n"
-                "   jmp " + labels.labelEnd + "\n"
-                "" + labels.labelEnd + ":\n"
-            ;
+                e->setCalculationLocation(tempReg);
+            break;
+            case EX::NotEqual:
+                // <>
+                tempReg = mRegisterManager.get_free_register();
+                labels = mConditionalLabelManager.generateLabelTriple();
 
-            e->setCalculationLocation(tempReg);
-        break;
-        case EX::NotEqual:
-            // <>
-            tempReg = mRegisterManager.get_free_register();
-            labels = mConditionalLabelManager.generateLabelTriple();
+                mOutputS <<
+                    "   # " + leftExp->getCalculationLocation() + " <> " + rightExp->getCalculationLocation() + "\n"
+                    "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
+                    "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
+                    "   jne " + labels.labelTrue + "\n"
+                    "" + labels.labelFalse + ":\n"
+                    "   mov " + tempReg + ", 0\n"
+                    "   jmp " + labels.labelEnd + "\n"
+                    "" + labels.labelTrue + ":\n"
+                    "   mov " + tempReg + ", 0xffffffff\n"
+                    "   jmp " + labels.labelEnd + "\n"
+                    "" + labels.labelEnd + ":\n"
+                ;
 
-            mOutputS <<
-                "   # " + leftExp->getCalculationLocation() + " <> " + rightExp->getCalculationLocation() + "\n"
-                "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
-                "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
-                "   jne " + labels.labelTrue + "\n"
-                "" + labels.labelFalse + ":\n"
-                "   mov " + tempReg + ", 0\n"
-                "   jmp " + labels.labelEnd + "\n"
-                "" + labels.labelTrue + ":\n"
-                "   mov " + tempReg + ", 0xffffffff\n"
-                "   jmp " + labels.labelEnd + "\n"
-                "" + labels.labelEnd + ":\n"
-            ;
+                e->setCalculationLocation(tempReg);
+            break;
+            case EX::And:
+                // AND
+                tempReg = mRegisterManager.get_free_register();
 
-            e->setCalculationLocation(tempReg);
-        break;
-        case EX::And:
-            // AND
-            tempReg = mRegisterManager.get_free_register();
+                mOutputS <<
+                    "   # " + leftExp->getCalculationLocation() + " AND " + rightExp->getCalculationLocation() + "\n"
+                    "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
+                    "   and %eax, " + rightExp->getCalculationLocation() + "\n"
+                    "   mov " + tempReg + ", %eax\n"
+                ;
 
-            mOutputS <<
-                "   # " + leftExp->getCalculationLocation() + " AND " + rightExp->getCalculationLocation() + "\n"
-                "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
-                "   and %eax, " + rightExp->getCalculationLocation() + "\n"
-                "   mov " + tempReg + ", %eax\n"
-            ;
+                e->setCalculationLocation(tempReg);
+            break;
+            case EX::Or:
+                // OR
+                tempReg = mRegisterManager.get_free_register();
 
-            e->setCalculationLocation(tempReg);
-        break;
-        case EX::Or:
-            // OR
-            tempReg = mRegisterManager.get_free_register();
+                mOutputS <<
+                    "   # " + leftExp->getCalculationLocation() + " OR " + rightExp->getCalculationLocation() + "\n"
+                    "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
+                    "   or %eax, " + rightExp->getCalculationLocation() + "\n"
+                    "   mov " + tempReg + ", %eax\n"
+                ;
 
-            mOutputS <<
-                "   # " + leftExp->getCalculationLocation() + " OR " + rightExp->getCalculationLocation() + "\n"
-                "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
-                "   or %eax, " + rightExp->getCalculationLocation() + "\n"
-                "   mov " + tempReg + ", %eax\n"
-            ;
-
-            e->setCalculationLocation(tempReg);
-        break;
+                e->setCalculationLocation(tempReg);
+            break;
+        }
     }
 }
 
@@ -696,14 +697,38 @@ void CodeGeneratorVisitor::visit(ast::Write* w) {
 void CodeGeneratorVisitor::visit(ast::Read* r) {
     visitUniversal(r);
 
-    if (auto varNode = dynamic_cast<ast::Variable*>(r->getChildren()[0])) {
+    if (auto arrNode = dynamic_cast<ast::ArrayAccess*>(r->getChildren()[0])) {
+        std::string image = arrNode->getSymbol()->getImage();
+        std::string location = arrNode->getCalculationLocation();
+        auto type = mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure][image].type;
+
+        mOutputS <<
+            "#  READ ( " + location + " ) ( ArrayAccess )\n"
+            "   lea %eax, " + location + "\n"
+            "   push %eax\n"
+        ;
+
+        // push correct format string
+        if (type == ast::Type::Types::Integer) {
+            mOutputS << "   push [ offset flat:.io_format_in + 0 ]\n";
+        } else if (type == ast::Type::Types::Float) {
+            mOutputS << "   push [ offset flat:.io_format_in + 3 ]\n";
+        } else if (type == ast::Type::Types::Character) {
+            mOutputS << "   push [ offset flat:.io_format_in + 6 ]\n";
+        }
+        
+        mOutputS <<
+            "   call scanf\n"
+            "   add %esp, 8\n"
+        ;
+    } else if (auto varNode = dynamic_cast<ast::Variable*>(r->getChildren()[0])) {
         std::string image = varNode->getSymbol()->getImage();
         std::string location = varNode->getCalculationLocation();
         auto type = mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure][image].type;
         int offset = mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure][image].offset;
 
         mOutputS <<
-            "   # READ ( " + location + " )\n"
+            "#  READ ( " + location + " )\n"
             "   mov %eax, %ebp\n"
             "   sub %eax, " + std::to_string(std::abs(offset)) + "\n"
             "   push %eax\n"

@@ -112,6 +112,7 @@ void MemoryMapVisitor::visit(ast::Declaration* d) {
             data.upperOffset = mCurrentVariableOffset + 4;
             data.lowerOffset = mCurrentVariableOffset + 4 - arrayNode->getLength() * 4;
             data.lowBoundString = arrayNode->getLowBound()->getImage();
+            data.type = typeNode->getType();
             mCurrentVariableOffset = data.lowerOffset;
             incrementVariableOffset();
         }
@@ -317,6 +318,7 @@ void MemoryMapVisitor::dumpOutput(std::ostream& out) {
                 out << "  " << symbol << ":\n";
                 out << "    offset: " << data.lowerOffset << " to " << data.upperOffset << std::endl;
                 out << "    low bound: " << data.lowBoundString << std::endl;
+                out << "    type: " << ast::typeToString(data.type) << std::endl;
             }
         }
     }

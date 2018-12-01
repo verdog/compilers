@@ -5,11 +5,8 @@ PROGRAM Simple;
 	a: INTEGER;
 	b: FLOAT;
 	c: CHARACTER;
+	d: ARRAY [1..10] OF INTEGER;
 	BEGIN
-		READ(a);
-		READ(b);
-		READ(c);
-		WRITE(a);
-		WRITE(b);
-		WRITE(c)
+		READ(d[4]);
+		WRITE(d[4])
 	END
