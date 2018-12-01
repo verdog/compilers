@@ -1,2 +1,0 @@
-libparser-g.a(astcallnode.o): astcallnode.cpp astcallnode.hpp \
- aststmtnode.hpp astnode.hpp astsymnode.hpp ../visitors/visitor.hpp

@@ -157,7 +157,7 @@ void CodeGeneratorVisitor::visit(ast::Program* p) {
     visitUniversal(p);
 
     mOutputS <<
-        "   # Return 0\n"
+        "#  Return 0\n"
         "   mov %eax, 0\n"
         "   leave\n"
         "   ret\n"

@@ -8,5 +8,7 @@ PROGRAM Simple;
 	d: ARRAY [1..10] OF INTEGER;
 	BEGIN
 		READ(d[4]);
+		WRITE(d[4]);
+		d[4] := 4;
 		WRITE(d[4])
 	END

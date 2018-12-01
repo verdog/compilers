@@ -50,7 +50,34 @@ main:
    push offset flat:.io_format
    call printf
    add %esp, 8
-   # Return 0
+#  Array access: d[4]
+   mov %eax, 4
+   sub %eax, 1
+   mov %edx, 4
+   imul %edx
+   mov %edx, %ebp
+   sub %edx, 52
+   add %edx, %eax
+   mov %edi, %edx
+#  Assignment: d := 4
+   mov %esi, 4
+   mov [ %edi ], %esi
+#  Cleared the register manager.
+#  Array access: d[4]
+   mov %eax, 4
+   sub %eax, 1
+   mov %edx, 4
+   imul %edx
+   mov %edx, %ebp
+   sub %edx, 52
+   add %edx, %eax
+   mov %edi, %edx
+#  Printing expression:
+   push [ %edi ]
+   push offset flat:.io_format
+   call printf
+   add %esp, 8
+#  Return 0
    mov %eax, 0
    leave
    ret
