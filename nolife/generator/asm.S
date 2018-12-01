@@ -14,8 +14,8 @@
    .string "%f"
    .string "%c"
 _constant:
-   .float 2.0
-   .float 3.4
+   .float 10.0
+   .float 5.0
 .text
    .globl main;
    .type main, @function
@@ -23,21 +23,23 @@ main:
    push %ebp
    mov %ebp, %esp
    sub %esp, 4
-   # 4 * [ offset flat:_constant + 4 ]
-   mov %edi, 4
-   imul %edi, [ offset flat:_constant + 4 ]
-   # [ offset flat:_constant + 0 ] + %edi
-   mov %esi, [ offset flat:_constant + 0 ]
-   add %esi, %edi
-#  Assignment: a := %esi
-   mov %ebx, %esi
-   mov dword ptr [ %ebp-4 ], %ebx
-#  Cleared the register manager.
+   # [ offset _constant + 0 ] + [ offset _constant + 4 ] (FLOAT)
+   mov %eax, [ offset _constant + 0 ]
+   fld dword ptr [ %eax ]
+   mov %eax, [ offset _constant + 4 ]
+   fadd dword ptr [ %eax ]
+   sub %esp, 4
+   fstp dword ptr [ %esp ] 
+   pop %edi
 #  Printing expression:
-   push dword ptr [ %ebp-4 ]
-   push offset flat:.io_format
+#  Printing float constant
+   sub %esp, 4
+   push %edi
+   fld dword ptr [ %esp ]
+   fstp qword ptr [ %esp ]
+   push [ offset .io_format + 4 ]
    call printf
-   add %esp, 8
+   add %esp, 12
 #  Return 0
    mov %eax, 0
    leave

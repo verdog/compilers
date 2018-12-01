@@ -2,8 +2,7 @@
 
 PROGRAM Simple;
 	VAR
-	a: INTEGER;
+	a: FLOAT;
 	BEGIN
-		a := 2.0 + 4 * 3.4;
-		WRITE(a)
+		WRITE(10.0 + 5.0)
 	END

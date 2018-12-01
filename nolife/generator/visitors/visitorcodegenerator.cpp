@@ -353,7 +353,7 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
                 e->setCalculationLocation(ss.str());
             } else { // float (string constants are handled elseware)
                 int offset = mMemoryMapVisitor.mConstantMap[constImage].offset;
-                std::string location = "[ offset flat:_constant + " + std::to_string(offset) + " ]";
+                std::string location = "[ offset _constant + " + std::to_string(offset) + " ]";
                 e->setCalculationLocation(location);
             }
         } else if (auto arrayAccessNode = dynamic_cast<ast::ArrayAccess*>(e->getChildren()[0])) { 
@@ -386,6 +386,8 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
         // binary expression
         auto leftExp = dynamic_cast<ast::Expression*>(e->getChildren()[0]);
         auto rightExp = dynamic_cast<ast::Expression*>(e->getChildren()[1]);
+        auto myRealType = e->getType();
+        auto myConvertedType = e->getConvertedType();
 
         using EX = ast::Expression;
         switch (e->getOperation()) {
@@ -393,15 +395,27 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
                 // plus
                 tempReg = mRegisterManager.get_free_register();
 
-                `
+                if (myRealType == ast::Type::Types::Integer) {
+                    mOutputS <<
+                        "#  " + leftExp->getCalculationLocation() + " + " + rightExp->getCalculationLocation() + " (INT)\n"
+                        "   mov " + tempReg + ", " + leftExp->getCalculationLocation() + "\n"
+                        "   add " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
+                    ;
+                    
+                    mRegisterManager.clear_single(leftExp->getCalculationLocation());
+                } else if (myRealType == ast::Type::Types::Float) {
+                    mOutputS <<
+                        "   # " + leftExp->getCalculationLocation() + " + " + rightExp->getCalculationLocation() + " (FLOAT)\n"
+                        "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
+                        "   fld dword ptr [ %eax ]\n"
+                        "   mov %eax, " + rightExp->getCalculationLocation() + "\n"
+                        "   fadd dword ptr [ %eax ]\n"
+                        "   sub %esp, 4\n"
+                        "   fstp dword ptr [ %esp ] \n"
+                        "   pop " + tempReg + "\n"
+                    ;
+                }
 
-                mOutputS <<
-                    "   # " + leftExp->getCalculationLocation() + " + " + rightExp->getCalculationLocation() + "\n"
-                    "   mov " + tempReg + ", " + leftExp->getCalculationLocation() + "\n"
-                    "   add " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
-                ;
-
-                mRegisterManager.clear_single(leftExp->getCalculationLocation());
 
                 e->setCalculationLocation(tempReg);
             break;
@@ -636,11 +650,11 @@ void CodeGeneratorVisitor::visit(ast::Write* w) {
 
         std::string image = constant->getImage();
         int offset = mMemoryMapVisitor.mConstantMap[image].offset;
-        std::string constantLocation = "[ offset flat:_constant + " + std::to_string(offset) + " ]";
-        std::string formatLocation = "offset flat:.io_format";
+        std::string constantLocation = "[ offset _constant + " + std::to_string(offset) + " ]";
+        std::string formatLocation = "offset .io_format";
 
         if (constant->getType() == ast::Type::Types::StringConstant) {
-            formatLocation = "[ offset flat:.io_format + 12 ]";
+            formatLocation = "[ offset .io_format + 12 ]";
         }
 
         mOutputS << "#  Printing string constant: " + image + "\n";
@@ -657,20 +671,19 @@ void CodeGeneratorVisitor::visit(ast::Write* w) {
 
         mOutputS << "#  Printing expression:\n";
 
-        std::string formatLocation = "offset flat:.io_format";
+        std::string formatLocation = "offset .io_format";
 
         if (expression->getType() == ast::Type::Types::Character) {
-            formatLocation = "[ offset flat:.io_format + 8 ]";
+            formatLocation = "[ offset .io_format + 8 ]";
         } 
         
         if (expression->getType() == ast::Type::Types::Float) {
-            formatLocation = "[ offset flat:.io_format + 4 ]";
+            formatLocation = "[ offset .io_format + 4 ]";
             std::string tempLocation = mRegisterManager.get_free_register();
 
             // convert float to double with floating point stack
             mOutputS <<
                 "#  Printing float constant\n"
-                // "   mov " + tempLocation + ", " + expression->getCalculationLocation() + "\n"
                 "   sub %esp, 4\n" // allocate space for double
                 "   push " + expression->getCalculationLocation() + "\n"
                 "   fld dword ptr [ %esp ]\n"
@@ -712,11 +725,11 @@ void CodeGeneratorVisitor::visit(ast::Read* r) {
 
         // push correct format string
         if (type == ast::Type::Types::Integer) {
-            mOutputS << "   push [ offset flat:.io_format_in + 0 ]\n";
+            mOutputS << "   push [ offset .io_format_in + 0 ]\n";
         } else if (type == ast::Type::Types::Float) {
-            mOutputS << "   push [ offset flat:.io_format_in + 3 ]\n";
+            mOutputS << "   push [ offset .io_format_in + 3 ]\n";
         } else if (type == ast::Type::Types::Character) {
-            mOutputS << "   push [ offset flat:.io_format_in + 6 ]\n";
+            mOutputS << "   push [ offset .io_format_in + 6 ]\n";
         }
         
         mOutputS <<
@@ -738,11 +751,11 @@ void CodeGeneratorVisitor::visit(ast::Read* r) {
 
         // push correct format string
         if (type == ast::Type::Types::Integer) {
-            mOutputS << "   push [ offset flat:.io_format_in + 0 ]\n";
+            mOutputS << "   push [ offset .io_format_in + 0 ]\n";
         } else if (type == ast::Type::Types::Float) {
-            mOutputS << "   push [ offset flat:.io_format_in + 3 ]\n";
+            mOutputS << "   push [ offset .io_format_in + 3 ]\n";
         } else if (type == ast::Type::Types::Character) {
-            mOutputS << "   push [ offset flat:.io_format_in + 6 ]\n";
+            mOutputS << "   push [ offset .io_format_in + 6 ]\n";
         }
         
         mOutputS <<
