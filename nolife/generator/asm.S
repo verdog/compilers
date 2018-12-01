@@ -14,66 +14,27 @@
    .string "%f"
    .string "%c"
 _constant:
+   .float 2.0
+   .float 3.4
 .text
    .globl main;
    .type main, @function
 main:
    push %ebp
    mov %ebp, %esp
-   sub %esp, 52
-#  Array access: d[4]
-   mov %eax, 4
-   sub %eax, 1
-   mov %edx, 4
-   imul %edx
-   mov %edx, %ebp
-   sub %edx, 52
-   add %edx, %eax
-   mov %edi, %edx
-#  READ ( [ %edi ] ) ( ArrayAccess )
-   lea %eax, [ %edi ]
-   push %eax
-   push [ offset flat:.io_format_in + 0 ]
-   call scanf
-   add %esp, 8
-#  Array access: d[4]
-   mov %eax, 4
-   sub %eax, 1
-   mov %edx, 4
-   imul %edx
-   mov %edx, %ebp
-   sub %edx, 52
-   add %edx, %eax
-   mov %edi, %edx
-#  Printing expression:
-   push [ %edi ]
-   push offset flat:.io_format
-   call printf
-   add %esp, 8
-#  Array access: d[4]
-   mov %eax, 4
-   sub %eax, 1
-   mov %edx, 4
-   imul %edx
-   mov %edx, %ebp
-   sub %edx, 52
-   add %edx, %eax
-   mov %edi, %edx
-#  Assignment: d := 4
-   mov %esi, 4
-   mov [ %edi ], %esi
+   sub %esp, 4
+   # 4 * [ offset flat:_constant + 4 ]
+   mov %edi, 4
+   imul %edi, [ offset flat:_constant + 4 ]
+   # [ offset flat:_constant + 0 ] + %edi
+   mov %esi, [ offset flat:_constant + 0 ]
+   add %esi, %edi
+#  Assignment: a := %esi
+   mov %ebx, %esi
+   mov dword ptr [ %ebp-4 ], %ebx
 #  Cleared the register manager.
-#  Array access: d[4]
-   mov %eax, 4
-   sub %eax, 1
-   mov %edx, 4
-   imul %edx
-   mov %edx, %ebp
-   sub %edx, 52
-   add %edx, %eax
-   mov %edi, %edx
 #  Printing expression:
-   push [ %edi ]
+   push dword ptr [ %ebp-4 ]
    push offset flat:.io_format
    call printf
    add %esp, 8

@@ -41,7 +41,9 @@ namespace ast {
 
             Operation getOperation();
             void setType(Type::Types t);
+            void setConvertedType(Type::Types t);
             Type::Types getType();
+            Type::Types getConvertedType();
             void setCalculationLocation(std::string location);
             std::string getCalculationLocation();
 
@@ -53,6 +55,7 @@ namespace ast {
             std::string mCalculationLocation;
 
             Type::Types mType;
+            Type::Types mConvertedType;
     };
 
 } // ast

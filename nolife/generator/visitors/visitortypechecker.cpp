@@ -431,6 +431,9 @@ void TypeCheckVisitor::visit(ast::Assignment* a) {
         // left is undeclared
         // caught when the node is visited
     }
+
+    // set converted type
+    right->setConvertedType(lookupSymbol(leftImage).type);
 }
 
 void TypeCheckVisitor::visit(ast::Call* c) {
@@ -596,6 +599,8 @@ void TypeCheckVisitor::visit(ast::Expression* e) {
 
         auto myType = getCombinedType(leftType, rightType, e->getOperation());
         e->setType(myType);
+        left->setConvertedType(myType);
+        right->setConvertedType(myType);
 
         if (myType == ast::Type::Types::Undefined) {
             std::cout << "!!!  Error: Incompatable types in expression.\n";

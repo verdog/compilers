@@ -393,6 +393,8 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
                 // plus
                 tempReg = mRegisterManager.get_free_register();
 
+                `
+
                 mOutputS <<
                     "   # " + leftExp->getCalculationLocation() + " + " + rightExp->getCalculationLocation() + "\n"
                     "   mov " + tempReg + ", " + leftExp->getCalculationLocation() + "\n"

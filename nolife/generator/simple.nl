@@ -3,12 +3,7 @@
 PROGRAM Simple;
 	VAR
 	a: INTEGER;
-	b: FLOAT;
-	c: CHARACTER;
-	d: ARRAY [1..10] OF INTEGER;
 	BEGIN
-		READ(d[4]);
-		WRITE(d[4]);
-		d[4] := 4;
-		WRITE(d[4])
+		a := 2.0 + 4 * 3.4;
+		WRITE(a)
 	END

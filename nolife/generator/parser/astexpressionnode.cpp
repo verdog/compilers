@@ -8,6 +8,7 @@ namespace ast {
     Expression::Expression(Expression::Operation op) {
         mKind = "expression";
         mType = Type::Types::Undefined;
+        mConvertedType = Type::Types::Undefined;
 
         mOperation = op;
     }
@@ -56,8 +57,16 @@ namespace ast {
         mType = t;
     }
 
+    void Expression::setConvertedType(Type::Types t) {
+        mConvertedType = t;
+    }
+
     Type::Types Expression::getType() {
         return mType;
+    }
+
+    Type::Types Expression::getConvertedType() {
+        return mConvertedType;
     }
 
     Variable* Expression::childAsVariable() {
