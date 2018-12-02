@@ -333,8 +333,13 @@ void CodeGeneratorVisitor::visit(ast::Constant* c) {
 void CodeGeneratorVisitor::visit(ast::Expression* e) {
     visitUniversal(e);
 
+    constexpr ast::Type::Types FLOAT = ast::Type::Types::Float;
+    constexpr ast::Type::Types INT   = ast::Type::Types::Integer;
+
     std::string tempReg;
     auto labels = ConditionalLabelManager::LabelTriple("", "", "");
+    auto myRealType = e->getType();
+    auto myConvertedType = e->getConvertedType();
 
     if (e->getChildren().size() == 1) {
         // single child expression
@@ -347,13 +352,19 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
 
             if (type == ast::Type::Types::Integer) {
                 e->setCalculationLocation(constImage);
+
+                if (myConvertedType == FLOAT) {
+                    std::string newReg = mRegisterManager.get_free_register();
+                    printConversion(INT, FLOAT, constImage, newReg);
+                    e->setCalculationLocation(newReg);
+                }
             } else if (type == ast::Type::Types::Character) {
                 std::ostringstream ss;
                 ss << "0x" << std::hex << (unsigned int)constImage[1];
                 e->setCalculationLocation(ss.str());
             } else { // float (string constants are handled elseware)
                 int offset = mMemoryMapVisitor.mConstantMap[constImage].offset;
-                std::string location = "[ offset _constant + " + std::to_string(offset) + " ]";
+                std::string location = "[ _constant + " + std::to_string(offset) + " ]";
                 e->setCalculationLocation(location);
             }
         } else if (auto arrayAccessNode = dynamic_cast<ast::ArrayAccess*>(e->getChildren()[0])) { 
@@ -386,8 +397,6 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
         // binary expression
         auto leftExp = dynamic_cast<ast::Expression*>(e->getChildren()[0]);
         auto rightExp = dynamic_cast<ast::Expression*>(e->getChildren()[1]);
-        auto myRealType = e->getType();
-        auto myConvertedType = e->getConvertedType();
 
         using EX = ast::Expression;
         switch (e->getOperation()) {
@@ -395,62 +404,93 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
                 // plus
                 tempReg = mRegisterManager.get_free_register();
 
+                // myRealType = Children's converted type
                 if (myRealType == ast::Type::Types::Integer) {
                     mOutputS <<
                         "#  " + leftExp->getCalculationLocation() + " + " + rightExp->getCalculationLocation() + " (INT)\n"
                         "   mov " + tempReg + ", " + leftExp->getCalculationLocation() + "\n"
                         "   add " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
                     ;
-                    
-                    mRegisterManager.clear_single(leftExp->getCalculationLocation());
                 } else if (myRealType == ast::Type::Types::Float) {
                     mOutputS <<
-                        "   # " + leftExp->getCalculationLocation() + " + " + rightExp->getCalculationLocation() + " (FLOAT)\n"
-                        "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
-                        "   fld dword ptr [ %eax ]\n"
-                        "   mov %eax, " + rightExp->getCalculationLocation() + "\n"
-                        "   fadd dword ptr [ %eax ]\n"
-                        "   sub %esp, 4\n"
+                        "#  " + leftExp->getCalculationLocation() + " + " + rightExp->getCalculationLocation() + " (FLOAT)\n"
+                        "   push " + leftExp->getCalculationLocation() + "\n"
+                        "   fld dword ptr [ %esp ]\n"
+                        "   push " + rightExp->getCalculationLocation() + "\n"
+                        "   fadd dword ptr [ %esp ]\n"
+                        "   add %esp, 4\n"
                         "   fstp dword ptr [ %esp ] \n"
                         "   pop " + tempReg + "\n"
                     ;
+
                 }
 
-
+                mRegisterManager.clear_single(leftExp->getCalculationLocation());
+                mRegisterManager.clear_single(rightExp->getCalculationLocation());
                 e->setCalculationLocation(tempReg);
             break;
             case EX::Minus:
                 // minus
                 tempReg = mRegisterManager.get_free_register();
 
-                mOutputS <<
-                    "   # " + leftExp->getCalculationLocation() + " - " + rightExp->getCalculationLocation() + "\n"
-                    "   mov " + tempReg + ", " + leftExp->getCalculationLocation() + "\n"
-                    "   add " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
-                ;
+                if (myRealType == INT) {
+                    mOutputS <<
+                        "#  " + leftExp->getCalculationLocation() + " - " + rightExp->getCalculationLocation() + "\n"
+                        "   mov " + tempReg + ", " + leftExp->getCalculationLocation() + "\n"
+                        "   add " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
+                    ;
+                    mRegisterManager.clear_single(leftExp->getCalculationLocation());
+                } else if (myRealType == FLOAT) {
+                    mOutputS <<
+                        "#  " + leftExp->getCalculationLocation() + " - " + rightExp->getCalculationLocation() + " (FLOAT)\n"
+                        "   push " + leftExp->getCalculationLocation() + "\n"
+                        "   fld dword ptr [ %esp ]\n"
+                        "   push " + rightExp->getCalculationLocation() + "\n"
+                        "   fsub dword ptr [ %esp ]\n"
+                        "   add %esp, 4\n"
+                        "   fstp dword ptr [ %esp ] \n"
+                        "   pop " + tempReg + "\n"
+                    ;
+                }
 
                 mRegisterManager.clear_single(leftExp->getCalculationLocation());
-
+                mRegisterManager.clear_single(rightExp->getCalculationLocation());
                 e->setCalculationLocation(tempReg);
             break;
             case EX::Multiply:
                 // multiply
                 tempReg = mRegisterManager.get_free_register();
 
-                mOutputS <<
-                    "   # " + leftExp->getCalculationLocation() + " * " + rightExp->getCalculationLocation() + "\n"
-                    "   mov " + tempReg + ", " + leftExp->getCalculationLocation() + "\n"
-                    "   imul " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
-                ;
+                if (myRealType == INT) {
+                    mOutputS <<
+                        "#  " + leftExp->getCalculationLocation() + " * " + rightExp->getCalculationLocation() + "\n"
+                        "   mov " + tempReg + ", " + leftExp->getCalculationLocation() + "\n"
+                        "   imul " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
+                    ;
+                } else if (myRealType == FLOAT) {
+                    mOutputS <<
+                        "#  " + leftExp->getCalculationLocation() + " * " + rightExp->getCalculationLocation() + " (FLOAT)\n"
+                        "   push " + leftExp->getCalculationLocation() + "\n"
+                        "   fld dword ptr [ %esp ]\n"
+                        "   push " + rightExp->getCalculationLocation() + "\n"
+                        "   fmul dword ptr [ %esp ]\n"
+                        "   add %esp, 4\n"
+                        "   fstp dword ptr [ %esp ] \n"
+                        "   pop " + tempReg + "\n"
+                    ;
+                }
 
+                mRegisterManager.clear_single(leftExp->getCalculationLocation());
+                mRegisterManager.clear_single(rightExp->getCalculationLocation());
                 e->setCalculationLocation(tempReg);
             break;
             case EX::Modulo:
                 // modulo
+                // only is acceptable on ints
                 tempReg = mRegisterManager.get_free_register();
 
                 mOutputS <<
-                    "   # " + leftExp->getCalculationLocation() + " % " + rightExp->getCalculationLocation() + "\n"
+                    "#  " + leftExp->getCalculationLocation() + " % " + rightExp->getCalculationLocation() + "\n"
                     "   xor %edx, %edx\n"
                     "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
                     "   mov " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
@@ -458,6 +498,8 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
                     "   mov " + tempReg + ", %edx\n"
                 ;
 
+                mRegisterManager.clear_single(leftExp->getCalculationLocation());
+                mRegisterManager.clear_single(rightExp->getCalculationLocation());
                 e->setCalculationLocation(tempReg);
             break;
             case EX::LessThanOrEqual:
@@ -613,7 +655,16 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
                 e->setCalculationLocation(tempReg);
             break;
         }
-    }
+
+        // check if there needs to be a conversion done
+        if (myRealType != myConvertedType) {
+            if (myConvertedType == INT) {
+                printConversion(FLOAT, INT, tempReg, tempReg);
+            } else if (myConvertedType == FLOAT) {
+                printConversion(INT, FLOAT, tempReg, tempReg);
+            }
+        }
+    } // binary expression else
 }
 
 void CodeGeneratorVisitor::visit(ast::If* i) {
@@ -669,8 +720,6 @@ void CodeGeneratorVisitor::visit(ast::Write* w) {
     } else if (auto expression = dynamic_cast<ast::Expression*>(w->getChildren()[0])) {
         // child is an expression
 
-        mOutputS << "#  Printing expression:\n";
-
         std::string formatLocation = "offset .io_format";
 
         if (expression->getType() == ast::Type::Types::Character) {
@@ -683,7 +732,7 @@ void CodeGeneratorVisitor::visit(ast::Write* w) {
 
             // convert float to double with floating point stack
             mOutputS <<
-                "#  Printing float constant\n"
+                "#  Printing expression: (FLOAT)\n"
                 "   sub %esp, 4\n" // allocate space for double
                 "   push " + expression->getCalculationLocation() + "\n"
                 "   fld dword ptr [ %esp ]\n"
@@ -698,6 +747,7 @@ void CodeGeneratorVisitor::visit(ast::Write* w) {
         } else {
             // output on anything but a float
             mOutputS <<
+                "#  Printing expression: (NON-FLOAT)\n"
                 "   push " + expression->getCalculationLocation() + "\n"
                 "   push " + formatLocation + "\n"
                 "   call printf\n"
@@ -765,4 +815,19 @@ void CodeGeneratorVisitor::visit(ast::Read* r) {
     }
 
     mRegisterManager.clear_all();
+}
+
+void CodeGeneratorVisitor::printConversion(ast::Type::Types from, ast::Type::Types to, std::string loc1, std::string loc2) {
+    constexpr ast::Type::Types FLOAT = ast::Type::Types::Float;
+    constexpr ast::Type::Types INT   = ast::Type::Types::Integer;
+
+    if (from == INT && to == FLOAT) {
+        mOutputS <<
+            "#  Converting int to float\n"
+            "   push " + loc1 + "\n"
+            "   fild dword ptr [ %esp ]\n"
+            "   fstp dword ptr [ %esp ]\n"
+            "   pop " + loc2 + "\n"
+        ;
+    }
 }

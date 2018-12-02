@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 
+#include "../parser/asttypenode.hpp"
 #include "../visitors/visitor.hpp"
 #include "../utilities/registermanager.hpp"
 #include "../utilities/conditionallabelmanager.hpp"
@@ -55,6 +56,8 @@ class CodeGeneratorVisitor : public Visitor {
         
         void initialize();
         void finalize();
+
+        void printConversion(ast::Type::Types from, ast::Type::Types to, std::string loc1, std::string loc2);
 
         std::ostream& mLogS;
         std::ostream& mOutputS;

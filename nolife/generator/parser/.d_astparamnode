@@ -1,0 +1,2 @@
+libparser-g.a(astparamnode.o): astparamnode.cpp astparamnode.hpp \
+ astnode.hpp ../visitors/visitor.hpp

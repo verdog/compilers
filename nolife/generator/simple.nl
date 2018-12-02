@@ -4,5 +4,8 @@ PROGRAM Simple;
 	VAR
 	a: FLOAT;
 	BEGIN
-		WRITE(10.0 + 5.0)
+		a := 4;
+		WRITE(a * 4);
+		WRITE(a + 4);
+		WRITE(a - 4)
 	END
