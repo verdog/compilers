@@ -57,7 +57,7 @@ class CodeGeneratorVisitor : public Visitor {
         void initialize();
         void finalize();
 
-        void printConversion(ast::Type::Types from, ast::Type::Types to, std::string loc1, std::string loc2);
+        std::string printConversion(ast::Type::Types from, ast::Type::Types to, std::string loc);
         std::string printCompare(ast::Expression::Operation op, ast::Expression* el, ast::Expression* er);
 
         std::ostream& mLogS;

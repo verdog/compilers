@@ -1,7 +1,12 @@
 { Extremely simple Oard program }
 
 PROGRAM Simple;
+	VAR
+	a: FLOAT;
 	BEGIN
-		WRITE(1.0 <= 10.0);
-		WRITE(10.0 <= 1.0)
+		a := 4;
+		WRITE(a <= 100);
+		WRITE(a * 4);
+		WRITE(a + 4);
+		WRITE(a - 4)
 	END

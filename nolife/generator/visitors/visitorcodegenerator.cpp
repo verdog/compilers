@@ -355,9 +355,7 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
                 e->setCalculationLocation(constImage);
 
                 if (myConvertedType == FLOAT) {
-                    std::string newReg = mRegisterManager.get_free_register();
-                    printConversion(INT, FLOAT, constImage, newReg);
-                    e->setCalculationLocation(newReg);
+                    e->setCalculationLocation( printConversion(INT, FLOAT, constImage) );
                 }
             } else if (type == ast::Type::Types::Character) {
                 std::ostringstream ss;
@@ -644,9 +642,9 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
         // check if there needs to be a conversion done
         if (myRealType != myConvertedType) {
             if (myConvertedType == INT) {
-                printConversion(FLOAT, INT, tempReg, tempReg);
+                e->setCalculationLocation( printConversion(FLOAT, INT, tempReg) );
             } else if (myConvertedType == FLOAT) {
-                printConversion(INT, FLOAT, tempReg, tempReg);
+                e->setCalculationLocation( printConversion(INT, FLOAT, tempReg) );
             }
         }
     } // binary expression else
@@ -802,23 +800,28 @@ void CodeGeneratorVisitor::visit(ast::Read* r) {
     mRegisterManager.clear_all();
 }
 
-void CodeGeneratorVisitor::printConversion(ast::Type::Types from, ast::Type::Types to, std::string loc1, std::string loc2) {
+std::string CodeGeneratorVisitor::printConversion(ast::Type::Types from, ast::Type::Types to, std::string loc) {
     constexpr ast::Type::Types FLOAT = ast::Type::Types::Float;
     constexpr ast::Type::Types INT   = ast::Type::Types::Integer;
+
+    auto tempReg = mRegisterManager.get_free_register();
+    mRegisterManager.clear_single(loc);
 
     if (from == INT && to == FLOAT) {
         mOutputS <<
             "#  Converting int to float\n"
-            "   push " + loc1 + "\n"
+            "   push " + loc + "\n"
             "   fild dword ptr [ %esp ]\n"
             "   fstp dword ptr [ %esp ]\n"
-            "   pop " + loc2 + "\n"
+            "   pop " + tempReg + "\n"
         ;
     } else if (from == FLOAT && to == INT) {
         mOutputS <<
             "#  Converting float to int\n"
         ;
     }
+
+    return tempReg;
 }
 
 std::string CodeGeneratorVisitor::printCompare(ast::Expression::Operation op, ast::Expression* el, ast::Expression* er) {
@@ -829,11 +832,26 @@ std::string CodeGeneratorVisitor::printCompare(ast::Expression::Operation op, as
     using TYPE = ast::Type::Types;
 
     std::string tempReg = mRegisterManager.get_free_register();
-    TYPE type = el->getType();
     auto labels = mConditionalLabelManager.generateLabelTriple();
 
     std::string opStr = "";
     std::string jmpStr = "";
+
+    if (el->getType() != er->getType()) {
+        // float vs int, something needs to be converted
+        if (el->getType() == TYPE::Integer) {
+            // left is int, convert
+            el->setType(TYPE::Float);
+            el->setCalculationLocation(printConversion(TYPE::Integer, TYPE::Float, el->getCalculationLocation()));
+        } else {
+            // right is int, convert
+            er->setType(TYPE::Float);
+            er->setCalculationLocation(printConversion(TYPE::Integer, TYPE::Float, er->getCalculationLocation()));
+        }
+    }
+
+    // both types are the same now
+    TYPE type = el->getType();
 
     if (op == OPER::LessThan) {
         opStr = " < ";
