@@ -34,7 +34,11 @@ PrintVisitor::PrintVisitor()
 {}
 
 void PrintVisitor::visit_universal(ast::Base* b) {
-    std::cout << mIndentString << b->getKind() << std::endl;
+    if (auto expNode = dynamic_cast<ast::Expression*>(b)) {
+        std::cout << mIndentString << b->getKind() << " t: "+ast::typeToString(expNode->getType()) << " ct: "+ast::typeToString(expNode->getConvertedType()) << std::endl;
+    } else {
+        std::cout << mIndentString << b->getKind() << std::endl;
+    }
 
     for (auto node : b->getChildren()) {
         if (node != nullptr) {

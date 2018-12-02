@@ -48,11 +48,7 @@ int main(int argc, char *argv[]) {
 
     CodeGeneratorVisitor cg(outputFile, std::cout, t, mm);
 
-    gASTRoot->accept(p);
-    // gASTRoot->accept(t);
-    // gASTRoot->accept(mm);
-    // mm.dumpOutput(std::cout);
-
     gASTRoot->accept(cg);
+    gASTRoot->accept(p);
 
 }

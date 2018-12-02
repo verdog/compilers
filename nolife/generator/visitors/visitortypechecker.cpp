@@ -599,8 +599,25 @@ void TypeCheckVisitor::visit(ast::Expression* e) {
 
         auto myType = getCombinedType(leftType, rightType, e->getOperation());
         e->setType(myType);
-        left->setConvertedType(myType);
-        right->setConvertedType(myType);
+
+        using OPER = ast::Expression::Operation;
+        auto myOp = e->getOperation();
+        if (
+            myOp != OPER::LessThan &&
+            myOp != OPER::LessThanOrEqual &&
+            myOp != OPER::GreaterThan &&
+            myOp != OPER::GreaterThanOrEqual &&
+            myOp != OPER::Equals &&
+            myOp != OPER::NotEqual
+        ) {
+            left->setConvertedType(myType);
+            right->setConvertedType(myType);
+        } else {
+            // operations don't require coverted types
+            left->setConvertedType(left->getType());
+            right->setConvertedType(right->getType());
+        }
+
 
         if (myType == ast::Type::Types::Undefined) {
             std::cout << "!!!  Error: Incompatable types in expression.\n";

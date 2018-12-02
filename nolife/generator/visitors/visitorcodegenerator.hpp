@@ -5,6 +5,7 @@
 #include <map>
 
 #include "../parser/asttypenode.hpp"
+#include "../parser/astexpressionnode.hpp"
 #include "../visitors/visitor.hpp"
 #include "../utilities/registermanager.hpp"
 #include "../utilities/conditionallabelmanager.hpp"
@@ -53,11 +54,11 @@ class CodeGeneratorVisitor : public Visitor {
         void visitUniversal(ast::Base* b);
 
     private:
-        
         void initialize();
         void finalize();
 
         void printConversion(ast::Type::Types from, ast::Type::Types to, std::string loc1, std::string loc2);
+        std::string printCompare(ast::Expression::Operation op, ast::Expression* el, ast::Expression* er);
 
         std::ostream& mLogS;
         std::ostream& mOutputS;

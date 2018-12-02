@@ -335,6 +335,7 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
 
     constexpr ast::Type::Types FLOAT = ast::Type::Types::Float;
     constexpr ast::Type::Types INT   = ast::Type::Types::Integer;
+    constexpr ast::Type::Types CHAR  = ast::Type::Types::Character;
 
     std::string tempReg;
     auto labels = ConditionalLabelManager::LabelTriple("", "", "");
@@ -504,23 +505,7 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
             break;
             case EX::LessThanOrEqual:
                 // <=
-                tempReg = mRegisterManager.get_free_register();
-                labels = mConditionalLabelManager.generateLabelTriple();
-
-                mOutputS <<
-                    "   # " + leftExp->getCalculationLocation() + " <= " + rightExp->getCalculationLocation() + "\n"
-                    "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
-                    "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
-                    "   jle " + labels.labelTrue + "\n"
-                    "" + labels.labelFalse + ":\n"
-                    "   mov " + tempReg + ", 0\n"
-                    "   jmp " + labels.labelEnd + "\n"
-                    "" + labels.labelTrue + ":\n"
-                    "   mov " + tempReg + ", 0xffffffff\n"
-                    "   jmp " + labels.labelEnd + "\n"
-                    "" + labels.labelEnd + ":\n"
-                ;
-
+                tempReg = printCompare(ast::Expression::Operation::LessThanOrEqual, leftExp, rightExp);
                 e->setCalculationLocation(tempReg);
             break;
             case EX::LessThan:
@@ -829,5 +814,103 @@ void CodeGeneratorVisitor::printConversion(ast::Type::Types from, ast::Type::Typ
             "   fstp dword ptr [ %esp ]\n"
             "   pop " + loc2 + "\n"
         ;
+    } else if (from == FLOAT && to == INT) {
+        mOutputS <<
+            "#  Converting float to int\n"
+        ;
     }
+}
+
+std::string CodeGeneratorVisitor::printCompare(ast::Expression::Operation op, ast::Expression* el, ast::Expression* er) {
+    constexpr ast::Type::Types FLOAT = ast::Type::Types::Float;
+    constexpr ast::Type::Types INT   = ast::Type::Types::Integer;
+    constexpr ast::Type::Types CHAR  = ast::Type::Types::Character;
+    using OPER = ast::Expression::Operation;
+    using TYPE = ast::Type::Types;
+
+    std::string tempReg = mRegisterManager.get_free_register();
+    TYPE type = el->getType();
+    auto labels = mConditionalLabelManager.generateLabelTriple();
+
+    std::string opStr = "";
+    std::string jmpStr = "";
+
+    if (op == OPER::LessThan) {
+        opStr = " < ";
+        if (type == TYPE::Integer || type == TYPE::Character) {
+            jmpStr = "jl ";
+        } else {
+            // fcomi uses unsigned jump instructions
+            jmpStr = "jb ";
+        }
+    } else if (op == OPER::LessThanOrEqual) {
+        opStr = " <= ";
+        if (type == TYPE::Integer || type == TYPE::Character) {
+            jmpStr = "jle ";
+        } else {
+            // fcomi uses unsigned jump instructions
+            jmpStr = "jbe ";
+        }
+    } else if (op == OPER::GreaterThan) {
+        opStr = " > ";
+        if (type == TYPE::Integer || type == TYPE::Character) {
+            jmpStr = "jg ";
+        } else {
+            // fcomi uses unsigned jump instructions
+            jmpStr = "ja ";
+        }
+    } else if (op == OPER::GreaterThanOrEqual) {
+        opStr = " <= ";
+        if (type == TYPE::Integer || type == TYPE::Character) {
+            jmpStr = "jge ";
+        } else {
+            // fcomi uses unsigned jump instructions
+            jmpStr = "jae ";
+        }
+    } else if (op == OPER::Equals) {
+        opStr = " == ";
+        jmpStr = "je ";
+    } else if (op == OPER::NotEqual) {
+        opStr = " != ";
+        jmpStr = "jne ";
+    }
+
+    if (el->getType() == er->getType()) {
+        if (el->getType() == INT || el->getType() == CHAR) {
+            // both ints (or chars)
+            mOutputS <<
+                "#  " + el->getCalculationLocation() + opStr + er->getCalculationLocation() + " (INT)\n"
+                "   mov %eax, " + el->getCalculationLocation() + "\n"
+                "   cmp %eax, " + er->getCalculationLocation() + "\n"
+            ;
+        } else if (el->getType() == FLOAT) {
+            // both floats
+            mOutputS <<
+                "#  " + el->getCalculationLocation() + opStr + er->getCalculationLocation() + " (FLOAT)\n"
+                "   push " + er->getCalculationLocation() + "\n"
+                "   fld dword ptr [ %esp ]\n"
+                "   push " + el->getCalculationLocation() + "\n"
+                "   fld dword ptr [ %esp ]\n"
+                "   add %esp, 8\n"
+                "   fcomip %st(0), %st(1)\n"
+                "   fstp %st(0) # to clear stack\n"
+            ;
+        }
+
+        mOutputS << 
+            "   " + jmpStr + labels.labelTrue + "\n"
+            "" + labels.labelFalse + ":\n"
+            "   mov " + tempReg + ", 0\n"
+            "   jmp " + labels.labelEnd + "\n"
+            "" + labels.labelTrue + ":\n"
+            "   mov " + tempReg + ", 0xffffffff\n"
+            "   jmp " + labels.labelEnd + "\n"
+            "" + labels.labelEnd + ":\n"
+        ;
+    }
+
+    mRegisterManager.clear_single(el->getCalculationLocation());
+    mRegisterManager.clear_single(er->getCalculationLocation());
+
+    return tempReg;
 }
