@@ -4,9 +4,6 @@ PROGRAM Simple;
 	VAR
 	a: FLOAT;
 	BEGIN
-		a := 4;
-		WRITE(a <= 100);
-		WRITE(a * 4);
-		WRITE(a + 4);
-		WRITE(a - 4)
+		a := 4 + 4.0;
+		WRITE(a)
 	END

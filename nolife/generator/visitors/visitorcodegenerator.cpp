@@ -370,6 +370,14 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
             e->setCalculationLocation(arrayAccessNode->getCalculationLocation());
         } else if (auto varNode = dynamic_cast<ast::Variable*>(e->getChildren()[0])) {
             e->setCalculationLocation(varNode->getCalculationLocation());
+            // check if there needs to be a conversion done
+            if (myRealType != myConvertedType) {
+                if (myConvertedType == INT) {
+                    e->setCalculationLocation( printConversion(FLOAT, INT, varNode->getCalculationLocation()) );
+                } else if (myConvertedType == FLOAT) {
+                    e->setCalculationLocation( printConversion(INT, FLOAT, varNode->getCalculationLocation()) );
+                }
+            }
         } else if (auto expNode = dynamic_cast<ast::Expression*>(e->getChildren()[0])) {
             if (e->getOperation() == ast::Expression::Not) {
                 tempReg = mRegisterManager.get_free_register();
