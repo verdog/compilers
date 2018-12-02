@@ -14,41 +14,56 @@
    .string "%f"
    .string "%c"
 _constant:
-   .float 4.0
 .text
    .globl main;
    .type main, @function
 main:
    push %ebp
    mov %ebp, %esp
-   sub %esp, 4
-#  Converting int to float
-   push 4
-   fild dword ptr [ %esp ]
-   fstp dword ptr [ %esp ]
-   pop %edi
-#  %edi + [ _constant + 0 ] (FLOAT)
-   push %edi
-   fld dword ptr [ %esp ]
-   push [ _constant + 0 ]
-   fadd dword ptr [ %esp ]
-   add %esp, 4
-   fstp dword ptr [ %esp ] 
-   pop %esi
-#  Assignment: a := %esi
-   push %esi
-   fld dword ptr [%esp]
-   add %esp, 4
-   fstp dword ptr [%ebp - 4]
-#  Cleared the register manager.
-#  Printing expression: (FLOAT)
-   sub %esp, 4
-   push dword ptr [ %ebp-4 ]
-   fld dword ptr [ %esp ]
-   fstp qword ptr [ %esp ]
-   push [ offset .io_format + 4 ]
+   sub %esp, 8
+#  READ ( dword ptr [ %ebp-4 ] )
+   mov %eax, %ebp
+   sub %eax, 4
+   push %eax
+   push [ offset .io_format_in + 0 ]
+   call scanf
+   add %esp, 8
+#  READ ( dword ptr [ %ebp-8 ] )
+   mov %eax, %ebp
+   sub %eax, 8
+   push %eax
+   push [ offset .io_format_in + 0 ]
+   call scanf
+   add %esp, 8
+#  If dword ptr [ %ebp-8 ]
+   cmp dword ptr [ %ebp-8 ], 0
+   je __L_FALSE_0
+__L_TRUE_0:
+#  If dword ptr [ %ebp-4 ]
+   cmp dword ptr [ %ebp-4 ], 0
+   je __L_FALSE_1
+__L_TRUE_1:
+#  Printing expression: (NON-FLOAT)
+   push 0
+   push offset .io_format
    call printf
-   add %esp, 12
+   add %esp, 8
+   jmp __L_DONE_1
+__L_FALSE_1:
+#  Printing expression: (NON-FLOAT)
+   push 1
+   push offset .io_format
+   call printf
+   add %esp, 8
+__L_DONE_1:
+   jmp __L_DONE_0
+__L_FALSE_0:
+#  Printing expression: (NON-FLOAT)
+   push 2
+   push offset .io_format
+   call printf
+   add %esp, 8
+__L_DONE_0:
 #  Return 0
    mov %eax, 0
    leave

@@ -608,7 +608,9 @@ void TypeCheckVisitor::visit(ast::Expression* e) {
             myOp != OPER::GreaterThan &&
             myOp != OPER::GreaterThanOrEqual &&
             myOp != OPER::Equals &&
-            myOp != OPER::NotEqual
+            myOp != OPER::NotEqual &&
+            myOp != OPER::And &&
+            myOp != OPER::Or
         ) {
             left->setConvertedType(myType);
             right->setConvertedType(myType);

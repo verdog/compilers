@@ -47,7 +47,8 @@ int main(int argc, char *argv[]) {
     outputFile.open("asm.S");
 
     CodeGeneratorVisitor cg(outputFile, std::cout, t, mm);
-
+    
+    gASTRoot->accept(p);
     gASTRoot->accept(cg);
     gASTRoot->accept(p);
 

@@ -516,107 +516,27 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
             break;
             case EX::LessThan:
                 // <
-                tempReg = mRegisterManager.get_free_register();
-                labels = mConditionalLabelManager.generateLabelTriple();
-
-                mOutputS <<
-                    "   # " + leftExp->getCalculationLocation() + " < " + rightExp->getCalculationLocation() + "\n"
-                    "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
-                    "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
-                    "   jl " + labels.labelTrue + "\n"
-                    "" + labels.labelFalse + ":\n"
-                    "   mov " + tempReg + ", 0\n"
-                    "   jmp " + labels.labelEnd + "\n"
-                    "" + labels.labelTrue + ":\n"
-                    "   mov " + tempReg + ", 0xffffffff\n"
-                    "   jmp " + labels.labelEnd + "\n"
-                    "" + labels.labelEnd + ":\n"
-                ;
-
+                tempReg = printCompare(ast::Expression::Operation::LessThan, leftExp, rightExp);
                 e->setCalculationLocation(tempReg);
             break;
             case EX::GreaterThanOrEqual:
                 // >=
-                tempReg = mRegisterManager.get_free_register();
-                labels = mConditionalLabelManager.generateLabelTriple();
-
-                mOutputS <<
-                    "   # " + leftExp->getCalculationLocation() + " >= " + rightExp->getCalculationLocation() + "\n"
-                    "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
-                    "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
-                    "   jge " + labels.labelTrue + "\n"
-                    "" + labels.labelFalse + ":\n"
-                    "   mov " + tempReg + ", 0\n"
-                    "   jmp " + labels.labelEnd + "\n"
-                    "" + labels.labelTrue + ":\n"
-                    "   mov " + tempReg + ", 0xffffffff\n"
-                    "   jmp " + labels.labelEnd + "\n"
-                    "" + labels.labelEnd + ":\n"
-                ;
-
+                tempReg = printCompare(ast::Expression::Operation::GreaterThanOrEqual, leftExp, rightExp);
                 e->setCalculationLocation(tempReg);
             break;
             case EX::GreaterThan:
                 // >
-                tempReg = mRegisterManager.get_free_register();
-                labels = mConditionalLabelManager.generateLabelTriple();
-
-                mOutputS <<
-                    "   # " + leftExp->getCalculationLocation() + " > " + rightExp->getCalculationLocation() + "\n"
-                    "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
-                    "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
-                    "   jg " + labels.labelTrue + "\n"
-                    "" + labels.labelFalse + ":\n"
-                    "   mov " + tempReg + ", 0\n"
-                    "   jmp " + labels.labelEnd + "\n"
-                    "" + labels.labelTrue + ":\n"
-                    "   mov " + tempReg + ", 0xffffffff\n"
-                    "   jmp " + labels.labelEnd + "\n"
-                    "" + labels.labelEnd + ":\n"
-                ;
-
+                tempReg = printCompare(ast::Expression::Operation::GreaterThan, leftExp, rightExp);
                 e->setCalculationLocation(tempReg);
             break;
             case EX::Equals:
                 // =
-                tempReg = mRegisterManager.get_free_register();
-                labels = mConditionalLabelManager.generateLabelTriple();
-
-                mOutputS <<
-                    "   # " + leftExp->getCalculationLocation() + " = " + rightExp->getCalculationLocation() + "\n"
-                    "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
-                    "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
-                    "   je " + labels.labelTrue + "\n"
-                    "" + labels.labelFalse + ":\n"
-                    "   mov " + tempReg + ", 0\n"
-                    "   jmp " + labels.labelEnd + "\n"
-                    "" + labels.labelTrue + ":\n"
-                    "   mov " + tempReg + ", 0xffffffff\n"
-                    "   jmp " + labels.labelEnd + "\n"
-                    "" + labels.labelEnd + ":\n"
-                ;
-
+                tempReg = printCompare(ast::Expression::Operation::Equals, leftExp, rightExp);
                 e->setCalculationLocation(tempReg);
             break;
             case EX::NotEqual:
                 // <>
-                tempReg = mRegisterManager.get_free_register();
-                labels = mConditionalLabelManager.generateLabelTriple();
-
-                mOutputS <<
-                    "   # " + leftExp->getCalculationLocation() + " <> " + rightExp->getCalculationLocation() + "\n"
-                    "   mov %eax, " + leftExp->getCalculationLocation() + "\n"
-                    "   cmp %eax, " + rightExp->getCalculationLocation() + "\n"
-                    "   jne " + labels.labelTrue + "\n"
-                    "" + labels.labelFalse + ":\n"
-                    "   mov " + tempReg + ", 0\n"
-                    "   jmp " + labels.labelEnd + "\n"
-                    "" + labels.labelTrue + ":\n"
-                    "   mov " + tempReg + ", 0xffffffff\n"
-                    "   jmp " + labels.labelEnd + "\n"
-                    "" + labels.labelEnd + ":\n"
-                ;
-
+                tempReg = printCompare(ast::Expression::Operation::NotEqual, leftExp, rightExp);
                 e->setCalculationLocation(tempReg);
             break;
             case EX::And:
@@ -659,7 +579,35 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
 }
 
 void CodeGeneratorVisitor::visit(ast::If* i) {
-    visitUniversal(i);
+    // visit expression to get memory location
+    i->getChildren()[0]->accept(*this);
+
+    auto expNode = dynamic_cast<ast::Expression*>(i->getChildren()[0]);
+    auto labels = mConditionalLabelManager.generateLabelTriple();
+
+    mOutputS <<
+        "#  If " + expNode->getCalculationLocation() + "\n"
+        "   cmp " + expNode->getCalculationLocation() + ", 0\n"
+        "   je " + labels.labelFalse + "\n"
+        "" + labels.labelTrue + ":\n"
+    ;
+
+    // generate code for true
+    i->getChildren()[1]->accept(*this);
+
+    mOutputS <<
+        "   jmp " + labels.labelEnd + "\n"
+        "" + labels.labelFalse + ":\n"
+    ;
+    if (i->getChildren()[2] != nullptr) {
+        // there's an else
+        // generate code for false
+        i->getChildren()[2]->accept(*this);
+    }
+
+    mOutputS <<
+        "" + labels.labelEnd + ":\n"
+    ;
 }
 
 void CodeGeneratorVisitor::visit(ast::Procedure* p) {

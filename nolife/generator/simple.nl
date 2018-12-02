@@ -2,8 +2,15 @@
 
 PROGRAM Simple;
 	VAR
-	a: FLOAT;
+	a, b: INTEGER;
 	BEGIN
-		a := 4 + 4.0;
-		WRITE(a)
+		READ(a);
+		READ(b);
+		IF b THEN
+			IF a THEN
+				WRITE(0)
+			ELSE
+				WRITE(1)
+		ELSE
+			WRITE(2)
 	END
