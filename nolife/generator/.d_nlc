@@ -13,4 +13,5 @@
  visitors/visitortypechecker.hpp visitors/visitormemmap.hpp \
  visitors/visitorcodegenerator.hpp \
  visitors/../utilities/registermanager.hpp \
- visitors/../utilities/conditionallabelmanager.hpp
+ visitors/../utilities/conditionallabelmanager.hpp \
+ visitors/../utilities/caselabelmanager.hpp

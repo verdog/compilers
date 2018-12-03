@@ -319,11 +319,69 @@ void CodeGeneratorVisitor::visit(ast::CaseLabels* cl) {
 }
 
 void CodeGeneratorVisitor::visit(ast::Case* c) {
-    visitUniversal(c);
+    // generate code for the expression
+    mOutputS << "#  Generating expression code for case statement\n";
+    auto expNode = dynamic_cast<ast::Expression*>(c->getChildren()[0]);
+    expNode->accept(*this);
+
+    mOutputS << "#  Comparing with each label\n";
+    mCaseLabelManager.newCase();
+
+    for (int i = 1; i < c->getChildren().size(); i++) {
+        // for each clause node, store start/end labels and generate cmps and jumps
+        auto clauseNode = dynamic_cast<ast::Clause*>(c->getChildren()[i]);
+        auto labelNode = clauseNode->getLabelNode();
+
+        clauseNode->setAsmStartLabel(mCaseLabelManager.generateLabel());
+        clauseNode->setAsmEndLabel(mCaseLabelManager.getEnd());
+
+        for (auto labelNodeChild : labelNode->getChildren()) {
+            // for each constant, compare and jmp
+            auto constNode = dynamic_cast<ast::Constant*>(labelNodeChild);
+            auto psuedoExp = ast::Expression(constNode);
+            psuedoExp.setType(constNode->getType());
+            psuedoExp.setCalculationLocation(constNode->getImage());
+            std::string result = printCompare(ast::Expression::Equals, expNode, &psuedoExp);
+
+            mOutputS <<
+                "#  Case when " + expNode->getCalculationLocation() + " == " + psuedoExp.getCalculationLocation() + "\n"
+                "   cmp " + result + ", 0xffffffff\n"
+                "   je " + clauseNode->getAsmStartLabel() + "\n"
+            ;
+
+            mRegisterManager.clear_single(result);
+        }
+    }
+
+    mOutputS << 
+        "#  Jump to end of case on no matches\n"
+        "   jmp " + mCaseLabelManager.getEnd() + "\n"
+    ;
+
+    for (int i = 1; i < c->getChildren().size(); i++) {
+        // visit the clauses and generate their code
+        c->getChildren()[i]->accept(*this);
+    }
+
+    // mark end of case
+    mOutputS <<
+        "" + mCaseLabelManager.getEnd() + ":\n"
+    ;
 }
 
 void CodeGeneratorVisitor::visit(ast::Clause* c) {
-    visitUniversal(c);
+    mOutputS <<
+        "" + c->getAsmStartLabel() + ":\n";
+        "#  Compound statement in a clause\n"
+    ;
+
+    // generate code
+    c->getChildren()[1]->accept(*this);
+
+    // jump to end
+    mOutputS <<
+        "   jmp " + c->getAsmEndLabel() + "\n"
+    ;
 }
 
 void CodeGeneratorVisitor::visit(ast::Constant* c) {

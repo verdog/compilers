@@ -9,6 +9,7 @@
 #include "../visitors/visitor.hpp"
 #include "../utilities/registermanager.hpp"
 #include "../utilities/conditionallabelmanager.hpp"
+#include "../utilities/caselabelmanager.hpp"
 
 class TypeCheckVisitor;
 class MemoryMapVisitor;
@@ -70,4 +71,6 @@ class CodeGeneratorVisitor : public Visitor {
 
         RegisterManager mRegisterManager;
         ConditionalLabelManager mConditionalLabelManager;
+        CaseLabelManager mCaseLabelManager;
+
 };
