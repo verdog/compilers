@@ -1,0 +1,2 @@
+libutilities-g.a(caselabelmanager.o): caselabelmanager.cpp \
+ caselabelmanager.hpp

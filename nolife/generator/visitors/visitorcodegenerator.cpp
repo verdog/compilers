@@ -423,6 +423,10 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
                 int offset = mMemoryMapVisitor.mConstantMap[constImage].offset;
                 std::string location = "[ _constant + " + std::to_string(offset) + " ]";
                 e->setCalculationLocation(location);
+
+                if (myConvertedType == INT) {
+                    e->setCalculationLocation( printConversion(FLOAT, INT, location) );
+                }
             }
         } else if (auto arrayAccessNode = dynamic_cast<ast::ArrayAccess*>(e->getChildren()[0])) { 
             e->setCalculationLocation(arrayAccessNode->getCalculationLocation());
@@ -854,6 +858,10 @@ std::string CodeGeneratorVisitor::printConversion(ast::Type::Types from, ast::Ty
     } else if (from == FLOAT && to == INT) {
         mOutputS <<
             "#  Converting float to int\n"
+            "   push " + loc + "\n"
+            "   fld dword ptr [ %esp ]\n"
+            "   fisttp dword ptr [ %esp ]\n"
+            "   pop " + tempReg + "\n"
         ;
     }
 
