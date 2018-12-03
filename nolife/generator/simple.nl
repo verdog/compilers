@@ -4,9 +4,10 @@ PROGRAM Flow;
  VAR a:INTEGER;
 
 BEGIN
-	READ(a);
-	CASE a OF
-	    1,2: WRITE(0);
-	    5  : WRITE(1) 
-	END
+	a:=1;
+	WHILE a <> 10 DO BEGIN
+		WRITE(a);
+		a:=a+1
+	END;
+	WRITE(a)
 END

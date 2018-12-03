@@ -21,33 +21,16 @@ main:
    push %ebp
    mov %ebp, %esp
    sub %esp, 4
-#  READ ( dword ptr [ %ebp-4 ] )
-   mov %eax, %ebp
-   sub %eax, 4
-   push %eax
-   push [ offset .io_format_in + 0 ]
-   call scanf
-   add %esp, 8
-#  Generating expression code for case statement
-#  Comparing with each label
-#  dword ptr [ %ebp-4 ] == 1 (INT)
-   mov %eax, dword ptr [ %ebp-4 ]
-   cmp %eax, 1
-   je __L_TRUE_0
-__L_FALSE_0:
-   mov %edi, 0
-   jmp __L_DONE_0
+#  Assignment: a := 1
+   mov %edi, 1
+   mov dword ptr [ %ebp-4 ], %edi
+#  Cleared the register manager.
+#  While loop
 __L_TRUE_0:
-   mov %edi, 0xffffffff
-   jmp __L_DONE_0
-__L_DONE_0:
-#  Case when dword ptr [ %ebp-4 ] == 1
-   cmp %edi, 0xffffffff
-   je __L_CASEJMP_0_0
-#  dword ptr [ %ebp-4 ] == 2 (INT)
+#  dword ptr [ %ebp-4 ] != 10 (INT)
    mov %eax, dword ptr [ %ebp-4 ]
-   cmp %eax, 2
-   je __L_TRUE_1
+   cmp %eax, 10
+   jne __L_TRUE_1
 __L_FALSE_1:
    mov %edi, 0
    jmp __L_DONE_1
@@ -55,40 +38,27 @@ __L_TRUE_1:
    mov %edi, 0xffffffff
    jmp __L_DONE_1
 __L_DONE_1:
-#  Case when dword ptr [ %ebp-4 ] == 2
-   cmp %edi, 0xffffffff
-   je __L_CASEJMP_0_0
-#  dword ptr [ %ebp-4 ] == 5 (INT)
-   mov %eax, dword ptr [ %ebp-4 ]
-   cmp %eax, 5
-   je __L_TRUE_2
-__L_FALSE_2:
-   mov %edi, 0
-   jmp __L_DONE_2
-__L_TRUE_2:
-   mov %edi, 0xffffffff
-   jmp __L_DONE_2
-__L_DONE_2:
-#  Case when dword ptr [ %ebp-4 ] == 5
-   cmp %edi, 0xffffffff
-   je __L_CASEJMP_0_1
-#  Jump to end of case on no matches
-   jmp __L_CASEEND_0
-__L_CASEJMP_0_0:
+   cmp %edi, 0
+   je __L_DONE_0
 #  Printing expression: (NON-FLOAT)
-   push 0
+   push dword ptr [ %ebp-4 ]
    push offset .io_format
    call printf
    add %esp, 8
-   jmp __L_CASEEND_0
-__L_CASEJMP_0_1:
+#  dword ptr [ %ebp-4 ] + 1 (INT)
+   mov %edi, dword ptr [ %ebp-4 ]
+   add %edi, 1
+#  Assignment: a := %edi
+   mov %esi, %edi
+   mov dword ptr [ %ebp-4 ], %esi
+#  Cleared the register manager.
+   jmp __L_TRUE_0
+__L_DONE_0:
 #  Printing expression: (NON-FLOAT)
-   push 1
+   push dword ptr [ %ebp-4 ]
    push offset .io_format
    call printf
    add %esp, 8
-   jmp __L_CASEEND_0
-__L_CASEEND_0:
 #  Return 0
    mov %eax, 0
    leave

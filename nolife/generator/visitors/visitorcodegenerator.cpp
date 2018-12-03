@@ -442,7 +442,7 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
                 labels = mConditionalLabelManager.generateLabelTriple();
 
                 mOutputS <<
-                    "   # NOT " + expNode->getCalculationLocation() + "\n"
+                    "#  NOT " + expNode->getCalculationLocation() + "\n"
                     "   mov %eax, " + expNode->getCalculationLocation() + "\n"
                     "   cmp %eax, 0\n"
                     "   je " + labels.labelTrue + "\n"
@@ -687,7 +687,29 @@ void CodeGeneratorVisitor::visit(ast::Variable* v) {
 }
 
 void CodeGeneratorVisitor::visit(ast::While* w) {
-    visitUniversal(w);
+    auto labels = mConditionalLabelManager.generateLabelTriple();
+
+    mOutputS <<
+        "#  While loop\n"
+        "" + labels.labelTrue + ":\n"
+    ;
+
+    // evaluate expression
+    auto condExpNode = dynamic_cast<ast::Expression*>(w->getChildren()[0]);
+    condExpNode->accept(*this);
+
+    mOutputS <<
+        "   cmp " + condExpNode->getCalculationLocation() + ", 0\n"
+        "   je " + labels.labelEnd + "\n"
+    ;
+
+    auto stmtNode = dynamic_cast<ast::Statement*>(w->getChildren()[1]);
+    stmtNode->accept(*this);
+
+    mOutputS <<
+        "   jmp " + labels.labelTrue + "\n"
+        "" + labels.labelEnd + ":\n"
+    ;
 }
 
 void CodeGeneratorVisitor::visit(ast::Write* w) {
