@@ -56,7 +56,7 @@ MemoryMapVisitor::MemoryMapVisitor(std::ostream& output, std::ostream& log)
 
 void MemoryMapVisitor::resetOffsets() {
     mCurrentVariableOffset = -4;
-    mCurrentParameterOffset = 4;
+    mCurrentParameterOffset = 0;
 }
 
 void MemoryMapVisitor::incrementVariableOffset() {
@@ -89,7 +89,7 @@ void MemoryMapVisitor::visit(ast::Program* p) {
     std::string programName = p->getSymbol()->getImage();
     mLogS << "visited program node. (" << programName << ")\n";
 
-    mFrameStack.push_back(programName);
+    mFrameStack.push_back("main");
     resetOffsets();
 
     visitUniversal(p);
@@ -229,7 +229,7 @@ void MemoryMapVisitor::visit(ast::Constant* c) {
             info.type = ast::Type::Types::StringConstant;
             mConstantMap[image] = info;
 
-            // get word length, round up to the nearest 4 bytes
+            // get word length
             int length = c->getImage().size() - 2 + 1; // minus two single quotes, plus space for a null
             incrementConstantOffset(length);
 

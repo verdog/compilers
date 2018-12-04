@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <queue>
 
 #include "../parser/asttypenode.hpp"
 #include "../parser/astexpressionnode.hpp"
@@ -60,6 +61,7 @@ class CodeGeneratorVisitor : public Visitor {
 
         std::string printConversion(ast::Type::Types from, ast::Type::Types to, std::string loc);
         std::string printCompare(ast::Expression::Operation op, ast::Expression* el, ast::Expression* er);
+        std::string deriveAddress(std::string loc);
 
         std::ostream& mLogS;
         std::ostream& mOutputS;
@@ -72,5 +74,7 @@ class CodeGeneratorVisitor : public Visitor {
         RegisterManager mRegisterManager;
         ConditionalLabelManager mConditionalLabelManager;
         CaseLabelManager mCaseLabelManager;
+
+        std::queue<ast::Procedure*> mProcQueue;
 
 };

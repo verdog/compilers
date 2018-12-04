@@ -2,6 +2,7 @@
 #include <string>
 #include <algorithm>
 #include <sstream>
+#include <regex>
 
 #include "visitorcodegenerator.hpp"
 #include "visitortypechecker.hpp"
@@ -105,10 +106,9 @@ void CodeGeneratorVisitor::initialize() {
         }
     }
     
-    // might change this?
     mOutputS <<
         ".text\n"
-        "   .globl main;\n"
+        "   .globl main\n"
         "   .type main, @function\n"
     ;
 }
@@ -118,8 +118,6 @@ void CodeGeneratorVisitor::finalize() {
 }
 
 void CodeGeneratorVisitor::visitUniversal(ast::Base *b) {
-    // mLogS << "(universal)\n";
-
     for (auto node : b->getChildren()) {
         if (node != nullptr) {
             node->accept(*this);
@@ -146,7 +144,7 @@ void CodeGeneratorVisitor::visit(ast::Program* p) {
 
     initialize(); // output default header info
 
-    mCurrentProcedure = p->getSymbol()->getImage();
+    mCurrentProcedure = "main";
 
     mOutputS <<
         "main:\n"
@@ -154,7 +152,13 @@ void CodeGeneratorVisitor::visit(ast::Program* p) {
         "   mov %ebp, %esp\n"
     ;
     
-    visitUniversal(p);
+    p->getChildren()[0]->accept(*this); // symbol
+    if (p->getChildren()[1] != nullptr) {
+        p->getChildren()[1]->accept(*this); // decls
+    }
+    if (p->getChildren()[2] != nullptr) {
+        p->getChildren()[2]->accept(*this); // compound statement
+    }
 
     mOutputS <<
         "#  Return 0\n"
@@ -162,6 +166,13 @@ void CodeGeneratorVisitor::visit(ast::Program* p) {
         "   leave\n"
         "   ret\n"
     ;
+
+    // generate code for procedures in procedure queue
+    while (!mProcQueue.empty()) {
+        mLogS << "Processing procedure " << mProcQueue.front()->getSymbol()->getImage() << "\n";
+        mProcQueue.front()->accept(*this);
+        mProcQueue.pop();
+    }
 
     finalize();
 }
@@ -176,10 +187,12 @@ void CodeGeneratorVisitor::visit(ast::Declaration* d) {
     for (auto node : children) {
         if (auto typeNode = dynamic_cast<ast::Type*>(node)) {
             ast::Symbol* symbolNode;
-            
+
             // obtain correct symbol
             if (symbolNode = typeNode->childAsSymbol()) {
-            } else if (symbolNode = typeNode->childAsArray()->childAsSymbol()) {
+                //
+            } else if (typeNode->childAsArray() != nullptr) {
+                symbolNode = typeNode->childAsArray()->childAsSymbol();
             } 
             
             // update biggest offset
@@ -197,17 +210,21 @@ void CodeGeneratorVisitor::visit(ast::Declaration* d) {
                     }
                 }
 
+            typeNode->accept(*this);
+
             } else {
-                mLogS << "Detected a procedure in a decl node.\n";
+                // procedure, add to processing queue
+                auto procNode = typeNode->childAsProcedure();
+                mLogS << "added procedure " << procNode->getSymbol()->getImage() << " to procedure queue.\n";
+                mProcQueue.push(procNode);
             }
         }
     }
 
     mOutputS <<
+        "#  Allocating stack for " + mCurrentProcedure + "\n"
         "   sub %esp, " + std::to_string(std::abs(farOffset)) + "\n"
     ;
-
-    visitUniversal(d);
 }
 
 void CodeGeneratorVisitor::visit(ast::CompoundStatement* cs) {
@@ -311,7 +328,44 @@ void CodeGeneratorVisitor::visit(ast::Assignment* a) {
 }
 
 void CodeGeneratorVisitor::visit(ast::Call* c) {
-    visitUniversal(c);
+    std::string funcName = c->getSymbol()->getImage();
+
+    for (auto it = c->getChildren().rbegin(); it != c->getChildren().rend(); it++) {
+        // skip the symbol node
+        if (dynamic_cast<ast::Symbol*>(*it)) {
+            continue;
+        }
+
+        // evaluate and push parameters
+        auto paramExpNode = dynamic_cast<ast::Expression*>(*it);
+        paramExpNode->accept(*this);
+        mOutputS <<
+            "#  Pushing procedure argument\n"
+            "   lea %eax, " + deriveAddress(paramExpNode->getCalculationLocation()) + "\n"
+            "   push %eax\n"
+        ;
+    }
+
+    // push access link
+    if (mCurrentProcedure == "main") {
+        mOutputS <<
+            "#  Push main's access link\n"
+            "   push %ebp\n"
+        ;
+    } else {
+        mOutputS <<
+            "#  Push main's access link (already on the stack)\n"
+            "   push [ %ebp + 8 ]\n"
+        ;
+    }
+
+    // call
+    mOutputS <<
+        "   call " + funcName + "\n"
+        "   add %esp, " + std::to_string(4 + (c->getChildren().size() - 1) * 4) + "\n"
+    ;
+
+    // visitUniversal(c);
 }
 
 void CodeGeneratorVisitor::visit(ast::CaseLabels* cl) {
@@ -673,7 +727,30 @@ void CodeGeneratorVisitor::visit(ast::If* i) {
 }
 
 void CodeGeneratorVisitor::visit(ast::Procedure* p) {
-    visitUniversal(p);
+    mCurrentProcedure = p->getSymbol()->getImage();
+
+    mOutputS <<
+        "" + mCurrentProcedure + ":\n"
+        "   push %ebp\n"
+        "   mov %ebp, %esp\n"
+    ;
+    
+    p->getChildren()[0]->accept(*this); // symbol
+    if (p->getChildren()[1] != nullptr) {
+        p->getChildren()[1]->accept(*this); // decls
+    }
+    if (p->getChildren()[3] != nullptr) {
+        p->getChildren()[3]->accept(*this); // params
+    }
+    if (p->getChildren()[2] != nullptr) {
+        p->getChildren()[2]->accept(*this); // compound statement
+    }
+
+    mOutputS <<
+        "#  default leave return\n"
+        "   leave\n"
+        "   ret\n"
+    ;
 }
 
 void CodeGeneratorVisitor::visit(ast::Return* r) {
@@ -687,7 +764,21 @@ void CodeGeneratorVisitor::visit(ast::Statement* s) {
 void CodeGeneratorVisitor::visit(ast::Variable* v) {
     visitUniversal(v);
     auto memMap = mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure];
-    v->setCalculationLocation("dword ptr [ %ebp" + std::to_string(memMap[v->getSymbol()->getImage()].offset) + " ]");
+    int offset = memMap[v->getSymbol()->getImage()].offset;
+    if (offset < 0) {
+        v->setCalculationLocation("dword ptr [ %ebp" + std::to_string(offset) + " ]");
+    } else {
+        // greater or equal to zero. paramter in stack
+        // parameter is an address. dereference it.
+        auto tempReg = mRegisterManager.get_free_register();
+
+        mOutputS <<
+            "#  Deference paremeter address\n"
+            "   mov " + tempReg + ", dword ptr [ %ebp+" + std::to_string(12 + offset) + " ]\n"
+        ;
+        
+        v->setCalculationLocation("[ " + tempReg + " ]");
+    }
 }
 
 void CodeGeneratorVisitor::visit(ast::While* w) {
@@ -975,4 +1066,14 @@ std::string CodeGeneratorVisitor::printCompare(ast::Expression::Operation op, as
     mRegisterManager.clear_single(er->getCalculationLocation());
 
     return tempReg;
+}
+
+std::string CodeGeneratorVisitor::deriveAddress(std::string addr) {
+    if (std::regex_match(addr, std::regex("dword ptr \\[ %.{3}((\\+|-)\\d+)? \\]"))) {
+        std::smatch match;
+        std::regex_search(addr, match, std::regex("%.{3}((\\+|-)\\d+)?"));
+        return "[ " + match.str(0) + " ]";
+    }
+
+    return "No match found in deriveAddress";
 }

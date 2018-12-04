@@ -1,9 +1,17 @@
 { Extremely simple Oard program }
 
 PROGRAM Flow;
- VAR a:INTEGER;
+ VAR x, y:INTEGER;
+
+PROCEDURE mywrite (a,b: INTEGER);
+BEGIN
+	WRITE(a);
+	WRITE(b);
+	WRITE(x)
+END;
 
 BEGIN
-	a := 9.8;
-	WRITE(a)
+	x := 9;
+	y := 10;
+	mywrite(x, y)
 END

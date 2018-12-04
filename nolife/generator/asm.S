@@ -14,29 +14,60 @@
    .string "%f"
    .string "%c"
 _constant:
-   .float 9.8
 .text
-   .globl main;
+   .globl main
    .type main, @function
 main:
    push %ebp
    mov %ebp, %esp
-   sub %esp, 4
-#  Converting float to int
-   push [ _constant + 0 ]
-   fld dword ptr [ %esp ]
-   fisttp dword ptr [ %esp ]
-   pop %edi
-#  Assignment: a := %edi
-   mov %esi, %edi
-   mov dword ptr [ %ebp-4 ], %esi
+#  Allocating stack for main
+   sub %esp, 8
+#  Assignment: x := 9
+   mov %edi, 9
+   mov dword ptr [ %ebp-4 ], %edi
 #  Cleared the register manager.
+#  Assignment: y := 10
+   mov %edi, 10
+   mov dword ptr [ %ebp-8 ], %edi
+#  Cleared the register manager.
+#  Pushing procedure argument
+   lea %eax, [ %ebp-8 ]
+   push %eax
+#  Pushing procedure argument
+   lea %eax, [ %ebp-4 ]
+   push %eax
+#  Push main's access link
+   push %ebp
+   call mywrite
+   add %esp, 12
+#  Return 0
+   mov %eax, 0
+   leave
+   ret
+mywrite:
+   push %ebp
+   mov %ebp, %esp
+#  Deference paremeter address
+   mov %edi, dword ptr [ %ebp+12 ]
 #  Printing expression: (NON-FLOAT)
-   push dword ptr [ %ebp-4 ]
+   push [ %edi ]
    push offset .io_format
    call printf
    add %esp, 8
-#  Return 0
-   mov %eax, 0
+#  Deference paremeter address
+   mov %edi, dword ptr [ %ebp+16 ]
+#  Printing expression: (NON-FLOAT)
+   push [ %edi ]
+   push offset .io_format
+   call printf
+   add %esp, 8
+#  Deference paremeter address
+   mov %edi, dword ptr [ %ebp+12 ]
+#  Printing expression: (NON-FLOAT)
+   push [ %edi ]
+   push offset .io_format
+   call printf
+   add %esp, 8
+#  default leave return
    leave
    ret
