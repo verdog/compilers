@@ -22,24 +22,27 @@ main:
    mov %ebp, %esp
 #  Allocating stack for main
    sub %esp, 8
-#  Assignment: x := 9
-   mov %edi, 9
-   mov dword ptr [ %ebp-4 ], %edi
-#  Cleared the register manager.
-#  Assignment: y := 10
-   mov %edi, 10
-   mov dword ptr [ %ebp-8 ], %edi
-#  Cleared the register manager.
-#  Pushing procedure argument
-   lea %eax, [ %ebp-8 ]
+#  Store temporary %esp (which will be the base of the temporary parameter stack) in register
+   mov %edx, %esp
+#  1 + 1 (INT)
+   mov %edi, 1
+   add %edi, 1
+#  Storing expression result on stack
+   push %edi
+#  Storing expression result on stack
+   push 1
+#  Pushing temporary stack address
+   mov %eax, %edx
+   sub %eax, 8
    push %eax
-#  Pushing procedure argument
-   lea %eax, [ %ebp-4 ]
+#  Pushing temporary stack address
+   mov %eax, %edx
+   sub %eax, 4
    push %eax
 #  Push main's access link
    push %ebp
    call mywrite
-   add %esp, 12
+   add %esp, 20
 #  Return 0
    mov %eax, 0
    leave
@@ -48,9 +51,9 @@ mywrite:
    push %ebp
    mov %ebp, %esp
 #  Deference paremeter address
-   mov %edi, dword ptr [ %ebp+12 ]
+   mov %esi, dword ptr [ %ebp+12 ]
 #  Printing expression: (NON-FLOAT)
-   push [ %edi ]
+   push [ %esi ]
    push offset .io_format
    call printf
    add %esp, 8

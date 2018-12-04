@@ -329,21 +329,68 @@ void CodeGeneratorVisitor::visit(ast::Assignment* a) {
 
 void CodeGeneratorVisitor::visit(ast::Call* c) {
     std::string funcName = c->getSymbol()->getImage();
+    int extraStack = 0;
+    int nextTempOffset = 4;
 
+    // store this esp in edx
+    mOutputS <<
+        "#  Store temporary %esp (which will be the base of the temporary parameter stack) in register\n"
+        "   mov %edx, %esp\n"
+    ;
+
+    // forwards
+    for (auto it = c->getChildren().begin(); it != c->getChildren().end(); it++) {
+        // skip the symbol node
+        if (dynamic_cast<ast::Symbol*>(*it)) {
+            continue;
+        }
+
+        // first pass:
+        // put any expression/const results on the stack
+
+        // evaluate and push parameters
+        auto paramExpNode = dynamic_cast<ast::Expression*>(*it);
+        if (!paramExpNode->childAsVariable()) {
+            paramExpNode->accept(*this);
+            // expression or constant. store result on stack and store address
+            mOutputS <<
+                "#  Storing expression result on stack\n"
+                "   push " + paramExpNode->getCalculationLocation() + "\n"
+            ;
+            paramExpNode->setTempOffset(nextTempOffset);
+            nextTempOffset += 4;
+            extraStack += 4;
+        }
+    }
+
+    // backwards
     for (auto it = c->getChildren().rbegin(); it != c->getChildren().rend(); it++) {
         // skip the symbol node
         if (dynamic_cast<ast::Symbol*>(*it)) {
             continue;
         }
 
+        // second pass:
+        // put actual variable addresses on the stack
+
         // evaluate and push parameters
         auto paramExpNode = dynamic_cast<ast::Expression*>(*it);
-        paramExpNode->accept(*this);
-        mOutputS <<
-            "#  Pushing procedure argument\n"
-            "   lea %eax, " + deriveAddress(paramExpNode->getCalculationLocation()) + "\n"
-            "   push %eax\n"
-        ;
+        if (paramExpNode->childAsVariable()) {
+            paramExpNode->accept(*this);
+            mOutputS <<
+                "#  Pushing procedure argument (Variable)\n"
+                "   lea %eax, " + deriveAddress(paramExpNode->getCalculationLocation()) + "\n"
+                "   push %eax\n"
+            ;
+        } else {
+            // expression
+            mOutputS <<
+                "#  Pushing temporary stack address\n"
+                "   mov %eax, %edx\n"
+                "   sub %eax, " + std::to_string(paramExpNode->getTempOffset()) + "\n"
+                "   push %eax\n"
+            ;
+        }
     }
 
     // push access link
@@ -362,7 +409,7 @@ void CodeGeneratorVisitor::visit(ast::Call* c) {
     // call
     mOutputS <<
         "   call " + funcName + "\n"
-        "   add %esp, " + std::to_string(4 + (c->getChildren().size() - 1) * 4) + "\n"
+        "   add %esp, " + std::to_string(extraStack + 4 + (c->getChildren().size() - 1) * 4) + "\n"
     ;
 
     // visitUniversal(c);
@@ -1075,5 +1122,5 @@ std::string CodeGeneratorVisitor::deriveAddress(std::string addr) {
         return "[ " + match.str(0) + " ]";
     }
 
-    return "No match found in deriveAddress";
+    return addr;
 }

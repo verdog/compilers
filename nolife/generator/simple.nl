@@ -11,7 +11,5 @@ BEGIN
 END;
 
 BEGIN
-	x := 9;
-	y := 10;
-	mywrite(x, y)
+	mywrite(1+1, 1)
 END

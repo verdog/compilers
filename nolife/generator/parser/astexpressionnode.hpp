@@ -48,6 +48,10 @@ namespace ast {
             std::string getCalculationLocation();
 
             Variable* childAsVariable();
+            Constant* childAsConstant();
+
+            int getTempOffset();
+            void setTempOffset(int tempOffset);
 
             virtual void accept(Visitor &v);
         private:
@@ -56,6 +60,8 @@ namespace ast {
 
             Type::Types mType;
             Type::Types mConvertedType;
+
+            int mTempOffset;
     };
 
 } // ast

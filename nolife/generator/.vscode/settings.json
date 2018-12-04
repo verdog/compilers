@@ -36,6 +36,8 @@
         "algorithm": "cpp",
         "ctime": "cpp",
         "iomanip": "cpp",
-        "cinttypes": "cpp"
+        "cinttypes": "cpp",
+        "bitset": "cpp",
+        "cstring": "cpp"
     }
 }

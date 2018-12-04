@@ -11,6 +11,7 @@ namespace ast {
         mConvertedType = Type::Types::Undefined;
 
         mOperation = op;
+        mTempOffset = -1;
     }
 
     Expression::Expression(Variable *var) 
@@ -77,6 +78,14 @@ namespace ast {
         }
     }
 
+    Constant* Expression::childAsConstant() {
+        if (mChildren.size() == 1) {
+            return dynamic_cast<Constant*>(mChildren[0]);
+        } else {
+            return nullptr;
+        }
+    }
+
     void Expression::accept(Visitor &v) {
         v.visit(this);
     }
@@ -87,6 +96,14 @@ namespace ast {
     
     void Expression::setCalculationLocation(std::string location) {
         mCalculationLocation = location;
+    }
+
+    int Expression::getTempOffset() {
+        return mTempOffset;
+    }
+
+    void Expression::setTempOffset(int tempOffset) {
+        mTempOffset = tempOffset;
     }
 
 } // ast
