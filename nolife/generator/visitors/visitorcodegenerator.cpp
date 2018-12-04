@@ -348,7 +348,6 @@ void CodeGeneratorVisitor::visit(ast::Call* c) {
         // first pass:
         // put any expression/const results on the stack
 
-        // evaluate and push parameters
         auto paramExpNode = dynamic_cast<ast::Expression*>(*it);
         if (!paramExpNode->childAsVariable()) {
             paramExpNode->accept(*this);
@@ -811,20 +810,39 @@ void CodeGeneratorVisitor::visit(ast::Statement* s) {
 void CodeGeneratorVisitor::visit(ast::Variable* v) {
     visitUniversal(v);
     auto memMap = mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure];
-    int offset = memMap[v->getSymbol()->getImage()].offset;
-    if (offset < 0) {
-        v->setCalculationLocation("dword ptr [ %ebp" + std::to_string(offset) + " ]");
+
+    if (memMap.count(v->getSymbol()->getImage())) {
+        // var is in current procedure
+        int offset = memMap[v->getSymbol()->getImage()].offset;
+    
+        if (offset < 0) {
+            v->setCalculationLocation("dword ptr [ %ebp" + std::to_string(offset) + " ]");
+        } else {
+            // greater or equal to zero. paramter in stack
+            // parameter is an address. dereference it.
+            auto tempReg = mRegisterManager.get_free_register();
+
+            mOutputS <<
+                "#  Deference paremeter address\n"
+                "   mov " + tempReg + ", dword ptr [ %ebp+" + std::to_string(12 + offset) + " ]\n"
+            ;
+            
+            v->setCalculationLocation("[ " + tempReg + " ]");
+        }
     } else {
-        // greater or equal to zero. paramter in stack
-        // parameter is an address. dereference it.
+        // var is in main
+        memMap = mMemoryMapVisitor.mProcedureToSymbolsMap["main"];
+        int offset = memMap[v->getSymbol()->getImage()].offset;
         auto tempReg = mRegisterManager.get_free_register();
 
         mOutputS <<
-            "#  Deference paremeter address\n"
-            "   mov " + tempReg + ", dword ptr [ %ebp+" + std::to_string(12 + offset) + " ]\n"
+            "#  Load access link and get variable from main\n"
+            "   mov %eax, [ %ebp + 8 ]\n"
+            "   add %eax, " + std::to_string(offset) + "\n"
+            "   mov " + tempReg + ", [ %eax ]\n"
         ;
-        
-        v->setCalculationLocation("[ " + tempReg + " ]");
+
+        v->setCalculationLocation(tempReg);
     }
 }
 
@@ -950,15 +968,45 @@ void CodeGeneratorVisitor::visit(ast::Read* r) {
     } else if (auto varNode = dynamic_cast<ast::Variable*>(r->getChildren()[0])) {
         std::string image = varNode->getSymbol()->getImage();
         std::string location = varNode->getCalculationLocation();
-        auto type = mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure][image].type;
-        int offset = mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure][image].offset;
+        auto memMap = mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure];
+        auto type = ast::Type::Types::Undefined;
+        auto offset = -1;
 
-        mOutputS <<
-            "#  READ ( " + location + " )\n"
-            "   mov %eax, %ebp\n"
-            "   sub %eax, " + std::to_string(std::abs(offset)) + "\n"
-            "   push %eax\n"
-        ;
+        if (memMap.count(image)) {
+            // referencing something in this procedure
+            offset = memMap[image].offset;
+            type = memMap[image].type;
+
+            if (offset < 0) {
+                // referencing a local variable
+                mOutputS <<
+                    "#  READ ( " + location + " ) (LOCAL)\n"
+                    "   mov %eax, %ebp\n"
+                    "   sub %eax, " + std::to_string(std::abs(offset)) + "\n"
+                    "   push %eax\n"
+                ;
+            } else {
+                // referencing a parameter
+                mOutputS <<
+                    "#  READ ( " + image + " ) (PARAM)\n"
+                    "   lea %eax, [ %ebp+" + std::to_string(offset + 12) + " ]\n"
+                    "   push [ %eax ]\n"
+                ;
+            }
+        } else {
+            // referencing something in main.
+            // deref location
+            memMap = mMemoryMapVisitor.mProcedureToSymbolsMap["main"];
+            offset = memMap[image].offset;
+            type = memMap[image].type;
+
+            mOutputS <<
+                "   # READ ( " + image + " ) (GLOBAL)\n"
+                "   mov %eax, [ %ebp + 8 ]\n"
+                "   add %eax, " + std::to_string(offset) + "\n"
+                "   push %eax\n"
+            ;
+        }
 
         // push correct format string
         if (type == ast::Type::Types::Integer) {
@@ -1120,7 +1168,7 @@ std::string CodeGeneratorVisitor::deriveAddress(std::string addr) {
         std::smatch match;
         std::regex_search(addr, match, std::regex("%.{3}((\\+|-)\\d+)?"));
         return "[ " + match.str(0) + " ]";
-    }
+    } 
 
     return addr;
 }

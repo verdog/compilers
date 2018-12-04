@@ -21,55 +21,46 @@ main:
    push %ebp
    mov %ebp, %esp
 #  Allocating stack for main
-   sub %esp, 8
+   sub %esp, 4
 #  Store temporary %esp (which will be the base of the temporary parameter stack) in register
    mov %edx, %esp
-#  1 + 1 (INT)
-   mov %edi, 1
-   add %edi, 1
-#  Storing expression result on stack
-   push %edi
-#  Storing expression result on stack
-   push 1
-#  Pushing temporary stack address
-   mov %eax, %edx
-   sub %eax, 8
-   push %eax
-#  Pushing temporary stack address
-   mov %eax, %edx
-   sub %eax, 4
+#  Pushing procedure argument (Variable)
+   lea %eax, [ %ebp-4 ]
    push %eax
 #  Push main's access link
    push %ebp
-   call mywrite
-   add %esp, 20
+   call myread
+   add %esp, 8
+#  Printing expression: (NON-FLOAT)
+   push dword ptr [ %ebp-4 ]
+   push offset .io_format
+   call printf
+   add %esp, 8
 #  Return 0
    mov %eax, 0
    leave
    ret
-mywrite:
+myread:
    push %ebp
    mov %ebp, %esp
 #  Deference paremeter address
-   mov %esi, dword ptr [ %ebp+12 ]
-#  Printing expression: (NON-FLOAT)
-   push [ %esi ]
-   push offset .io_format
-   call printf
+   mov %edi, dword ptr [ %ebp+12 ]
+#  READ ( a ) (PARAM)
+   lea %eax, [ %ebp+12 ]
+   push [ %eax ]
+   push [ offset .io_format_in + 0 ]
+   call scanf
    add %esp, 8
-#  Deference paremeter address
-   mov %edi, dword ptr [ %ebp+16 ]
-#  Printing expression: (NON-FLOAT)
-   push [ %edi ]
-   push offset .io_format
-   call printf
-   add %esp, 8
+#  Store temporary %esp (which will be the base of the temporary parameter stack) in register
+   mov %edx, %esp
 #  Deference paremeter address
    mov %edi, dword ptr [ %ebp+12 ]
-#  Printing expression: (NON-FLOAT)
-   push [ %edi ]
-   push offset .io_format
-   call printf
+#  Pushing procedure argument (Variable)
+   lea %eax, [ %edi ]
+   push %eax
+#  Push main's access link (already on the stack)
+   push [ %ebp + 8 ]
+   call myread
    add %esp, 8
 #  default leave return
    leave

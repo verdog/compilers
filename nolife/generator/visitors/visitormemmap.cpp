@@ -144,6 +144,7 @@ void MemoryMapVisitor::visit(ast::Parameters* p) {
         if (typeNode != nullptr) {
             std::string symbol = typeNode->childAsSymbol()->getImage();
             mProcedureToSymbolsMap[currentProcedure][symbol].offset = mCurrentParameterOffset;
+            mProcedureToSymbolsMap[currentProcedure][symbol].type = typeNode->getType();
             incrementParameterOffset();
         }
     }
