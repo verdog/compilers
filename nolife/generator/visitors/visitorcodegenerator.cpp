@@ -263,6 +263,13 @@ void CodeGeneratorVisitor::visit(ast::ArrayAccess* aa) {
     visitUniversal(aa);
 
     auto memMap = mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure];
+
+    if (memMap.count(aa->getSymbol()->getImage())) {
+        // local array, do nothing
+    } else {
+        // main array, change memmap to main
+        memMap = mMemoryMapVisitor.mProcedureToSymbolsMap["main"];
+    }
     auto info = memMap[aa->getSymbol()->getImage()];
 
     std::string tempReg = mRegisterManager.get_free_register();
@@ -290,7 +297,7 @@ void CodeGeneratorVisitor::visit(ast::ArrayAccess* aa) {
             "   add %edx, %eax\n"
             "   mov " + tempReg + ", %edx\n"
         ;
-    } else {
+    } else if (mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure].count(aa->getSymbol()->getImage())) {
         // accessing a local array
         mOutputS <<
             "#  Array access: " + aa->getSymbol()->getImage() + "[" + aa->getExpression()->getCalculationLocation() + "] (LOCAL)" + "\n"
@@ -300,6 +307,21 @@ void CodeGeneratorVisitor::visit(ast::ArrayAccess* aa) {
             "   imul %edx\n"
             "   mov %edx, %ebp\n"
             "   sub %edx, " + std::to_string(std::abs(info.lowerOffset)) + "\n"
+            "   add %edx, %eax\n"
+            "   mov " + tempReg + ", %edx\n"
+        ;
+    } else {
+        // accessing a global array
+        mOutputS <<
+            "#  Array access: " + aa->getSymbol()->getImage() + "[" + aa->getExpression()->getCalculationLocation() + "] (GLOBAL)" + "\n"
+            "   mov %eax, " + aa->getExpression()->getCalculationLocation() + "\n"
+            "   sub %eax, " + std::to_string(unitOffset) + "\n"
+            "   mov %edx, 4\n"
+            "   imul %edx\n" // offset from base is in eax
+            "#  Load access link and get variable from main\n"
+            "   mov %edx, [ %ebp + 8 ]\n"
+            "   add %edx, " + std::to_string(mMemoryMapVisitor.mProcedureToSymbolsMap["main"][aa->getSymbol()->getImage()].lowerOffset) + "\n"
+            "#  Add offset\n"
             "   add %edx, %eax\n"
             "   mov " + tempReg + ", %edx\n"
         ;
@@ -426,8 +448,6 @@ void CodeGeneratorVisitor::visit(ast::Call* c) {
         "   call " + funcName + "\n"
         "   add %esp, " + std::to_string(extraStack + 4 + (c->getChildren().size() - 1) * 4) + "\n"
     ;
-
-    // visitUniversal(c);
 }
 
 void CodeGeneratorVisitor::visit(ast::CaseLabels* cl) {

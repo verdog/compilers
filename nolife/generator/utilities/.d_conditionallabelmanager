@@ -1,0 +1,2 @@
+libutilities-g.a(conditionallabelmanager.o): conditionallabelmanager.cpp \
+ conditionallabelmanager.hpp

@@ -21,12 +21,12 @@ main:
    push %ebp
    mov %ebp, %esp
 #  Allocating stack for main
-   sub %esp, 8
+   sub %esp, 12
 #  Store temporary %esp (which will be the base of the temporary parameter stack) in register
    mov %edx, %esp
-#  deriveAddress: dword ptr [ %ebp-8 ] -> [ %ebp-8 ]
+#  deriveAddress: dword ptr [ %ebp-12 ] -> [ %ebp-12 ]
 #  Pushing procedure argument (Variable)
-   lea %eax, [ %ebp-8 ]
+   lea %eax, [ %ebp-12 ]
    push %eax
 #  Push main's access link
    push %ebp
@@ -38,7 +38,7 @@ main:
    mov %edx, 4
    imul %edx
    mov %edx, %ebp
-   sub %edx, 8
+   sub %edx, 12
    add %edx, %eax
    mov %edi, %edx
 #  Printing expression: (NON-FLOAT)
@@ -52,7 +52,21 @@ main:
    mov %edx, 4
    imul %edx
    mov %edx, %ebp
-   sub %edx, 8
+   sub %edx, 12
+   add %edx, %eax
+   mov %edi, %edx
+#  Printing expression: (NON-FLOAT)
+   push [ %edi ]
+   push offset .io_format
+   call printf
+   add %esp, 8
+#  Array access: x[3] (LOCAL)
+   mov %eax, 3
+   sub %eax, 1
+   mov %edx, 4
+   imul %edx
+   mov %edx, %ebp
+   sub %edx, 12
    add %edx, %eax
    mov %edi, %edx
 #  Printing expression: (NON-FLOAT)
@@ -94,6 +108,37 @@ xd:
    push %eax
    push [ offset .io_format_in + 0 ]
    call scanf
+   add %esp, 8
+#  Array access: x[3] (GLOBAL)
+   mov %eax, 3
+   sub %eax, 1
+   mov %edx, 4
+   imul %edx
+#  Load access link and get variable from main
+   mov %edx, [ %ebp + 8 ]
+   add %edx, -12
+#  Add offset
+   add %edx, %eax
+   mov %edi, %edx
+#  Assignment: x := 3
+   mov %esi, 3
+   mov [ %edi ], %esi
+#  Cleared the register manager.
+#  Array access: x[3] (GLOBAL)
+   mov %eax, 3
+   sub %eax, 1
+   mov %edx, 4
+   imul %edx
+#  Load access link and get variable from main
+   mov %edx, [ %ebp + 8 ]
+   add %edx, -12
+#  Add offset
+   add %edx, %eax
+   mov %edi, %edx
+#  Printing expression: (NON-FLOAT)
+   push [ %edi ]
+   push offset .io_format
+   call printf
    add %esp, 8
 #  default leave return
    leave
