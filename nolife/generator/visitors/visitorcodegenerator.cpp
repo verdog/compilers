@@ -277,17 +277,33 @@ void CodeGeneratorVisitor::visit(ast::ArrayAccess* aa) {
         unitOffset = (unsigned int)info.lowBoundString[1];
     }
 
-    mOutputS <<
-        "#  Array access: " + aa->getSymbol()->getImage() + "[" + aa->getExpression()->getCalculationLocation() + "]" + "\n"
-        "   mov %eax, " + aa->getExpression()->getCalculationLocation() + "\n"
-        "   sub %eax, " + std::to_string(unitOffset) + "\n"
-        "   mov %edx, 4\n"
-        "   imul %edx\n"
-        "   mov %edx, %ebp\n"
-        "   sub %edx, " + std::to_string(std::abs(info.lowerOffset)) + "\n"
-        "   add %edx, %eax\n"
-        "   mov " + tempReg + ", %edx\n"
-    ;
+    if (info.offset >= 0) {
+        // accessing an array in parameters
+        mOutputS <<
+            "#  Array access: " + aa->getSymbol()->getImage() + "[" + aa->getExpression()->getCalculationLocation() + "] (PARAM)" + "\n"
+            "   mov %eax, " + aa->getExpression()->getCalculationLocation() + "\n"
+            "   sub %eax, " + std::to_string(unitOffset) + "\n"
+            "   mov %edx, 4\n"
+            "   imul %edx\n" // offset from base is in eax
+            "#  Derive beginning of array from parameter\n"
+            "   mov %edx, [ %ebp+" + std::to_string(info.offset + 12) + " ]\n"
+            "   add %edx, %eax\n"
+            "   mov " + tempReg + ", %edx\n"
+        ;
+    } else {
+        // accessing a local array
+        mOutputS <<
+            "#  Array access: " + aa->getSymbol()->getImage() + "[" + aa->getExpression()->getCalculationLocation() + "] (LOCAL)" + "\n"
+            "   mov %eax, " + aa->getExpression()->getCalculationLocation() + "\n"
+            "   sub %eax, " + std::to_string(unitOffset) + "\n"
+            "   mov %edx, 4\n"
+            "   imul %edx\n"
+            "   mov %edx, %ebp\n"
+            "   sub %edx, " + std::to_string(std::abs(info.lowerOffset)) + "\n"
+            "   add %edx, %eax\n"
+            "   mov " + tempReg + ", %edx\n"
+        ;
+    }
 
     aa->setCalculationLocation("[ " + tempReg + " ]");
 }
@@ -380,7 +396,7 @@ void CodeGeneratorVisitor::visit(ast::Call* c) {
                 "#  Pushing procedure argument (Variable)\n"
                 "   lea %eax, " + deriveAddress(paramExpNode->getCalculationLocation()) + "\n"
                 "   push %eax\n"
-            ;
+            ;   
         } else {
             // expression
             mOutputS <<
@@ -813,7 +829,14 @@ void CodeGeneratorVisitor::visit(ast::Variable* v) {
 
     if (memMap.count(v->getSymbol()->getImage())) {
         // var is in current procedure
-        int offset = memMap[v->getSymbol()->getImage()].offset;
+        int offset;
+        if (memMap[v->getSymbol()->getImage()].isArray) {
+            // array
+            offset = memMap[v->getSymbol()->getImage()].lowerOffset;
+        } else {
+            // not an array
+            offset = memMap[v->getSymbol()->getImage()].offset;
+        }
     
         if (offset < 0) {
             v->setCalculationLocation("dword ptr [ %ebp" + std::to_string(offset) + " ]");
@@ -1167,8 +1190,14 @@ std::string CodeGeneratorVisitor::deriveAddress(std::string addr) {
     if (std::regex_match(addr, std::regex("dword ptr \\[ %.{3}((\\+|-)\\d+)? \\]"))) {
         std::smatch match;
         std::regex_search(addr, match, std::regex("%.{3}((\\+|-)\\d+)?"));
+        mOutputS << "#  deriveAddress: " << addr << " -> [ " << match.str(0) << " ]" << std::endl;
         return "[ " + match.str(0) + " ]";
-    } 
+    } else if (std::regex_match(addr, std::regex("\\[ %.{3}((\\+|-)\\d+)? \\]"))) {
+        std::smatch match;
+        std::regex_search(addr, match, std::regex("%.{3}((\\+|-)\\d+)?"));
+        mOutputS << "#  deriveAddress: " << addr << " -> " << match.str(0) << std::endl;
+        return match.str(0);
+    }
 
     return addr;
 }

@@ -1,15 +1,16 @@
 { Extremely simple Oard program }
 
 PROGRAM Flow;
- VAR x: INTEGER;
+ VAR x: ARRAY [1..2] OF INTEGER;
 
-PROCEDURE myread (a: INTEGER);
+PROCEDURE xd (a: ARRAY [1..2] OF INTEGER);
 BEGIN
-	READ(a);
-	myread(a)
+	a[1] := 1;
+	READ(a[2])
 END;
 
 BEGIN
-	myread(x);
-	WRITE(x)
+	xd(x);
+	WRITE(x[1]);
+	WRITE(x[2])
 END

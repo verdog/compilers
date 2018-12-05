@@ -111,6 +111,7 @@ void MemoryMapVisitor::visit(ast::Declaration* d) {
             data.isArray = true;
             data.upperOffset = mCurrentVariableOffset + 4;
             data.lowerOffset = mCurrentVariableOffset + 4 - arrayNode->getLength() * 4;
+            data.offset = data.lowerOffset;
             data.lowBoundString = arrayNode->getLowBound()->getImage();
             data.type = typeNode->getType();
             mCurrentVariableOffset = data.lowerOffset;
@@ -142,10 +143,23 @@ void MemoryMapVisitor::visit(ast::Parameters* p) {
         auto typeNode = dynamic_cast<ast::Type*>(node);
 
         if (typeNode != nullptr) {
-            std::string symbol = typeNode->childAsSymbol()->getImage();
-            mProcedureToSymbolsMap[currentProcedure][symbol].offset = mCurrentParameterOffset;
-            mProcedureToSymbolsMap[currentProcedure][symbol].type = typeNode->getType();
-            incrementParameterOffset();
+            if (typeNode->childAsSymbol()) {
+                std::string symbol = typeNode->childAsSymbol()->getImage();
+                mProcedureToSymbolsMap[currentProcedure][symbol].offset = mCurrentParameterOffset;
+                mProcedureToSymbolsMap[currentProcedure][symbol].type = typeNode->getType();
+                incrementParameterOffset();
+            } else if (auto arrayNode = typeNode->childAsArray()) {
+                std::string symbol = arrayNode->getSymbol()->getImage();
+                auto &info = mProcedureToSymbolsMap[currentProcedure][symbol];
+                info.offset = mCurrentParameterOffset;
+                info.type = typeNode->getType();
+                info.isArray = true;
+                info.lowBoundString = arrayNode->getLowBound()->getImage();
+                info.lowerOffset = mCurrentParameterOffset;
+                info.upperOffset = mCurrentParameterOffset;
+
+                incrementParameterOffset();
+            }
         }
     }
 
