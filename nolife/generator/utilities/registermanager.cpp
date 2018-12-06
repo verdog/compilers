@@ -1,6 +1,7 @@
 #include "registermanager.hpp"
 
 #include <iostream>
+#include <regex>
 
 RegisterManager::RegisterManager() {
     // all registers are free
@@ -16,15 +17,15 @@ std::string RegisterManager::get_free_register() {
     for (auto &map_pair : mRegisterMap) {
         if (map_pair.second == true) {
             map_pair.second = false;
+            std::cout << "Granted " << map_pair.first << "!\n";
             return map_pair.first;
         }
     }
 
     // full map. allocate a spot in memory.
-    std::cerr << "Ran out of free registers!\n";
+    std::cerr << "!!! Ran out of free registers!\n";
 
-    std::exit(-1);
-    return "";
+    return "!!! Ran out of free registers !!!";
 }
 
 bool RegisterManager::get_eligibility(std::string location) {
@@ -38,6 +39,15 @@ bool RegisterManager::get_eligibility(std::string location) {
 }
 
 void RegisterManager::clear_single(std::string location) {
+
+    std::smatch match;
+    if (std::regex_match(location, match, std::regex("\\[ %.{3} \\]"))) {
+        std::regex_search(location, match, std::regex("%.{3}"));
+        location = match.str(0);
+    }
+    
+    std::cout << "Cleared " << location << "!\n";
+
     if (mRegisterMap.count(location) == 1) {
         mRegisterMap[location] = true;
     } else if (mMemoryMap.count(location) == 1) {
@@ -47,6 +57,8 @@ void RegisterManager::clear_single(std::string location) {
 }
 
 void RegisterManager::clear_all() {
+    std::cout << "Cleared all registers!\n";
+
     for (auto &map_pair : mRegisterMap) {
         map_pair.second = true;
     }

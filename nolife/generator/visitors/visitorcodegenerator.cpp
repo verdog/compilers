@@ -169,6 +169,7 @@ void CodeGeneratorVisitor::visit(ast::Program* p) {
 
     // generate code for procedures in procedure queue
     while (!mProcQueue.empty()) {
+        mOutputS << "# ---------------------------------------------------------------------------- #\n";
         mLogS << "Processing procedure " << mProcQueue.front()->getSymbol()->getImage() << "\n";
         mProcQueue.front()->accept(*this);
         mProcQueue.pop();
@@ -327,6 +328,7 @@ void CodeGeneratorVisitor::visit(ast::ArrayAccess* aa) {
         ;
     }
 
+    mRegisterManager.clear_single(aa->getCalculationLocation());
     aa->setCalculationLocation("[ " + tempReg + " ]");
 }
 
@@ -369,6 +371,7 @@ void CodeGeneratorVisitor::visit(ast::Call* c) {
     std::string funcName = c->getSymbol()->getImage();
     int extraStack = 0;
     int nextTempOffset = 4;
+    auto memMap = mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure];
 
     // store this esp in edx
     mOutputS <<
@@ -414,6 +417,7 @@ void CodeGeneratorVisitor::visit(ast::Call* c) {
         auto paramExpNode = dynamic_cast<ast::Expression*>(*it);
         if (paramExpNode->childAsVariable()) {
             paramExpNode->accept(*this);
+
             mOutputS <<
                 "#  Pushing procedure argument (Variable)\n"
                 "   lea %eax, " + deriveAddress(paramExpNode->getCalculationLocation()) + "\n"
@@ -503,6 +507,8 @@ void CodeGeneratorVisitor::visit(ast::Case* c) {
     mOutputS <<
         "" + mCaseLabelManager.getEnd() + ":\n"
     ;
+
+    mRegisterManager.clear_all();
 }
 
 void CodeGeneratorVisitor::visit(ast::Clause* c) {
@@ -576,6 +582,13 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
                     e->setCalculationLocation( printConversion(INT, FLOAT, varNode->getCalculationLocation()) );
                 }
             }
+        } else if (auto callNode = dynamic_cast<ast::Call*>(e->getChildren()[0])) {
+            tempReg = mRegisterManager.get_free_register();
+            mOutputS <<
+                "#  Grab return value\n"
+                "   mov " + tempReg + ", %eax\n"
+            ;
+            e->setCalculationLocation(tempReg);
         } else if (auto expNode = dynamic_cast<ast::Expression*>(e->getChildren()[0])) {
             if (e->getOperation() == ast::Expression::Not) {
                 tempReg = mRegisterManager.get_free_register();
@@ -595,6 +608,7 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
                     "" + labels.labelEnd + ":\n"
                 ;
 
+                mRegisterManager.clear_single(expNode->getCalculationLocation());
                 e->setCalculationLocation(tempReg);
             }
         }
@@ -642,7 +656,7 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
                     mOutputS <<
                         "#  " + leftExp->getCalculationLocation() + " - " + rightExp->getCalculationLocation() + "\n"
                         "   mov " + tempReg + ", " + leftExp->getCalculationLocation() + "\n"
-                        "   add " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
+                        "   sub " + tempReg + ", " + rightExp->getCalculationLocation() + "\n"
                     ;
                     mRegisterManager.clear_single(leftExp->getCalculationLocation());
                 } else if (myRealType == FLOAT) {
@@ -711,31 +725,43 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
                 // <=
                 tempReg = printCompare(ast::Expression::Operation::LessThanOrEqual, leftExp, rightExp);
                 e->setCalculationLocation(tempReg);
+                mRegisterManager.clear_single(leftExp->getCalculationLocation());
+                mRegisterManager.clear_single(rightExp->getCalculationLocation());
             break;
             case EX::LessThan:
                 // <
                 tempReg = printCompare(ast::Expression::Operation::LessThan, leftExp, rightExp);
                 e->setCalculationLocation(tempReg);
+                mRegisterManager.clear_single(leftExp->getCalculationLocation());
+                mRegisterManager.clear_single(rightExp->getCalculationLocation());
             break;
             case EX::GreaterThanOrEqual:
                 // >=
                 tempReg = printCompare(ast::Expression::Operation::GreaterThanOrEqual, leftExp, rightExp);
                 e->setCalculationLocation(tempReg);
+                mRegisterManager.clear_single(leftExp->getCalculationLocation());
+                mRegisterManager.clear_single(rightExp->getCalculationLocation());
             break;
             case EX::GreaterThan:
                 // >
                 tempReg = printCompare(ast::Expression::Operation::GreaterThan, leftExp, rightExp);
                 e->setCalculationLocation(tempReg);
+                mRegisterManager.clear_single(leftExp->getCalculationLocation());
+                mRegisterManager.clear_single(rightExp->getCalculationLocation());
             break;
             case EX::Equals:
                 // =
                 tempReg = printCompare(ast::Expression::Operation::Equals, leftExp, rightExp);
                 e->setCalculationLocation(tempReg);
+                mRegisterManager.clear_single(leftExp->getCalculationLocation());
+                mRegisterManager.clear_single(rightExp->getCalculationLocation());
             break;
             case EX::NotEqual:
                 // <>
                 tempReg = printCompare(ast::Expression::Operation::NotEqual, leftExp, rightExp);
                 e->setCalculationLocation(tempReg);
+                mRegisterManager.clear_single(leftExp->getCalculationLocation());
+                mRegisterManager.clear_single(rightExp->getCalculationLocation());
             break;
             case EX::And:
                 // AND
@@ -749,6 +775,8 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
                 ;
 
                 e->setCalculationLocation(tempReg);
+                mRegisterManager.clear_single(leftExp->getCalculationLocation());
+                mRegisterManager.clear_single(rightExp->getCalculationLocation());
             break;
             case EX::Or:
                 // OR
@@ -762,6 +790,8 @@ void CodeGeneratorVisitor::visit(ast::Expression* e) {
                 ;
 
                 e->setCalculationLocation(tempReg);
+                mRegisterManager.clear_single(leftExp->getCalculationLocation());
+                mRegisterManager.clear_single(rightExp->getCalculationLocation());
             break;
         }
 
@@ -789,6 +819,7 @@ void CodeGeneratorVisitor::visit(ast::If* i) {
         "   je " + labels.labelFalse + "\n"
         "" + labels.labelTrue + ":\n"
     ;
+    mRegisterManager.clear_single(expNode->getCalculationLocation());
 
     // generate code for true
     i->getChildren()[1]->accept(*this);
@@ -806,6 +837,8 @@ void CodeGeneratorVisitor::visit(ast::If* i) {
     mOutputS <<
         "" + labels.labelEnd + ":\n"
     ;
+
+    mRegisterManager.clear_all();
 }
 
 void CodeGeneratorVisitor::visit(ast::Procedure* p) {
@@ -836,7 +869,18 @@ void CodeGeneratorVisitor::visit(ast::Procedure* p) {
 }
 
 void CodeGeneratorVisitor::visit(ast::Return* r) {
-    visitUniversal(r);
+    visitUniversal(r); // visit expression to derive location
+
+    auto expNode = dynamic_cast<ast::Expression*>(r->getChildren()[0]);
+
+    mOutputS <<
+        "#  Return " + expNode->getCalculationLocation() + "\n"
+        "   mov %eax, " + expNode->getCalculationLocation() + "\n"
+        "   leave\n"
+        "   ret\n"
+    ;
+
+    mRegisterManager.clear_all();
 }
 
 void CodeGeneratorVisitor::visit(ast::Statement* s) {
@@ -913,6 +957,8 @@ void CodeGeneratorVisitor::visit(ast::While* w) {
         "   jmp " + labels.labelTrue + "\n"
         "" + labels.labelEnd + ":\n"
     ;
+
+    mRegisterManager.clear_all();
 }
 
 void CodeGeneratorVisitor::visit(ast::Write* w) {
@@ -950,7 +996,7 @@ void CodeGeneratorVisitor::visit(ast::Write* w) {
         
         if (expression->getType() == ast::Type::Types::Float) {
             formatLocation = "[ offset .io_format + 4 ]";
-            std::string tempLocation = mRegisterManager.get_free_register();
+            // std::string tempLocation = mRegisterManager.get_free_register();
 
             // convert float to double with floating point stack
             mOutputS <<
