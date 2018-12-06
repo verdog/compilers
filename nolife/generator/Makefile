@@ -63,7 +63,7 @@ include $(DEPENDS)
 
 remote-bin: $(TARGET)
 	scp ./asm.S ub32:~/Code/compilers/nolife
-	ssh ub32 'cd ~/Code/compilers/nolife && g++ asm.S -o bin'
+	ssh ub32 'cd ~/Code/compilers/nolife && g++ asm.S -o asm'
 
 remote-test: remote-bin
 	ssh ub32 'cd ~/Code/compilers/nolife && ./bin'

@@ -9,7 +9,7 @@ PROGRAM Flow;
 
 BEGIN
 
-	WRITE('Enter: ');	
+        WRITE('Enter: ');	
 	READ(a);
 	CASE a OF
 	    1,2: WRITE(0);

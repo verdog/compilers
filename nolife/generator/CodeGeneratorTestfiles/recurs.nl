@@ -5,7 +5,7 @@
 {global value of a }
 
 
-PROGRAM foop;
+PROGRAM foo;
   VAR a:INTEGER;
 
 PROCEDURE decls(a:INTEGER);

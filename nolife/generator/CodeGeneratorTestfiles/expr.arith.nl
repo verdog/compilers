@@ -4,8 +4,7 @@ This file test all types of expressions.
 
 PROGRAM Expr;
  VAR i,j,k,l,m:INTEGER;
-     n : ARRAY[3..4] OF INTEGER;
-	 o : INTEGER;
+     n : ARRAY[3..9] OF INTEGER;
 
 
 
