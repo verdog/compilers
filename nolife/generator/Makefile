@@ -1,6 +1,7 @@
 SRCS = nlc.cpp
 OBJS = $(addsuffix .o,$(basename $(SRCS)))
 DEPENDS = $(addprefix .d_, $(basename $(SRCS)))
+NOLIFE = $(wildcard CodeGeneratorTestfiles/*.nl)
 
 ENV = -g
 CXX = g++
@@ -33,6 +34,7 @@ clean:
 		$(MAKE) -C $$dir clean; \
 	done
 	$(RM) $(TARGET) $(TARGET).o .d_*
+	rm -rf assembly
 cpp.o:
 	echo "Compiling" $<
 	$(CXX) -c $(CXXFLAGS) $<
@@ -40,6 +42,15 @@ cpp.o:
 .d_%: %.cpp 
 	echo  "Updating dependences for" $< "..."
 	$(CPP) -MM -MT '$(ARCHIVE)($(basename $<).o)' $(INCLUDES) -MF $@ $<
+
+tests: $(TARGET)
+	mkdir -p assembly
+	$(foreach f, $(NOLIFE), \
+		echo "Making $f..."; \
+		./nlc $f; \
+		echo "Moving $(notdir $f)..."; \
+		mv asm.S assembly/$(addsuffix .S, $(notdir $(basename $f))); \
+	)
 	
 #
 # This includes all of the dependence files. If the file does not exist,
@@ -56,3 +67,11 @@ remote-bin: $(TARGET)
 
 remote-test: remote-bin
 	ssh ub32 'cd ~/Code/compilers/nolife && ./bin'
+
+remote-bin-all: tests
+	$(foreach f, $(wildcard assembly/*.S), \
+		echo "Copying $f..."; \
+		ssh ub32 'mkdir -p ~/Code/compilers/nolife/bin'; \
+		scp $f ub32:~/Code/compilers/nolife/$(addsuffix .S, $(notdir $(basename $f))); \
+		ssh ub32 'cd ~/Code/compilers/nolife && g++ $(addsuffix .S, $(notdir $(basename $f))) -o bin/$(notdir $(basename $f))'; \
+	)
