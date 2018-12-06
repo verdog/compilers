@@ -63,7 +63,7 @@ include $(DEPENDS)
 
 remote-bin: $(TARGET)
 	scp ./asm.S ub32:~/Code/compilers/nolife
-	ssh ub32 'cd ~/Code/compilers/nolife && g++ asm.S -o asm'
+	ssh ub32 'cd ~/Code/compilers/nolife && gcc asm.S -o asm'
 
 remote-test: remote-bin
 	ssh ub32 'cd ~/Code/compilers/nolife && ./bin'
@@ -73,5 +73,5 @@ remote-bin-all: tests
 		echo "Copying $f..."; \
 		ssh ub32 'mkdir -p ~/Code/compilers/nolife/bin'; \
 		scp $f ub32:~/Code/compilers/nolife/$(addsuffix .S, $(notdir $(basename $f))); \
-		ssh ub32 'cd ~/Code/compilers/nolife && g++ $(addsuffix .S, $(notdir $(basename $f))) -o bin/$(notdir $(basename $f))'; \
+		ssh ub32 'cd ~/Code/compilers/nolife && gcc $(addsuffix .S, $(notdir $(basename $f))) -o bin/$(notdir $(basename $f))'; \
 	)

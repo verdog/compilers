@@ -1,19 +1,31 @@
-{ Extremely simple Oard program }
+{ An uninteresting case of recursion, by Dan Kirkpatrick }
 
-PROGRAM Flow;
- VAR x: ARRAY [1..3] OF INTEGER;
+{ Note that since the procedure's call to decls() passes a }
+{ constant, the final assignment (a := 0) should NOT change the }
+{global value of a }
 
-PROCEDURE xd (a: ARRAY [1..3] OF INTEGER);
+
+PROGRAM foo;
+  VAR a:INTEGER;
+
+PROCEDURE decls(a,b:INTEGER);
 BEGIN
-	a[1] := 1;
-	READ(a[2]);
-	x[3] := 3;
-	WRITE(x[3])
+  WRITE(a);
+  WRITE(b);
+  IF (a > 0) THEN
+    decls(a - 1, b MOD 2)
+  ELSE
+    a := 0
+END;
+
+PROCEDURE foo(a, b:INTEGER);
+BEGIN
+  WRITE(a);
+  WRITE(b)
 END;
 
 BEGIN
-	xd(x);
-	WRITE(x[1]);
-	WRITE(x[2]);
-	WRITE(x[3])
+  READ(a);
+  decls(a, 100);
+  foo(a, 10)
 END

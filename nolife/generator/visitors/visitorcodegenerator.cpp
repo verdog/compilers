@@ -373,12 +373,6 @@ void CodeGeneratorVisitor::visit(ast::Call* c) {
     int nextTempOffset = 4;
     auto memMap = mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure];
 
-    // store this esp in edx
-    mOutputS <<
-        "#  Store temporary %esp (which will be the base of the temporary parameter stack) in register\n"
-        "   mov %edx, %esp\n"
-    ;
-
     // forwards
     for (auto it = c->getChildren().begin(); it != c->getChildren().end(); it++) {
         // skip the symbol node
@@ -403,6 +397,12 @@ void CodeGeneratorVisitor::visit(ast::Call* c) {
             extraStack += 4;
         }
     }
+
+    // store this esp in edx
+    mOutputS <<
+        "#  Store temporary %esp (which will be the base of the temporary parameter stack) in register\n"
+        "   lea %edx, [ %esp+" + std::to_string(extraStack) + " ]\n"
+    ;
 
     // backwards
     for (auto it = c->getChildren().rbegin(); it != c->getChildren().rend(); it++) {
@@ -445,7 +445,7 @@ void CodeGeneratorVisitor::visit(ast::Call* c) {
     } else {
         mOutputS <<
             "#  Push main's access link (already on the stack)\n"
-            "   push [ %ebp + 8 ]\n"
+            "   push [ %ebp+8 ]\n"
         ;
     }
 
