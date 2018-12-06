@@ -147,6 +147,7 @@ __L_DONE_1:
 #  READ ( [ %edi ] ) ( ArrayAccess )
    lea %eax, [ %edi ]
    push %eax
+   push [ offset .io_format_in + 0 ]
    call scanf
    add %esp, 8
 #  dword ptr [ %ebp-4 ] + 1 (INT)
@@ -201,9 +202,9 @@ __L_DONE_3:
    add %edx, -84
 #  Add offset
    add %edx, %eax
-   mov %esi, %edx
+   mov %edi, %edx
 #  Printing expression: (NON-FLOAT)
-   push [ %esi ]
+   push [ %edi ]
    push offset .io_format
    call printf
    add %esp, 8
@@ -260,7 +261,28 @@ partition:
 #  Cleared the register manager.
 #  While loop
 __L_TRUE_4:
-   cmp [ _constant + 6 ], 0
+#  Converting int to float
+   push 0
+   fild dword ptr [ %esp ]
+   fstp dword ptr [ %esp ]
+   pop %esi
+#  [ _constant + 6 ] != %esi (FLOAT)
+   push %esi
+   fld dword ptr [ %esp ]
+   push [ _constant + 6 ]
+   fld dword ptr [ %esp ]
+   add %esp, 8
+   fcomip %st(0), %st(1)
+   fstp %st(0) # to clear stack
+   jne __L_TRUE_5
+__L_FALSE_5:
+   mov %edi, 0
+   jmp __L_DONE_5
+__L_TRUE_5:
+   mov %edi, 0xffffffff
+   jmp __L_DONE_5
+__L_DONE_5:
+   cmp %edi, 0
    je __L_DONE_4
 #  dword ptr [ %ebp-8 ] - 1
    mov %edi, dword ptr [ %ebp-8 ]
@@ -270,7 +292,7 @@ __L_TRUE_4:
    mov dword ptr [ %ebp-8 ], %esi
 #  Cleared the register manager.
 #  While loop
-__L_TRUE_5:
+__L_TRUE_6:
 #  Array access: A[dword ptr [ %ebp-8 ]] (GLOBAL)
    mov %eax, dword ptr [ %ebp-8 ]
    sub %eax, 0
@@ -285,25 +307,25 @@ __L_TRUE_5:
 #  [ %edi ] > dword ptr [ %ebp-12 ] (INT)
    mov %eax, [ %edi ]
    cmp %eax, dword ptr [ %ebp-12 ]
-   jg __L_TRUE_6
-__L_FALSE_6:
+   jg __L_TRUE_7
+__L_FALSE_7:
    mov %esi, 0
-   jmp __L_DONE_6
-__L_TRUE_6:
+   jmp __L_DONE_7
+__L_TRUE_7:
    mov %esi, 0xffffffff
-   jmp __L_DONE_6
-__L_DONE_6:
+   jmp __L_DONE_7
+__L_DONE_7:
    cmp %esi, 0
-   je __L_DONE_5
+   je __L_DONE_6
 #  dword ptr [ %ebp-8 ] - 1
    mov %edi, dword ptr [ %ebp-8 ]
    sub %edi, 1
 #  Assignment: j := %edi
-   mov %ebx, %edi
-   mov dword ptr [ %ebp-8 ], %ebx
+   mov %esi, %edi
+   mov dword ptr [ %ebp-8 ], %esi
 #  Cleared the register manager.
-   jmp __L_TRUE_5
-__L_DONE_5:
+   jmp __L_TRUE_6
+__L_DONE_6:
 #  dword ptr [ %ebp-4 ] + 1 (INT)
    mov %edi, dword ptr [ %ebp-4 ]
    add %edi, 1
@@ -312,7 +334,7 @@ __L_DONE_5:
    mov dword ptr [ %ebp-4 ], %esi
 #  Cleared the register manager.
 #  While loop
-__L_TRUE_7:
+__L_TRUE_8:
 #  Array access: A[dword ptr [ %ebp-4 ]] (GLOBAL)
    mov %eax, dword ptr [ %ebp-4 ]
    sub %eax, 0
@@ -327,40 +349,40 @@ __L_TRUE_7:
 #  [ %edi ] < dword ptr [ %ebp-12 ] (INT)
    mov %eax, [ %edi ]
    cmp %eax, dword ptr [ %ebp-12 ]
-   jl __L_TRUE_8
-__L_FALSE_8:
+   jl __L_TRUE_9
+__L_FALSE_9:
    mov %esi, 0
-   jmp __L_DONE_8
-__L_TRUE_8:
+   jmp __L_DONE_9
+__L_TRUE_9:
    mov %esi, 0xffffffff
-   jmp __L_DONE_8
-__L_DONE_8:
+   jmp __L_DONE_9
+__L_DONE_9:
    cmp %esi, 0
-   je __L_DONE_7
+   je __L_DONE_8
 #  dword ptr [ %ebp-4 ] + 1 (INT)
    mov %edi, dword ptr [ %ebp-4 ]
    add %edi, 1
 #  Assignment: i := %edi
-   mov %ebx, %edi
-   mov dword ptr [ %ebp-4 ], %ebx
+   mov %esi, %edi
+   mov dword ptr [ %ebp-4 ], %esi
 #  Cleared the register manager.
-   jmp __L_TRUE_7
-__L_DONE_7:
+   jmp __L_TRUE_8
+__L_DONE_8:
 #  dword ptr [ %ebp-4 ] < dword ptr [ %ebp-8 ] (INT)
    mov %eax, dword ptr [ %ebp-4 ]
    cmp %eax, dword ptr [ %ebp-8 ]
-   jl __L_TRUE_9
-__L_FALSE_9:
+   jl __L_TRUE_10
+__L_FALSE_10:
    mov %edi, 0
-   jmp __L_DONE_9
-__L_TRUE_9:
+   jmp __L_DONE_10
+__L_TRUE_10:
    mov %edi, 0xffffffff
-   jmp __L_DONE_9
-__L_DONE_9:
+   jmp __L_DONE_10
+__L_DONE_10:
 #  If %edi
    cmp %edi, 0
-   je __L_FALSE_10
-__L_TRUE_10:
+   je __L_FALSE_11
+__L_TRUE_11:
 #  Array access: A[dword ptr [ %ebp-4 ]] (GLOBAL)
    mov %eax, dword ptr [ %ebp-4 ]
    sub %eax, 0
@@ -371,10 +393,10 @@ __L_TRUE_10:
    add %edx, -84
 #  Add offset
    add %edx, %eax
-   mov %esi, %edx
-#  Assignment: t := [ %esi ]
-   mov %ebx, [ %esi ]
-   mov dword ptr [ %ebp-16 ], %ebx
+   mov %edi, %edx
+#  Assignment: t := [ %edi ]
+   mov %esi, [ %edi ]
+   mov dword ptr [ %ebp-16 ], %esi
 #  Cleared the register manager.
 #  Array access: A[dword ptr [ %ebp-4 ]] (GLOBAL)
    mov %eax, dword ptr [ %ebp-4 ]
@@ -417,13 +439,13 @@ __L_TRUE_10:
    mov %esi, dword ptr [ %ebp-16 ]
    mov [ %edi ], %esi
 #  Cleared the register manager.
-   jmp __L_DONE_10
-__L_FALSE_10:
+   jmp __L_DONE_11
+__L_FALSE_11:
 #  Return dword ptr [ %ebp-8 ]
    mov %eax, dword ptr [ %ebp-8 ]
    leave
    ret
-__L_DONE_10:
+__L_DONE_11:
    jmp __L_TRUE_4
 __L_DONE_4:
 #  default leave return
@@ -442,47 +464,47 @@ quicksort:
 #  [ %edi ] < [ %esi ] (INT)
    mov %eax, [ %edi ]
    cmp %eax, [ %esi ]
-   jl __L_TRUE_11
-__L_FALSE_11:
+   jl __L_TRUE_12
+__L_FALSE_12:
    mov %ebx, 0
-   jmp __L_DONE_11
-__L_TRUE_11:
+   jmp __L_DONE_12
+__L_TRUE_12:
    mov %ebx, 0xffffffff
-   jmp __L_DONE_11
-__L_DONE_11:
+   jmp __L_DONE_12
+__L_DONE_12:
 #  If %ebx
    cmp %ebx, 0
-   je __L_FALSE_12
-__L_TRUE_12:
+   je __L_FALSE_13
+__L_TRUE_13:
 #  Store temporary %esp (which will be the base of the temporary parameter stack) in register
    mov %edx, %esp
 #  Deference paremeter address
    mov %edi, dword ptr [ %ebp+20 ]
-#  deriveAddress: [ %edi ] -> %edi
+#  deriveAddress: [ %edi ] -> [ %edi ]
 #  Pushing procedure argument (Variable)
-   lea %eax, %edi
+   lea %eax, [ %edi ]
    push %eax
 #  Deference paremeter address
-   mov %esi, dword ptr [ %ebp+16 ]
-#  deriveAddress: [ %esi ] -> %esi
+   mov %edi, dword ptr [ %ebp+16 ]
+#  deriveAddress: [ %edi ] -> [ %edi ]
 #  Pushing procedure argument (Variable)
-   lea %eax, %esi
+   lea %eax, [ %edi ]
    push %eax
 #  Deference paremeter address
-   mov %ecx, dword ptr [ %ebp+12 ]
-#  deriveAddress: [ %ecx ] -> %ecx
+   mov %edi, dword ptr [ %ebp+12 ]
+#  deriveAddress: [ %edi ] -> [ %edi ]
 #  Pushing procedure argument (Variable)
-   lea %eax, %ecx
+   lea %eax, [ %edi ]
    push %eax
 #  Push main's access link (already on the stack)
    push [ %ebp + 8 ]
    call partition
    add %esp, 16
 #  Grab return value
-   mov !!! Ran out of free registers !!!, %eax
-#  Assignment: q := !!! Ran out of free registers !!!
-   mov !!! Ran out of free registers !!!, !!! Ran out of free registers !!!
-   mov dword ptr [ %ebp-4 ], !!! Ran out of free registers !!!
+   mov %edi, %eax
+#  Assignment: q := %edi
+   mov %esi, %edi
+   mov dword ptr [ %ebp-4 ], %esi
 #  Cleared the register manager.
 #  Store temporary %esp (which will be the base of the temporary parameter stack) in register
    mov %edx, %esp
@@ -492,15 +514,15 @@ __L_TRUE_12:
    push %eax
 #  Deference paremeter address
    mov %edi, dword ptr [ %ebp+16 ]
-#  deriveAddress: [ %edi ] -> %edi
+#  deriveAddress: [ %edi ] -> [ %edi ]
 #  Pushing procedure argument (Variable)
-   lea %eax, %edi
+   lea %eax, [ %edi ]
    push %eax
 #  Deference paremeter address
-   mov %esi, dword ptr [ %ebp+12 ]
-#  deriveAddress: [ %esi ] -> %esi
+   mov %edi, dword ptr [ %ebp+12 ]
+#  deriveAddress: [ %edi ] -> [ %edi ]
 #  Pushing procedure argument (Variable)
-   lea %eax, %esi
+   lea %eax, [ %edi ]
    push %eax
 #  Push main's access link (already on the stack)
    push [ %ebp + 8 ]
@@ -509,32 +531,33 @@ __L_TRUE_12:
 #  Store temporary %esp (which will be the base of the temporary parameter stack) in register
    mov %edx, %esp
 #  dword ptr [ %ebp-4 ] + 1 (INT)
-   mov %ebx, dword ptr [ %ebp-4 ]
-   add %ebx, 1
+   mov %edi, dword ptr [ %ebp-4 ]
+   add %edi, 1
 #  Storing expression result on stack
-   push %ebx
+   push %edi
 #  Deference paremeter address
-   mov %ecx, dword ptr [ %ebp+20 ]
-#  deriveAddress: [ %ecx ] -> %ecx
+   mov %edi, dword ptr [ %ebp+20 ]
+#  deriveAddress: [ %edi ] -> [ %edi ]
 #  Pushing procedure argument (Variable)
-   lea %eax, %ecx
+   lea %eax, [ %edi ]
    push %eax
 #  Pushing temporary stack address
    mov %eax, %edx
    sub %eax, 4
    push %eax
 #  Deference paremeter address
-   mov !!! Ran out of free registers !!!, dword ptr [ %ebp+12 ]
+   mov %edi, dword ptr [ %ebp+12 ]
+#  deriveAddress: [ %edi ] -> [ %edi ]
 #  Pushing procedure argument (Variable)
-   lea %eax, [ !!! Ran out of free registers !!! ]
+   lea %eax, [ %edi ]
    push %eax
 #  Push main's access link (already on the stack)
    push [ %ebp + 8 ]
    call quicksort
    add %esp, 20
-   jmp __L_DONE_12
-__L_FALSE_12:
-__L_DONE_12:
+   jmp __L_DONE_13
+__L_FALSE_13:
+__L_DONE_13:
 #  default leave return
    leave
    ret

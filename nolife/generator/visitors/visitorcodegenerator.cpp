@@ -397,6 +397,7 @@ void CodeGeneratorVisitor::visit(ast::Call* c) {
                 "#  Storing expression result on stack\n"
                 "   push " + paramExpNode->getCalculationLocation() + "\n"
             ;
+            mRegisterManager.clear_single(paramExpNode->getCalculationLocation());
             paramExpNode->setTempOffset(nextTempOffset);
             nextTempOffset += 4;
             extraStack += 4;
@@ -422,7 +423,8 @@ void CodeGeneratorVisitor::visit(ast::Call* c) {
                 "#  Pushing procedure argument (Variable)\n"
                 "   lea %eax, " + deriveAddress(paramExpNode->getCalculationLocation()) + "\n"
                 "   push %eax\n"
-            ;   
+            ;
+            mRegisterManager.clear_single(paramExpNode->getCalculationLocation());   
         } else {
             // expression
             mOutputS <<
@@ -812,10 +814,21 @@ void CodeGeneratorVisitor::visit(ast::If* i) {
 
     auto expNode = dynamic_cast<ast::Expression*>(i->getChildren()[0]);
     auto labels = mConditionalLabelManager.generateLabelTriple();
+    std::string tempLocation = expNode->getCalculationLocation();
+
+    if (expNode->getChildren().size() == 1) {
+        // single child expression
+        auto type = ast::Type::Types::Integer;
+        auto tempConstNode = ast::Constant("0", type);
+        auto tempExpNode = ast::Expression(&tempConstNode);
+        tempExpNode.setCalculationLocation("0");
+        tempExpNode.setType(type);
+        tempLocation = printCompare(ast::Expression::Operation::NotEqual, expNode, &tempExpNode);
+    }
 
     mOutputS <<
         "#  If " + expNode->getCalculationLocation() + "\n"
-        "   cmp " + expNode->getCalculationLocation() + ", 0\n"
+        "   cmp " + tempLocation + ", 0\n"
         "   je " + labels.labelFalse + "\n"
         "" + labels.labelTrue + ":\n"
     ;
@@ -941,14 +954,27 @@ void CodeGeneratorVisitor::visit(ast::While* w) {
         "" + labels.labelTrue + ":\n"
     ;
 
+    std::string tempLocation;
     // evaluate expression
     auto condExpNode = dynamic_cast<ast::Expression*>(w->getChildren()[0]);
     condExpNode->accept(*this);
+    tempLocation = condExpNode->getCalculationLocation();
+
+    if (condExpNode->getChildren().size() == 1) {
+        // single child expression
+        auto type = ast::Type::Types::Integer;
+        auto tempConstNode = ast::Constant("0", type);
+        auto tempExpNode = ast::Expression(&tempConstNode);
+        tempExpNode.setCalculationLocation("0");
+        tempExpNode.setType(type);
+        tempLocation = printCompare(ast::Expression::Operation::NotEqual, condExpNode, &tempExpNode);
+    }
 
     mOutputS <<
-        "   cmp " + condExpNode->getCalculationLocation() + ", 0\n"
+        "   cmp " + tempLocation + ", 0\n"
         "   je " + labels.labelEnd + "\n"
     ;
+    mRegisterManager.clear_single(tempLocation);
 
     auto stmtNode = dynamic_cast<ast::Statement*>(w->getChildren()[1]);
     stmtNode->accept(*this);
@@ -1034,6 +1060,9 @@ void CodeGeneratorVisitor::visit(ast::Read* r) {
         std::string image = arrNode->getSymbol()->getImage();
         std::string location = arrNode->getCalculationLocation();
         auto type = mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure][image].type;
+        if (type == ast::Type::Types::Undefined) {
+            type = mMemoryMapVisitor.mProcedureToSymbolsMap["main"][image].type;
+        }
 
         mOutputS <<
             "#  READ ( " + location + " ) ( ArrayAccess )\n"
@@ -1260,7 +1289,7 @@ std::string CodeGeneratorVisitor::deriveAddress(std::string addr) {
         return "[ " + match.str(0) + " ]";
     } else if (std::regex_match(addr, std::regex("\\[ %.{3}((\\+|-)\\d+)? \\]"))) {
         std::smatch match;
-        std::regex_search(addr, match, std::regex("%.{3}((\\+|-)\\d+)?"));
+        std::regex_search(addr, match, std::regex("\\[ %.{3}((\\+|-)\\d+)? \\]"));
         mOutputS << "#  deriveAddress: " << addr << " -> " << match.str(0) << std::endl;
         return match.str(0);
     }
