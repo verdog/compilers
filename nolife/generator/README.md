@@ -35,4 +35,7 @@ The `visitors` directory contains visitors used on the AST.
 There is a type checker visitor, a printer visitor (prints the AST), a memory map visitor, and a code generator visitor.
 `nlc.cpp` sets up the visitors and compiles a Nolife program.
 
+## Notes
+The type checker will complain if the program name in the Nolife file (e.g. `program foo`) collides with the name of a variable or procedure. To fix this, just change the name of the program name.
+
 Written by Josh Chandler for CS 5810.
