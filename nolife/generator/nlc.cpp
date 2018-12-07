@@ -40,17 +40,21 @@ int main(int argc, char *argv[]) {
 
     PrintVisitor p;
     TypeCheckVisitor t;
-    MemoryMapVisitor mm(std::cout, std::cout);
 
-    std::ofstream outputFile;
+    std::ofstream outputFileMemory(std::string(argv[1]) + ".mem");
 
-    outputFile.open("asm.S");
+    MemoryMapVisitor mm(outputFileMemory, std::cout);
 
-    CodeGeneratorVisitor cg(outputFile, std::cout, t, mm);
+    std::ofstream outputFileAssembly;
+
+    outputFileAssembly.open("asm.S");
+
+    CodeGeneratorVisitor cg(outputFileAssembly, std::cout, t, mm);
     
     // gASTRoot->accept(p);
     gASTRoot->accept(cg);
     gASTRoot->accept(p);
 
-    std::cout << "Output assembly to asm.S.\n";
+    std::cout << "Output assembly to asm.S\n";
+    std::cout << "Output memory map to " << argv[1] << ".mem\n";
 }

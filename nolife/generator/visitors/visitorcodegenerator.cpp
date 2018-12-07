@@ -140,7 +140,7 @@ void CodeGeneratorVisitor::visit(ast::Program* p) {
     if (!mMemoryMapVisitor.mDone) {
         // mLogS << "Detected missing memory map. Creating now.\n";
         p->accept(mMemoryMapVisitor);
-        mMemoryMapVisitor.dumpOutput(mLogS);
+        mMemoryMapVisitor.dumpOutput(mMemoryMapVisitor.mOutputS);
     }
 
     initialize(); // output default header info

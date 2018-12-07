@@ -53,6 +53,7 @@ class MemoryMapVisitor : public Visitor {
 
         void visitUniversal(ast::Base* b);
 
+        std::ostream& mOutputS;
         void dumpOutput(std::ostream& out);
     private:
         using tSymbolToInfoMap = std::map<std::string, MemoryInfo>;
@@ -70,5 +71,4 @@ class MemoryMapVisitor : public Visitor {
         int mCurrentConstantOffset;
         
         std::ostream& mLogS;
-        std::ostream& mOutputS;
 };
