@@ -35,6 +35,7 @@ clean:
 	done
 	$(RM) $(TARGET) $(TARGET).o .d_*
 	rm -rf assembly
+	rm asm.S
 cpp.o:
 	echo "Compiling" $<
 	$(CXX) -c $(CXXFLAGS) $<
