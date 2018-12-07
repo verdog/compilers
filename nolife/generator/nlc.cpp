@@ -48,8 +48,9 @@ int main(int argc, char *argv[]) {
 
     CodeGeneratorVisitor cg(outputFile, std::cout, t, mm);
     
-    gASTRoot->accept(p);
+    // gASTRoot->accept(p);
     gASTRoot->accept(cg);
     gASTRoot->accept(p);
 
+    std::cout << "Output assembly to asm.S.\n";
 }

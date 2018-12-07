@@ -17,7 +17,7 @@ std::string RegisterManager::get_free_register() {
     for (auto &map_pair : mRegisterMap) {
         if (map_pair.second == true) {
             map_pair.second = false;
-            std::cout << "Granted " << map_pair.first << "!\n";
+            // std::cout << "Granted " << map_pair.first << "!\n";
             return map_pair.first;
         }
     }
@@ -46,7 +46,7 @@ void RegisterManager::clear_single(std::string location) {
         location = match.str(0);
     }
     
-    std::cout << "Cleared " << location << "!\n";
+    // std::cout << "Cleared " << location << "!\n";
 
     if (mRegisterMap.count(location) == 1) {
         mRegisterMap[location] = true;
@@ -57,7 +57,7 @@ void RegisterManager::clear_single(std::string location) {
 }
 
 void RegisterManager::clear_all() {
-    std::cout << "Cleared all registers!\n";
+    // std::cout << "Cleared all registers!\n";
 
     for (auto &map_pair : mRegisterMap) {
         map_pair.second = true;

@@ -133,12 +133,12 @@ void CodeGeneratorVisitor::visit(ast::Base* b) {
 void CodeGeneratorVisitor::visit(ast::Program* p) {
     // make sure we have a type map and a memory map
     if (!mTypeCheckVisitor.mDone) {
-        mLogS << "Detected missing symbol table. Creating now.\n";
+        // mLogS << "Detected missing symbol table. Creating now.\n";
         p->accept(mTypeCheckVisitor);
     }
 
     if (!mMemoryMapVisitor.mDone) {
-        mLogS << "Detected missing memory map. Creating now.\n";
+        // mLogS << "Detected missing memory map. Creating now.\n";
         p->accept(mMemoryMapVisitor);
         mMemoryMapVisitor.dumpOutput(mLogS);
     }
@@ -171,7 +171,7 @@ void CodeGeneratorVisitor::visit(ast::Program* p) {
     // generate code for procedures in procedure queue
     while (!mProcQueue.empty()) {
         mOutputS << "# ---------------------------------------------------------------------------- #\n";
-        mLogS << "Processing procedure " << mProcQueue.front()->getSymbol()->getImage() << "\n";
+        // mLogS << "Processing procedure " << mProcQueue.front()->getSymbol()->getImage() << "\n";
         mProcQueue.front()->accept(*this);
         mProcQueue.pop();
     }
@@ -180,7 +180,7 @@ void CodeGeneratorVisitor::visit(ast::Program* p) {
 }
 
 void CodeGeneratorVisitor::visit(ast::Declaration* d) {
-    mLogS << "Visiting a decl node. Current procedure is " << mCurrentProcedure << std::endl;
+    // mLogS << "Visiting a decl node. Current procedure is " << mCurrentProcedure << std::endl;
     auto children = d->getChildren();
     auto memMap = mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure];
 
@@ -217,7 +217,7 @@ void CodeGeneratorVisitor::visit(ast::Declaration* d) {
             } else {
                 // procedure, add to processing queue
                 auto procNode = typeNode->childAsProcedure();
-                mLogS << "added procedure " << procNode->getSymbol()->getImage() << " to procedure queue.\n";
+                // mLogS << "added procedure " << procNode->getSymbol()->getImage() << " to procedure queue.\n";
                 mProcQueue.push(procNode);
             }
         }
@@ -376,7 +376,7 @@ void CodeGeneratorVisitor::visit(ast::Call* c) {
 
     // push registers
     mOutputS << "#  Saving registers\n";
-    mLogS << "Saving regs\n";
+    // mLogS << "Saving regs\n";
     auto free_regs = mRegisterManager.get_all_free_registers();
     auto freecheck = [this](std::string reg) { return mRegisterManager.get_eligibility(reg); };
     free_regs.erase(std::remove_if(free_regs.begin(), free_regs.end(), freecheck), free_regs.end());
@@ -468,7 +468,7 @@ void CodeGeneratorVisitor::visit(ast::Call* c) {
 
     // recover registers
     mOutputS << "#  Recovering registers\n";
-    mLogS << "Recovering regs\n";
+    // mLogS << "Recovering regs\n";
     for (auto it = free_regs.rbegin(); it != free_regs.rend(); it++) {
         mOutputS << "   push " + *it + "\n";
     }

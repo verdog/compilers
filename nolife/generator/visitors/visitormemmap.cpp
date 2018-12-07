@@ -87,7 +87,7 @@ void MemoryMapVisitor::visit(ast::Base* b) {
 
 void MemoryMapVisitor::visit(ast::Program* p) {
     std::string programName = p->getSymbol()->getImage();
-    mLogS << "visited program node. (" << programName << ")\n";
+    // mLogS << "visited program node. (" << programName << ")\n";
 
     mFrameStack.push_back("main");
     resetOffsets();
@@ -100,7 +100,7 @@ void MemoryMapVisitor::visit(ast::Program* p) {
 
 void MemoryMapVisitor::visit(ast::Declaration* d) {
     auto currentProcedure = mFrameStack.back();
-    mLogS << "visited declaration node of " << currentProcedure << ".\n";
+    // mLogS << "visited declaration node of " << currentProcedure << ".\n";
 
     for (auto node : d->getChildren()) {
         auto typeNode = dynamic_cast<ast::Type*>(node);
@@ -130,14 +130,14 @@ void MemoryMapVisitor::visit(ast::Declaration* d) {
 }
 
 void MemoryMapVisitor::visit(ast::CompoundStatement* cs) {
-    mLogS << "visited compound statement node of " << mFrameStack.back() << ".\n";
+    // mLogS << "visited compound statement node of " << mFrameStack.back() << ".\n";
 
     visitUniversal(cs);
 }
 
 void MemoryMapVisitor::visit(ast::Parameters* p) {
     auto currentProcedure = mFrameStack.back();
-    mLogS << "visited parameter node of " << currentProcedure << ".\n";
+    // mLogS << "visited parameter node of " << currentProcedure << ".\n";
 
     for (auto node : p->getChildren()) {
         auto typeNode = dynamic_cast<ast::Type*>(node);
@@ -220,11 +220,11 @@ void MemoryMapVisitor::visit(ast::Clause* c) {
 }
 
 void MemoryMapVisitor::visit(ast::Constant* c) {
-    mLogS << "visited constant node. (" << c->getImage() << ")\n";
+    // mLogS << "visited constant node. (" << c->getImage() << ")\n";
 
     auto image = c->getImage();
     auto type = c->getType();
-    mLogS << "  type: " << ast::typeToString(type) << std::endl;
+    // mLogS << "  type: " << ast::typeToString(type) << std::endl;
 
     if (mConstantMap.count(image) < 1) {
         if (type == ast::Type::Types::Integer) {
@@ -255,7 +255,7 @@ void MemoryMapVisitor::visit(ast::Constant* c) {
         }
     } else {
         // we have already stored this constant somewhere. do nothing
-        mLogS << "detected repeated constant: " << image << std::endl;
+        // mLogS << "detected repeated constant: " << image << std::endl;
     }
 
     visitUniversal(c);
@@ -270,7 +270,7 @@ void MemoryMapVisitor::visit(ast::If* i) {
 }
 
 void MemoryMapVisitor::visit(ast::Procedure* p) {
-    mLogS << "visited procedure node. (" << p->getSymbol()->getImage() << ")\n";
+    // mLogS << "visited procedure node. (" << p->getSymbol()->getImage() << ")\n";
 
     mFrameStack.push_back(p->getSymbol()->getImage());
     resetOffsets();
