@@ -38,16 +38,18 @@ int main(int argc, char *argv[]) {
     // re-enable cout
     std::cout.clear();
 
+    std::string baseFilename = std::string(argv[1]).substr(0, std::string(argv[1]).length() - 3);
+
     PrintVisitor p;
     TypeCheckVisitor t;
 
-    std::ofstream outputFileMemory(std::string(argv[1]) + ".mem");
+    std::ofstream outputFileMemory(baseFilename + ".mem");
 
     MemoryMapVisitor mm(outputFileMemory, std::cout);
 
     std::ofstream outputFileAssembly;
 
-    outputFileAssembly.open("asm.S");
+    outputFileAssembly.open(baseFilename + ".S");
 
     CodeGeneratorVisitor cg(outputFileAssembly, std::cout, t, mm);
     
@@ -55,6 +57,6 @@ int main(int argc, char *argv[]) {
     gASTRoot->accept(cg);
     gASTRoot->accept(p);
 
-    std::cout << "Output assembly to asm.S\n";
-    std::cout << "Output memory map to " << argv[1] << ".mem\n";
+    std::cout << "Output assembly to " << baseFilename << ".S\n";
+    std::cout << "Output memory map to " << baseFilename << ".mem\n";
 }

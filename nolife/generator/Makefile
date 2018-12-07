@@ -34,8 +34,7 @@ clean:
 		$(MAKE) -C $$dir clean; \
 	done
 	$(RM) $(TARGET) $(TARGET).o .d_*
-	rm -rf assembly
-	rm asm.S
+	rm CodeGeneratorTestfiles/*.mem CodeGeneratorTestfiles/*.S *.S *.mem
 cpp.o:
 	echo "Compiling" $<
 	$(CXX) -c $(CXXFLAGS) $<
@@ -45,12 +44,9 @@ cpp.o:
 	$(CPP) -MM -MT '$(ARCHIVE)($(basename $<).o)' $(INCLUDES) -MF $@ $<
 
 tests: $(TARGET)
-	mkdir -p assembly
 	$(foreach f, $(NOLIFE), \
 		echo "Making $f..."; \
 		./nlc $f; \
-		echo "Moving $(notdir $f)..."; \
-		mv asm.S assembly/$(addsuffix .S, $(notdir $(basename $f))); \
 	)
 	
 #
@@ -70,7 +66,7 @@ remote-test: remote-bin
 	ssh ub32 'cd ~/Code/compilers/nolife && ./bin'
 
 remote-bin-all: tests
-	$(foreach f, $(wildcard assembly/*.S), \
+	$(foreach f, $(wildcard CodeGeneratorTestfiles/*.S), \
 		echo "Copying $f..."; \
 		ssh ub32 'mkdir -p ~/Code/compilers/nolife/bin'; \
 		scp $f ub32:~/Code/compilers/nolife/$(addsuffix .S, $(notdir $(basename $f))); \
