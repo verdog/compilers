@@ -2,6 +2,7 @@
 #include <string>
 #include <algorithm>
 #include <sstream>
+#include <algorithm>
 #include <regex>
 
 #include "visitorcodegenerator.hpp"
@@ -373,6 +374,16 @@ void CodeGeneratorVisitor::visit(ast::Call* c) {
     int nextTempOffset = 4;
     auto memMap = mMemoryMapVisitor.mProcedureToSymbolsMap[mCurrentProcedure];
 
+    // push registers
+    mOutputS << "#  Saving registers\n";
+    mLogS << "Saving regs\n";
+    auto free_regs = mRegisterManager.get_all_free_registers();
+    auto freecheck = [this](std::string reg) { return mRegisterManager.get_eligibility(reg); };
+    free_regs.erase(std::remove_if(free_regs.begin(), free_regs.end(), freecheck), free_regs.end());
+    for (auto reg : free_regs) {
+        mOutputS << "   push " + reg + "\n";
+    }
+
     // forwards
     for (auto it = c->getChildren().begin(); it != c->getChildren().end(); it++) {
         // skip the symbol node
@@ -454,6 +465,13 @@ void CodeGeneratorVisitor::visit(ast::Call* c) {
         "   call " + funcName + "\n"
         "   add %esp, " + std::to_string(extraStack + 4 + (c->getChildren().size() - 1) * 4) + "\n"
     ;
+
+    // recover registers
+    mOutputS << "#  Recovering registers\n";
+    mLogS << "Recovering regs\n";
+    for (auto it = free_regs.rbegin(); it != free_regs.rend(); it++) {
+        mOutputS << "   push " + *it + "\n";
+    }
 }
 
 void CodeGeneratorVisitor::visit(ast::CaseLabels* cl) {

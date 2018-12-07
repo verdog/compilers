@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <string>
 #include <unordered_map>
 
@@ -9,6 +10,7 @@ class RegisterManager {
 
         std::string get_free_register();
         bool get_eligibility(std::string reg);
+        std::vector<std::string> get_all_free_registers();
         void clear_single(std::string location);
         void clear_all();
     private:

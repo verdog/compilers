@@ -67,3 +67,13 @@ void RegisterManager::clear_all() {
         mAllocatedBytes = 0;
     }
 }
+
+std::vector<std::string> RegisterManager::get_all_free_registers() {
+    std::vector<std::string> free_regs;
+    for (auto pair : mRegisterMap) {
+        if (get_eligibility(pair.first)) {
+            free_regs.push_back(pair.first);
+        }
+    }
+    return free_regs;
+}
